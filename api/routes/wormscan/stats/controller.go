@@ -273,6 +273,15 @@ func (c *Controller) GetNativeTokenTransferAddressTop(ctx *fiber.Ctx) error {
 	return ctx.JSON(response)
 }
 
+// GetNativeTokenTransferTopHolder godoc
+// @Description Returns a list of volume and chain of the Native Token Transfer for top holders.
+// @Tags wormholescan
+// @ID /api/v1/native-token-transfer/top-holder
+// @Param symbol query string true "Symbol of the token. Currently only supports W."
+// @Success 200 {object} []stats.NativeTokenTransferTopHolder
+// @Failure 400
+// @Failure 500
+// @Router /api/v1/native-token-transfer/top-holder [get]
 func (c *Controller) GetNativeTokenTransferTopHolder(ctx *fiber.Ctx) error {
 	symbolParam, err := middleware.ExtractSymbol(ctx)
 	if err != nil {

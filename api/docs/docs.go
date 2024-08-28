@@ -823,6 +823,41 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/native-token-transfer/top-holder": {
+            "get": {
+                "description": "Returns a list of volume of the Native Token Transfer for holder.",
+                "tags": [
+                    "wormholescan"
+                ],
+                "operationId": "/api/v1/native-token-transfer/top-holder",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Symbol of the token. Currently only supports W.",
+                        "name": "symbol",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/stats.NativeTokenTransferTopHolder"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/api/v1/native-token-transfer/transfer-by-time": {
             "get": {
                 "description": "Returns a list of values (tx count or notional) of the Native Token Transfer for a emitter and destination chains.",
@@ -3649,6 +3684,20 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "value": {
+                    "type": "number"
+                }
+            }
+        },
+        "stats.NativeTokenTransferTopHolder": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "chain": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "volume": {
                     "type": "number"
                 }
             }
