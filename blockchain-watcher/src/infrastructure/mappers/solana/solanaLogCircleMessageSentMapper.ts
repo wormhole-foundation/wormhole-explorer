@@ -10,7 +10,7 @@ import { Connection } from "@solana/web3.js";
 import winston from "winston";
 
 const WORMHOLE_CORE_CONTRACT = "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth";
-const WORMHOLE_METHOD = "d42f22345b20b0cc";
+const WORMHOLE_METHOD = "01";
 
 const connection = new Connection(configuration.chains.solana.rpcs[0]);
 const messageTransmitter = new Program<MessageTransmitter>(
@@ -72,7 +72,7 @@ const processProgram = async (
   // Deserialize the account content to get the message data
   const [message, _] = CircleBridge.deserialize(accountContent!.message);
   const circleMessageSent = mappedCircleMessageSent(message, environment);
-  const messageProtocol = mappedMessageProtocol(tx);
+  const messageProtocol = mappedMessageProtocol(tx, innerInstructions);
 
   logger.info(
     `[solana] Circle message sent event info: [tx: ${hash}] [protocol: ${circleMessageSent.protocol} - ${messageProtocol}]`
@@ -129,15 +129,25 @@ const mappedCircleMessageSent = (
   };
 };
 
-// TODO: Validate inner instruction data
-const mappedMessageProtocol = (tx: solana.Transaction): string => {
+const mappedMessageProtocol = (
+  tx: solana.Transaction,
+  innerInstructions: web3.MessageCompiledInstruction[]
+): string => {
+  // Search the index of the programId wormhole core contract in the account keys if it exists
   const programIndexWH = tx.transaction.message.accountKeys.findIndex(
     (i) => i === WORMHOLE_CORE_CONTRACT
   );
-  logger.info(
-    `[solana] Mapping method [tx: ${tx.transaction.signatures[0]}] [programIndexWH: ${programIndexWH}]`
-  );
-  return programIndexWH !== -1 ? MessageProtocol.Wormhole : MessageProtocol.None;
+
+  if (programIndexWH !== -1) {
+    const innerInstruction = innerInstructions.find((ix) => ix.programIdIndex === programIndexWH);
+    if (innerInstruction) {
+      const hexData = Buffer.from(innerInstruction.data).toString("hex");
+      if (hexData.startsWith(WORMHOLE_METHOD)) {
+        return MessageProtocol.Wormhole;
+      }
+    }
+  }
+  return MessageProtocol.None;
 };
 
 interface ProgramParams {
