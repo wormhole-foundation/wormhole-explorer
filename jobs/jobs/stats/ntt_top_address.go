@@ -10,26 +10,27 @@ import (
 	"go.uber.org/zap"
 )
 
-type NttTopAddressJob struct {
+type NTTTopAddressJob struct {
 	statsRepositorty *stats.AddressRepository
 	logger           *zap.Logger
 }
 
-// NewNttTopAddressJob creates a new NttTopAddressJob.
-func NewNttTopAddressJob(influxCli influxdb2.Client, org string, bucketInfiniteRetention string,
-	cacheClient cache.Cache, logger *zap.Logger) *NttTopAddressJob {
-	return &NttTopAddressJob{
+// NewNTTTopAddressJob creates a new NttTopAddressJob.
+func NewNTTTopAddressJob(influxCli influxdb2.Client, org string, bucketInfiniteRetention string,
+	cacheClient cache.Cache, logger *zap.Logger) *NTTTopAddressJob {
+	return &NTTTopAddressJob{
 		statsRepositorty: stats.NewAddressRepository(influxCli, org, bucketInfiniteRetention, cacheClient, logger),
 		logger:           logger,
 	}
 }
 
 // Run runs the transfer report job.
-func (j *NttTopAddressJob) Run(ctx context.Context) error {
+func (j *NTTTopAddressJob) Run(ctx context.Context) error {
 
 	j.logger.Info("running ntt top address job")
 
-	duration := 1 * time.Hour
+	// Duration in 0 means no expiration
+	duration := time.Duration(0)
 
 	err := j.statsRepositorty.LoadNativeTokenTransferTopAddress(ctx, "W", true, duration)
 	if err != nil {

@@ -79,7 +79,7 @@ type MigrateNativeTxHashConfiguration struct {
 	PageSize      int    `env:"PAGE_SIZE,default=100"`
 }
 
-type NTTAddressStatsConfiguration struct {
+type NTTTopAddressStatsConfiguration struct {
 	InfluxUrl            string `env:"INFLUX_URL,required"`
 	InfluxToken          string `env:"INFLUX_TOKEN,required"`
 	InfluxOrganization   string `env:"INFLUX_ORGANIZATION,required"`
@@ -89,10 +89,11 @@ type NTTAddressStatsConfiguration struct {
 }
 
 type NTTTopHolderStatsConfiguration struct {
-	ArkhamUrl    string `env:"ARKHAM_URL,required"`
-	ArkhamApiKey string `env:"ARKHAM_API_KEY,required"`
-	SolanaUrl    string `env:"SOLANA_URL,required"`
-	SolanaApiKey string `env:"SOLANA_API_KEY,required"`
-	CacheUrl     string `env:"CACHE_URL,required"`
-	CachePrefix  string `env:"CACHE_PREFIX,required"`
+	P2pNetwork           string `env:"P2P_NETWORK,required"`
+	ArkhamUrl            string `env:"ARKHAM_URL,required"`
+	ArkhamApiKey         string `env:"ARKHAM_API_KEY,required"`
+	SolanaUrl            string `env:"SOLANA_URL,required"`
+	CacheUrl             string `env:"CACHE_URL,required"`
+	CachePrefix          string `env:"CACHE_PREFIX,required"`
+	CacheNotionalChannel string `env:"CACHE_NOTIONAL_CHANNEL,required"`
 }

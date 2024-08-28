@@ -280,7 +280,7 @@ func (c *Controller) GetNativeTokenTransferTopHolder(ctx *fiber.Ctx) error {
 	}
 
 	symbol := strings.ToUpper(symbolParam)
-	holders, err := c.srv.GetTopHolder(ctx.Context(), symbol)
+	holders, err := c.srv.GetNativeTokenTransferTopHolder(ctx.Context(), symbol)
 	if err != nil {
 		return err
 	}

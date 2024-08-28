@@ -30,7 +30,8 @@ type TokenProvider struct {
 	tokenMetadata              []TokenMetadata
 	tokenMetadataByContractID  map[string]*TokenMetadata
 	tokenMetadataByCoingeckoID map[string]*TokenMetadata
-	CoingeckIdBySymbol         map[string]string
+	coingeckIdBySymbol         map[string]string
+	tokenMetadataBySymbol      map[string][]*TokenMetadata
 }
 
 func (t *TokenMetadata) GetTokenID() string {
@@ -56,6 +57,7 @@ func NewTokenProvider(p2pNetwork string) *TokenProvider {
 	tokenMetadataByContractID := make(map[string]*TokenMetadata)
 	tokenMetadataByCoingeckoID := make(map[string]*TokenMetadata)
 	coingeckoIDBySymbol := make(map[string]string)
+	tokenMetadataBySymbol := make(map[string][]*TokenMetadata)
 
 	for i := range tokenMetadata {
 		// populate the map `tokenMetadataByCoingeckoID`
@@ -73,13 +75,15 @@ func NewTokenProvider(p2pNetwork string) *TokenProvider {
 		// populete the map `coingeckoIDBySymbol`.
 		symbol := strings.ToUpper(tokenMetadata[i].Symbol.String())
 		coingeckoIDBySymbol[symbol] = tokenMetadata[i].CoingeckoID
+		tokenMetadataBySymbol[symbol] = append(tokenMetadataBySymbol[symbol], &tokenMetadata[i])
 	}
 	return &TokenProvider{
 		p2pNetwork:                 p2pNetwork,
 		tokenMetadata:              tokenMetadata,
 		tokenMetadataByContractID:  tokenMetadataByContractID,
 		tokenMetadataByCoingeckoID: tokenMetadataByCoingeckoID,
-		CoingeckIdBySymbol:         coingeckoIDBySymbol,
+		tokenMetadataBySymbol:      tokenMetadataBySymbol,
+		coingeckIdBySymbol:         coingeckoIDBySymbol,
 	}
 }
 
@@ -137,9 +141,18 @@ func (t *TokenProvider) GetTokenByAddress(tokenChain sdk.ChainID, tokenAddress s
 }
 
 func (t *TokenProvider) GetCoingeckoIDBySymbol(symbol string) string {
-	return t.CoingeckIdBySymbol[symbol]
+	return t.coingeckIdBySymbol[symbol]
 }
 
 func (t *TokenProvider) GetP2pNewtork() string {
 	return t.p2pNetwork
+}
+
+func (t *TokenProvider) GetTokensBySymbol(symbol string) ([]*TokenMetadata, bool) {
+	symbol = strings.ToUpper(symbol)
+	tokens, ok := t.tokenMetadataBySymbol[symbol]
+	if !ok {
+		return nil, false
+	}
+	return tokens, true
 }

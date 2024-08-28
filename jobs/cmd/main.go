@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbconsts"
 	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/protocols"
 	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/protocols/repository"
@@ -18,6 +19,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/configuration"
 
 	"github.com/go-redis/redis/v8"
+	wormscanNotionalCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	txtrackerProcessVaa "github.com/wormhole-foundation/wormhole-explorer/common/client/txtracker"
 	common "github.com/wormhole-foundation/wormhole-explorer/common/coingecko"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
@@ -95,8 +97,8 @@ func main() {
 	case jobs.JobIDMigrationNativeTxHash:
 		job := initMigrateNativeTxHashJob(ctx, logger)
 		err = job.Run(ctx)
-	case jobs.JobIDNTTAddressStats:
-		job := initNTTAddressStatsJob(ctx, logger)
+	case jobs.JobIDNTTTopAddressStats:
+		job := initNTTTopAddressStatsJob(ctx, logger)
 		err = job.Run(ctx)
 	case jobs.JobIDNTTTopHolderStats:
 		job := initNTTTopHolderStatsJob(ctx, logger)
@@ -166,7 +168,7 @@ func initHistoricalPricesJob(ctx context.Context, cfg *config.HistoricalPricesCo
 	return notionalJob
 }
 
-func initMigrateSourceTxJob(ctx context.Context, cfg *config.MigrateSourceTxConfiguration, chainID sdk.ChainID, logger *zap.Logger) *migration.MigrateSourceChainTx {
+func initMigrateSourceTxJob(ctx context.Context, cfg *config.MigrateSourceTxConfiguration, _ sdk.ChainID, logger *zap.Logger) *migration.MigrateSourceChainTx {
 	//setup DB connection
 	db, err := dbutil.Connect(ctx, logger, cfg.MongoURI, cfg.MongoDatabase, false)
 	if err != nil {
@@ -261,8 +263,8 @@ func initMigrateNativeTxHashJob(ctx context.Context, logger *zap.Logger) *migrat
 	return migration.NewMigrationNativeTxHash(db.Database, cfgJob.PageSize, logger)
 }
 
-func initNTTAddressStatsJob(ctx context.Context, logger *zap.Logger) *stats.NttTopAddressJob {
-	cfgJob, errCfg := configuration.LoadFromEnv[config.NTTAddressStatsConfiguration](ctx)
+func initNTTTopAddressStatsJob(ctx context.Context, logger *zap.Logger) *stats.NTTTopAddressJob {
+	cfgJob, errCfg := configuration.LoadFromEnv[config.NTTTopAddressStatsConfiguration](ctx)
 	if errCfg != nil {
 		log.Fatal("error creating config", errCfg)
 	}
@@ -279,14 +281,34 @@ func initNTTAddressStatsJob(ctx context.Context, logger *zap.Logger) *stats.NttT
 		log.Fatal("error creating cache client", err)
 	}
 
-	return stats.NewNttTopAddressJob(influxClient, cfgJob.InfluxOrganization, cfgJob.InfluxBucketInfinite, cache, logger)
+	return stats.NewNTTTopAddressJob(influxClient, cfgJob.InfluxOrganization, cfgJob.InfluxBucketInfinite, cache, logger)
 }
 
-func initNTTTopHolderStatsJob(ctx context.Context, logger *zap.Logger) *stats.NttTopHolderJob {
-	cfgJob, errCfg := configuration.LoadFromEnv[config.NTTTopHolderConfiguration](ctx)
+func initNTTTopHolderStatsJob(ctx context.Context, logger *zap.Logger) *stats.NTTTopHolderJob {
+	cfgJob, errCfg := configuration.LoadFromEnv[config.NTTTopHolderStatsConfiguration](ctx)
 	if errCfg != nil {
 		log.Fatal("error creating config", errCfg)
 	}
+
+	// init redis client.
+	redisClient := redis.NewClient(&redis.Options{Addr: cfgJob.CacheUrl})
+
+	// init cache client.
+	cache, err := cache.NewCacheClient(redisClient, true, cfgJob.CachePrefix, logger)
+	if err != nil {
+		log.Fatal("error creating cache client", err)
+	}
+
+	tokenProvider := domain.NewTokenProvider(cfgJob.P2pNetwork)
+
+	// get notional cache client and init load to local cache
+	notionalCache, err := wormscanNotionalCache.NewNotionalCache(ctx, redisClient, cfgJob.CachePrefix, cfgJob.CacheNotionalChannel, logger)
+	if err != nil {
+		log.Fatal("failed to create notional cache client", err)
+	}
+	notionalCache.Init(ctx)
+
+	return stats.NewNTTTopHolderJob(resty.New(), cfgJob.ArkhamUrl, cfgJob.ArkhamApiKey, cfgJob.SolanaUrl, cache, tokenProvider, notionalCache, logger)
 }
 
 func handleExit() {

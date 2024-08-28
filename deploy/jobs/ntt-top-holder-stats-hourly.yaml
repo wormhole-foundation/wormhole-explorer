@@ -1,0 +1,52 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ntt-top-holder-stats-hourly
+  namespace: {{ .NAMESPACE }}
+spec: #cronjob specs
+  schedule: "0 * * * *"
+  jobTemplate:
+    spec: # job specs
+      template:
+        spec: # pod specs
+          containers:
+            - name: ntt-top-holder-stats-hourly
+              image: {{ .IMAGE_NAME }}
+              imagePullPolicy: Always
+              env:
+                - name: ENVIRONMENT
+                  value: {{ .ENVIRONMENT }}
+                - name: LOG_LEVEL
+                  value: {{ .LOG_LEVEL }}
+                - name: JOB_ID
+                  value: JOB_NTT_TOP_HOLDER_STATS
+                - name: P2P_NETWORK
+                  value: {{ .P2P_NETWORK }}
+                - name: CACHE_NOTIONAL_CHANNEL
+                  value: {{ .NOTIONAL_CHANNEL }}
+                - name: CACHE_URL
+                  valueFrom:
+                    configMapKeyRef:
+                      name: config
+                      key: redis-uri
+                - name: CACHE_PREFIX
+                  valueFrom:
+                    configMapKeyRef:
+                      name: config
+                      key: redis-prefix                  
+                - name: ARKHAM_URL
+                  valueFrom:
+                    configMapKeyRef:
+                      name: jobs
+                      key: arkham-url
+                - name: ARKHAM_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: jobs
+                      key: arkham-api-key
+                - name: SOLANA_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: jobs
+                      key: solana-url
+          restartPolicy: OnFailure

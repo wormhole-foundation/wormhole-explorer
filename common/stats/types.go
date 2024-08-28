@@ -18,7 +18,7 @@ type NativeTokenTransferTopAddress struct {
 type NativeTokenTransferTopHolder struct {
 	Address string          `json:"address"`
 	ChainID sdk.ChainID     `json:"chain"`
-	Value   decimal.Decimal `json:"value"`
+	Volume  decimal.Decimal `json:"volume"`
 }
 
 type cachedResult[T any] struct {
