@@ -1485,14 +1485,19 @@ func (r *Repository) buildTotalsAppActivityQuery(q ApplicationActivityQuery) str
 
 	var measurement string
 	var bucket string
+	var from, to time.Time
 
 	switch q.Timespan {
 	case "1h":
 		measurement = "|> filter(fn: (r) => r._measurement == \"protocols_stats_totals_1h\")"
 		bucket = r.bucket30DaysRetention
+		from = q.From.Truncate(1 * time.Hour)
+		to = q.To.Truncate(1 * time.Hour)
 	default: // default is 1d
 		measurement = "|> filter(fn: (r) => r._measurement == \"protocols_stats_totals_1d\" and r.version == \"v1\")"
 		bucket = r.bucketInfiniteRetention
+		from = q.From.Truncate(24 * time.Hour)
+		to = q.To.Truncate(24 * time.Hour)
 	}
 
 	filterByAppId := ""
@@ -1506,7 +1511,6 @@ func (r *Repository) buildTotalsAppActivityQuery(q ApplicationActivityQuery) str
 
 	query := `
 			import "date"
-			import "join"
 
 			allData = from(bucket: "%s")
 						|> range(start: %s,stop: %s)
@@ -1516,45 +1520,54 @@ func (r *Repository) buildTotalsAppActivityQuery(q ApplicationActivityQuery) str
 			
 			totalMsgs = allData
 						|> filter(fn: (r) => r._field == "total_messages")
-						|> group(columns:["_time","app_id"])
+						|> aggregateWindow(every: %s, fn: sum,createEmpty:true)
+						|> map(fn: (r) => ({
+								r with
+								_value: if not exists r._value then uint(v:0) else uint(v:r._value)
+     						}))
+						|> group(columns:["_time","app_id","_field"])
 						|> sum()
-						|> rename(columns: {_value: "total_messages"})
 						
 			tvt = allData
 						|> filter(fn: (r) => r._field == "total_value_transferred")
-						|> group(columns:["_time","app_id"])
+						|> aggregateWindow(every: %s, fn: sum, createEmpty:true)
+						|> map(fn: (r) => ({
+								r with
+								_value: if not exists r._value then uint(v:0) else r._value
+     						}))
+						|> group(columns:["_time","app_id","_field"])
 						|> sum()
-						|> rename(columns: {_value: "total_value_transferred"})
 
-			join.inner(
-			    left: totalMsgs,
-			    right: tvt,
-			    on: (l, r) => l.app_id == r.app_id and l._time == r._time,
-			    as: (l, r) => ({
-					"_time":l._time,
-					"to":date.add(d: %s, to: l._time),
-					"app_id": l.app_id,
-					"total_messages":l.total_messages,
-					"total_value_transferred": float(v:r.total_value_transferred) / 100000000.0
-					}),
-			)
+			union(tables: [totalMsgs, tvt])
+				|> pivot(rowKey:["_time","app_id"], columnKey: ["_field"], valueColumn: "_value")
+				|> map(fn: (r) => ({
+						r with
+						"total_value_transferred": float(v:r.total_value_transferred) / 100000000.0,
+						"to": r._time,
+						"_time": date.sub(d: %s, from: r._time)
+     			}))
 			`
 
-	return fmt.Sprintf(query, bucket, q.From.Format(time.RFC3339), q.To.Format(time.RFC3339), measurement, filterByAppId, q.Timespan)
+	return fmt.Sprintf(query, bucket, from.Format(time.RFC3339), to.Format(time.RFC3339), measurement, filterByAppId, q.Timespan, q.Timespan, q.Timespan)
 }
 
 func (r *Repository) buildAppActivityQuery(q ApplicationActivityQuery) string {
 
 	var measurement string
 	var bucket string
+	var from, to time.Time
 
 	switch q.Timespan {
 	case "1h":
 		measurement = "protocols_stats_1h"
 		bucket = r.bucket30DaysRetention
+		from = q.From.Truncate(1 * time.Hour)
+		to = q.To.Truncate(1 * time.Hour)
 	default: // default is 1d
 		measurement = "protocols_stats_1d"
 		bucket = r.bucketInfiniteRetention
+		from = q.From.Truncate(24 * time.Hour)
+		to = q.To.Truncate(24 * time.Hour)
 	}
 
 	filterByAppId := ""
@@ -1572,43 +1585,44 @@ func (r *Repository) buildAppActivityQuery(q ApplicationActivityQuery) string {
 
 	query := `
 			import "date"
-			import "join"
 
-			allData =	from(bucket: "%s")
-						|> range(start: %s,stop: %s)
-						|> filter(fn: (r) => r._measurement == "%s")
-						|> filter(fn: (r) => not exists r.protocol )
-						%s
-						|> drop(columns:["emitter_chain","destination_chain"])
+				allData = from(bucket: "%s")
+							|> range(start: %s,stop: %s)
+							|> filter(fn: (r) => r._measurement == "%s")
+							|> filter(fn: (r) => not exists r.protocol )
+							%s
+							|> drop(columns:["emitter_chain","destination_chain","_measurement"])
 
-			totalMsgs = allData
-						|> filter(fn: (r) => r._field == "total_messages")
-						|> group(columns:["_time","app_id_1","app_id_2","app_id_3"])
-						|> sum()
-						|> rename(columns: {_value: "total_messages"})
+				totalMsgs = allData
+							|> filter(fn: (r) => r._field == "total_messages")
+							|> aggregateWindow(every: %s, fn: sum, createEmpty:true)
+							|> map(fn: (r) => ({
+										r with
+										_value: if not exists r._value then uint(v:0) else r._value
+								}))
+							|> group(columns:["_time","_field","app_id_1","app_id_2","app_id_3"])
+							|> sum()
 						
-			tvt = allData
+				tvt = allData
 						|> filter(fn: (r) => r._field == "total_value_transferred")
-						|> group(columns:["_time","app_id_1","app_id_2","app_id_3"])
+						|> aggregateWindow(every: %s, fn: sum, createEmpty:true)
+						|> map(fn: (r) => ({
+								r with
+								_value: if not exists r._value then uint(v:0) else r._value
+     						}))
+						|> group(columns:["_time","_field","app_id_1","app_id_2","app_id_3"])
 						|> sum()
-						|> rename(columns: {_value: "total_value_transferred"})
-			
-			join.inner(
-			    left: totalMsgs,
-			    right: tvt,
-			    on: (l, r) => l.app_id_1 == r.app_id_1 and l.app_id_2 == r.app_id_2 and l.app_id_3 == r.app_id_3 and l._time == r._time,
-			    as: (l, r) => ({
-					"_time":l._time,
-					"to":date.add(d: %s, to: l._time),
-					"app_id_1": l.app_id_1,
-					"app_id_2": l.app_id_2,
-					"app_id_3": l.app_id_3,
-					"total_messages":l.total_messages,
-					"total_value_transferred": float(v:r.total_value_transferred) / 100000000.0
-					})
-			)`
+						
+				union(tables: [totalMsgs, tvt])
+				|> pivot(rowKey:["_time","app_id_1","app_id_2","app_id_3"], columnKey: ["_field"], valueColumn: "_value")
+				|> map(fn: (r) => ({
+						r with
+						"total_value_transferred": float(v:r.total_value_transferred) / 100000000.0,
+						"to": r._time,
+						"_time": date.sub(d: %s, from: r._time)
+				}))`
 
-	return fmt.Sprintf(query, bucket, q.From.Format(time.RFC3339), q.To.Format(time.RFC3339), measurement, filterByAppId, q.Timespan)
+	return fmt.Sprintf(query, bucket, from.Format(time.RFC3339), to.Format(time.RFC3339), measurement, filterByAppId, q.Timespan, q.Timespan, q.Timespan)
 }
 
 func (r *Repository) buildAppActivityQueryMonthly(q ApplicationActivityQuery, measurement string, bucket string, filterByAppId string) string {
@@ -1663,8 +1677,10 @@ func (r *Repository) buildAppActivityQueryMonthly(q ApplicationActivityQuery, me
 					})
 			)
 		`
-	return fmt.Sprintf(query, bucket, q.From.Format(time.RFC3339), q.To.Format(time.RFC3339), measurement, filterByAppId)
 
+	from := time.Date(q.From.Year(), q.From.Month(), 1, 0, 0, 0, 0, q.From.Location())
+	to := time.Date(q.To.Year(), q.To.Month(), 1, 0, 0, 0, 0, q.To.Location())
+	return fmt.Sprintf(query, bucket, from.Format(time.RFC3339), to.Format(time.RFC3339), measurement, filterByAppId)
 }
 
 func (r *Repository) buildTotalsAppActivityQueryMonthly(q ApplicationActivityQuery, filterMeasurement string, bucket string, filterByAppID string) string {
@@ -1703,5 +1719,7 @@ func (r *Repository) buildTotalsAppActivityQueryMonthly(q ApplicationActivityQue
 					}),
 			)
 	`
-	return fmt.Sprintf(query, bucket, q.From.Format(time.RFC3339), q.To.Format(time.RFC3339), filterMeasurement, filterByAppID)
+	from := time.Date(q.From.Year(), q.From.Month(), 1, 0, 0, 0, 0, q.From.Location())
+	to := time.Date(q.To.Year(), q.To.Month(), 1, 0, 0, 0, 0, q.To.Location())
+	return fmt.Sprintf(query, bucket, from.Format(time.RFC3339), to.Format(time.RFC3339), filterMeasurement, filterByAppID)
 }
