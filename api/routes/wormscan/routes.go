@@ -75,9 +75,16 @@ func RegisterRoutes(
 	api.Use(cors.New()) // TODO CORS restrictions?
 	api.Use(compress.New(compress.Config{
 		Next: func(c *fiber.Ctx) bool {
-			return !strings.HasSuffix(c.Path(), "/tokens-symbol-activity") // only compress this endpoint
+			endpointsToCompress := []string{"/tokens-symbol-activity", "/application-activity"}
+			path := c.Path()
+			for _, endpoint := range endpointsToCompress {
+				if strings.HasSuffix(path, endpoint) {
+					return false
+				}
+			}
+			return true // Don't execute middleware if Next returns true
 		},
-		Level: compress.LevelBestSpeed, // 1
+		Level: compress.LevelBestSpeed,
 	}))
 
 	// monitoring
