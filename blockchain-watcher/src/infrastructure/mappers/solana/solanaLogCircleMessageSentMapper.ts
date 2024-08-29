@@ -64,10 +64,8 @@ const processProgram = async (
   const hash = tx.transaction.signatures[0];
 
   // Get the account content of the sent message account
-  const accountContent = await mapAccountContent(hash, sentMessageAccountPubKey);
+  const accountContent = await fetchAccountContent(hash, sentMessageAccountPubKey);
   if (!accountContent) return undefined;
-
-  const results: LogFoundEvent<CircleMessageSent>[] = [];
 
   // Deserialize the account content to get the message data
   const [message, _] = CircleBridge.deserialize(accountContent!.message);
@@ -78,29 +76,30 @@ const processProgram = async (
     `[solana] Circle message sent event info: [tx: ${hash}] [protocol: ${circleMessageSent.protocol} - ${messageProtocol}]`
   );
 
-  results.push({
-    name: "circle-message-sent",
-    address: programId,
-    chainId: 1,
-    txHash: hash,
-    blockHeight: BigInt(tx.slot),
-    blockTime: tx.blockTime!,
-    attributes: {
-      ...circleMessageSent,
+  return [
+    {
+      name: "circle-message-sent",
+      address: programId,
+      chainId: 1,
       txHash: hash,
+      blockHeight: BigInt(tx.slot),
+      blockTime: tx.blockTime!,
+      attributes: {
+        ...circleMessageSent,
+        txHash: hash,
+      },
+      tags: {
+        destinationDomain: circleMessageSent.destinationDomain,
+        messageProtocol: messageProtocol,
+        sourceDomain: circleMessageSent.sourceDomain,
+        protocol: circleMessageSent.protocol,
+        sender: circleMessageSent.sender,
+      },
     },
-    tags: {
-      destinationDomain: circleMessageSent.destinationDomain,
-      messageProtocol: messageProtocol,
-      sourceDomain: circleMessageSent.sourceDomain,
-      protocol: circleMessageSent.protocol,
-      sender: circleMessageSent.sender,
-    },
-  });
-  return results;
+  ];
 };
 
-const mapAccountContent = async (hash: string, sentMessageAccountPubKey: string) => {
+const fetchAccountContent = async (hash: string, sentMessageAccountPubKey: string) => {
   try {
     return await messageTransmitter.account.messageSent.fetch(sentMessageAccountPubKey);
   } catch (e) {

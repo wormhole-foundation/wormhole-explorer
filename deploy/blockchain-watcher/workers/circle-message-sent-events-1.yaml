@@ -69,7 +69,7 @@ data:
             "mapper": "evmLogCircleMessageSentMapper",
             "config": {
               "abi": "event MessageSent (bytes message)",
-              "metricName": "process_message_sent_event",
+              "metricName": "process_circle_message_event",
               "environment": "testnet"
             }
           }
@@ -105,7 +105,7 @@ data:
             "mapper": "evmLogCircleMessageSentMapper",
             "config": {
               "abi": "event MessageSent (bytes message)",
-              "metricName": "process_message_sent_event",
+              "metricName": "process_circle_message_event",
               "environment": "testnet"
             }
           }
@@ -140,7 +140,7 @@ data:
             "mapper": "evmLogCircleMessageSentMapper",
             "config": {
               "abi": "event MessageSent (bytes message)",
-              "metricName": "process_message_sent_event",
+              "metricName": "process_circle_message_event",
               "environment": "testnet"
             }
           }
@@ -175,7 +175,7 @@ data:
             "mapper": "evmLogCircleMessageSentMapper",
             "config": {
               "abi": "event MessageSent (bytes message)",
-              "metricName": "process_message_sent_event",
+              "metricName": "process_circle_message_event",
               "environment": "testnet"
             }
           }
@@ -210,7 +210,7 @@ data:
             "mapper": "evmLogCircleMessageSentMapper",
             "config": {
               "abi": "event MessageSent (bytes message)",
-              "metricName": "process_message_sent_event",
+              "metricName": "process_circle_message_event",
               "environment": "testnet"
             }
           }
@@ -245,7 +245,7 @@ data:
             "mapper": "evmLogCircleMessageSentMapper",
             "config": {
               "abi": "event MessageSent (bytes message)",
-              "metricName": "process_message_sent_event",
+              "metricName": "process_circle_message_event",
               "environment": "testnet"
             }
           }
@@ -283,7 +283,7 @@ data:
             "mapper": "evmLogCircleMessageSentMapper",
             "config": {
               "abi": "event MessageSent (bytes message)",
-              "metricName": "process_message_sent_event",
+              "metricName": "process_circle_message_event",
               "environment": "mainnet"
             }
           }
@@ -318,7 +318,7 @@ data:
             "mapper": "evmLogCircleMessageSentMapper",
             "config": {
               "abi": "event MessageSent (bytes message)",
-              "metricName": "process_message_sent_event",
+              "metricName": "process_circle_message_event",
               "environment": "mainnet"
             }
           }
@@ -353,7 +353,7 @@ data:
             "mapper": "evmLogCircleMessageSentMapper",
             "config": {
               "abi": "event MessageSent (bytes message)",
-              "metricName": "process_message_sent_event",
+              "metricName": "process_circle_message_event",
               "environment": "mainnet"
             }
           }
@@ -388,7 +388,7 @@ data:
             "mapper": "evmLogCircleMessageSentMapper",
             "config": {
               "abi": "event MessageSent (bytes message)",
-              "metricName": "process_message_sent_event",
+              "metricName": "process_circle_message_event",
               "environment": "mainnet"
             }
           }
@@ -423,7 +423,7 @@ data:
             "mapper": "evmLogCircleMessageSentMapper",
             "config": {
               "abi": "event MessageSent (bytes message)",
-              "metricName": "process_message_sent_event",
+              "metricName": "process_circle_message_event",
               "environment": "mainnet"
             }
           }
@@ -458,7 +458,7 @@ data:
             "mapper": "evmLogCircleMessageSentMapper",
             "config": {
               "abi": "event MessageSent (bytes message)",
-              "metricName": "process_message_sent_event",
+              "metricName": "process_circle_message_event",
               "environment": "mainnet"
             }
           }
@@ -493,7 +493,7 @@ data:
                   "vaaAccountIndex": 3
                 }
               },
-              "metricName": "process_vaa_event",
+              "metricName": "process_circle_message_event",
               "environment": "mainnet"
             }
           }
