@@ -103,6 +103,9 @@ func main() {
 	case jobs.JobIDNTTTopHolderStats:
 		job := initNTTTopHolderStatsJob(ctx, logger)
 		err = job.Run(ctx)
+	case jobs.JobIDNTTMedianStats:
+		job := initNTTMedianStatsJob(ctx, logger)
+		err = job.Run(ctx)
 	default:
 		logger.Fatal("Invalid job id", zap.String("job_id", cfg.JobID))
 	}
@@ -309,6 +312,27 @@ func initNTTTopHolderStatsJob(ctx context.Context, logger *zap.Logger) *stats.NT
 	notionalCache.Init(ctx)
 
 	return stats.NewNTTTopHolderJob(resty.New(), cfgJob.ArkhamUrl, cfgJob.ArkhamApiKey, cfgJob.SolanaUrl, cache, tokenProvider, notionalCache, logger)
+}
+
+func initNTTMedianStatsJob(ctx context.Context, logger *zap.Logger) *stats.NTTMedian {
+	cfgJob, errCfg := configuration.LoadFromEnv[config.NTTMedianStatsConfiguration](ctx)
+	if errCfg != nil {
+		log.Fatal("error creating config", errCfg)
+	}
+
+	// init influx client.
+	influxClient := influxdb2.NewClient(cfgJob.InfluxUrl, cfgJob.InfluxToken)
+
+	// init redis client.
+	redisClient := redis.NewClient(&redis.Options{Addr: cfgJob.CacheUrl})
+
+	// init cache client.
+	cache, err := cache.NewCacheClient(redisClient, true, cfgJob.CachePrefix, logger)
+	if err != nil {
+		log.Fatal("error creating cache client", err)
+	}
+
+	return stats.NewNTTMedian(influxClient, cfgJob.InfluxOrganization, cfgJob.InfluxBucketInfinite, cache, logger)
 }
 
 func handleExit() {

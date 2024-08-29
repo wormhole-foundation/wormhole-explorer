@@ -170,7 +170,14 @@ func main() {
 	)
 	relaysRepo := relays.NewRepository(db.Database, rootLogger)
 	operationsRepo := operations.NewRepository(db.Database, rootLogger)
+	nttRepo := stats2.NewNTTRepository(
+		influxCli,
+		cfg.Influx.Organization,
+		cfg.Influx.BucketInfinite,
+		cache,
+		rootLogger)
 	statsRepo := stats.NewRepository(
+		nttRepo,
 		influxCli,
 		cfg.Influx.Organization,
 		cfg.Influx.Bucket24Hours,

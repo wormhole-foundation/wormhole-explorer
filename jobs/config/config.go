@@ -97,3 +97,12 @@ type NTTTopHolderStatsConfiguration struct {
 	CachePrefix          string `env:"CACHE_PREFIX,required"`
 	CacheNotionalChannel string `env:"CACHE_NOTIONAL_CHANNEL,required"`
 }
+
+type NTTMedianStatsConfiguration struct {
+	InfluxUrl            string `env:"INFLUX_URL,required"`
+	InfluxToken          string `env:"INFLUX_TOKEN,required"`
+	InfluxOrganization   string `env:"INFLUX_ORGANIZATION,required"`
+	InfluxBucketInfinite string `env:"INFLUX_BUCKET_INFINITE,required"`
+	CacheUrl             string `env:"CACHE_URL,required"`
+	CachePrefix          string `env:"CACHE_PREFIX,required"`
+}

@@ -13,6 +13,7 @@ const (
 	JobIDProtocolsStatsHourly  = "JOB_PROTOCOLS_STATS_HOURLY"
 	JobIDNTTTopAddressStats    = "JOB_NTT_TOP_ADDRESS_STATS"
 	JobIDNTTTopHolderStats     = "JOB_NTT_TOP_HOLDER_STATS"
+	JobIDNTTMedianStats        = "JOB_NTT_MEDIAN_STATS"
 	JobIDMigrationNativeTxHash = "JOB_MIGRATE_NATIVE_TX_HASH"
 )
 

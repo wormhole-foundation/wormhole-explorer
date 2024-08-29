@@ -107,29 +107,6 @@ func buildNTTTotalTokenTransferred(bucket string, t time.Time, symbol string) st
 	return fmt.Sprintf(queryTemplateNTTTotalTokenTransferred, bucket, start, symbol)
 }
 
-const queryTemplateNTTMedianTransferSize = `
-import "influxdata/influxdb/schema"
-import "date"
-
-bucket = "%s"
-from(bucket: bucket)
-  |> range(start: 2021-01-01T00:00:00Z)
-	|> filter(fn: (r) => r._measurement == "vaa_volume_v3" and r.version == "v5")
-	|> filter(fn: (r) => r.app_id_1 == "NATIVE_TOKEN_TRANSFER" or r.app_id_2 == "NATIVE_TOKEN_TRANSFER" or r.app_id_3 == "NATIVE_TOKEN_TRANSFER")
-	|> filter(fn: (r) => (r._field == "symbol" and r._value != "") or r._field == "volume")
-	|> schema.fieldsAsCols()
-	|> filter(fn: (r) => r.symbol == "%s")
-	|> map(fn: (r) => ({r with _value: r.volume}))
-	|> group()
-	|> median()
-	|> toFloat()
-	|> map(fn: (r) => ({r with _value: r._value / 100000000.0}))
-`
-
-func buildNTTMedianTransferSize(bucket string, symbol string) string {
-	return fmt.Sprintf(queryTemplateNTTMedianTransferSize, bucket, symbol)
-}
-
 const queryTemplateNTTAverageTransferSize = `
 import "influxdata/influxdb/schema"
 import "date"
