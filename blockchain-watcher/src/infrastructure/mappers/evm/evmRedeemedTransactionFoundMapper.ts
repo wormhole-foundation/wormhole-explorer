@@ -145,15 +145,15 @@ const mapVaaFromDataBuilder: (dataOffset: number) => LogToVaaMapper = (dataOffse
 // We need to skip redelivery transactions because we send incorrect information to applications
 // Redelivery transactions contain a delivery VAA information with a new transaction hash, which is not correct for the original delivery
 // TODO: When a redelivery is detected, we need find the new VAA created and send the correct information to applications (issue 1582)
-const DELIVERY_OVERRIDES_BYTES =
+const REDELIVERY_OVERRIDES_BYTES =
   "01000000000000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
 const mapVaaFromStandardRelayerDelivery: LogToVaaMapper = (
   log: EvmTransactionLog,
   input: string
 ) => {
-  const redelivery = input.substring(2).includes(DELIVERY_OVERRIDES_BYTES);
+  const redeliveryOverrides = input.substring(2).includes(REDELIVERY_OVERRIDES_BYTES);
 
-  if (redelivery) {
+  if (redeliveryOverrides) {
     logger.warn(`Redelivery detected: ${input}, skipping VAA extraction`);
     return undefined;
   }
