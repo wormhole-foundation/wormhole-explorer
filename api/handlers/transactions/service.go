@@ -20,13 +20,29 @@ import (
 )
 
 type Service struct {
-	repo              *Repository
+	repo              repository
 	cache             cache.Cache
 	expiration        time.Duration
 	supportedChainIDs map[vaa.ChainID]string
 	tokenProvider     *domain.TokenProvider
 	metrics           metrics.Metrics
 	logger            *zap.Logger
+}
+
+// decouple service from repository
+type repository interface {
+	GetTopAssets(ctx context.Context, timeSpan *TopStatisticsTimeSpan) ([]AssetDTO, error)
+	GetTopChainPairs(ctx context.Context, timeSpan *TopStatisticsTimeSpan) ([]ChainPairDTO, error)
+	FindChainActivity(ctx context.Context, q *ChainActivityQuery) ([]ChainActivityResult, error)
+	GetScorecards(ctx context.Context) (*Scorecards, error)
+	FindGlobalTransactionByID(ctx context.Context, q *GlobalTransactionQuery) (*GlobalTransactionDoc, error)
+	FindTransactions(ctx context.Context, input *FindTransactionsInput) ([]TransactionDto, error)
+	ListTransactionsByAddress(ctx context.Context, address string, pagination *pagination.Pagination) ([]TransactionDto, error)
+	FindChainActivityTops(ctx *fasthttp.RequestCtx, q ChainActivityTopsQuery) ([]ChainActivityTopResult, error)
+	FindApplicationActivity(ctx *fasthttp.RequestCtx, q ApplicationActivityQuery) ([]ApplicationActivityTotalsResult, []ApplicationActivityResult, error)
+	FindTokensVolume(ctx context.Context) ([]TokenVolume, error)
+	FindTokenSymbolActivity(ctx context.Context, payload TokenSymbolActivityQuery) ([]TokenSymbolActivityResult, error)
+	GetTransactionCount(ctx context.Context, q *TransactionCountQuery) ([]TransactionCountResult, error)
 }
 
 const (
@@ -39,7 +55,7 @@ const (
 )
 
 // NewService create a new Service.
-func NewService(repo *Repository, cache cache.Cache, expiration time.Duration, tokenProvider *domain.TokenProvider, metrics metrics.Metrics, logger *zap.Logger) *Service {
+func NewService(repo repository, cache cache.Cache, expiration time.Duration, tokenProvider *domain.TokenProvider, metrics metrics.Metrics, logger *zap.Logger) *Service {
 	supportedChainIDs := domain.GetSupportedChainIDs()
 	return &Service{repo: repo, supportedChainIDs: supportedChainIDs,
 		cache: cache, expiration: expiration, tokenProvider: tokenProvider, metrics: metrics,

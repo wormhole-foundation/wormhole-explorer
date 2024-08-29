@@ -279,7 +279,7 @@ type TokenVolume struct {
 	Volume float64 `json:"volume"`
 }
 
-type tokenSymbolActivityResult struct {
+type TokenSymbolActivityResult struct {
 	Symbol              string      `mapstructure:"symbol" json:"symbol,omitempty"`
 	From                time.Time   `mapstructure:"_time" json:"from"`
 	To                  time.Time   `mapstructure:"to" json:"to"`

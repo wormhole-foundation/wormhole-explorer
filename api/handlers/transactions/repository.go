@@ -1190,7 +1190,7 @@ func (r *Repository) FindTokensVolume(ctx context.Context) ([]TokenVolume, error
 	return response, nil
 }
 
-func (r *Repository) FindTokenSymbolActivity(ctx context.Context, payload TokenSymbolActivityQuery) ([]tokenSymbolActivityResult, error) {
+func (r *Repository) FindTokenSymbolActivity(ctx context.Context, payload TokenSymbolActivityQuery) ([]TokenSymbolActivityResult, error) {
 	query := r.buildTokenSymbolActivityQuery(payload)
 
 	result, err := r.queryAPI.Query(ctx, query)
@@ -1200,9 +1200,9 @@ func (r *Repository) FindTokenSymbolActivity(ctx context.Context, payload TokenS
 	if result.Err() != nil {
 		return nil, result.Err()
 	}
-	var response []tokenSymbolActivityResult
+	var response []TokenSymbolActivityResult
 	for result.Next() {
-		var row tokenSymbolActivityResult
+		var row TokenSymbolActivityResult
 		if err = mapstructure.Decode(result.Record().Values(), &row); err != nil {
 			return nil, err
 		}
