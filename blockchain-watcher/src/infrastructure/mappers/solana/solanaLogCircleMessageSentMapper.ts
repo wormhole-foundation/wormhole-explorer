@@ -139,11 +139,8 @@ const mappedMessageProtocol = (
 
   if (programIndexWH !== -1) {
     const innerInstruction = innerInstructions.find((ix) => ix.programIdIndex === programIndexWH);
-    if (innerInstruction) {
-      const hexData = Buffer.from(innerInstruction.data).toString("hex");
-      if (hexData.startsWith(WORMHOLE_METHOD)) {
-        return MessageProtocol.Wormhole;
-      }
+    if (innerInstruction && innerInstruction.data[0] === 1) {
+      return MessageProtocol.Wormhole;
     }
   }
   return MessageProtocol.None;
