@@ -12,13 +12,18 @@ let statsRepo = {
 
 const handler = new HandleEvmTransactions(
   {
-    abi: "event Delivery(address indexed recipientContract, uint16 indexed sourceChain, uint64 indexed sequence, bytes32 deliveryVaaHash, uint8 status, uint256 gasUsed, uint8 refundStatus, bytes additionalStatusInfo, bytes overridesInfo)",
+    abis: [
+      {
+        abi: "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
+        topic: "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
+      },
+    ],
     environment: "testnet",
     metricName: "process_vaa_ethereum_event",
     commitment: "latest",
     chainId: 2,
     chain: "ethereum",
-    id: "poll-log-message-published-ethereum",
+    id: "poll-redeemed-transactions-ethereum",
   },
   evmRedeemedTransactionFoundMapper,
   async () => {},

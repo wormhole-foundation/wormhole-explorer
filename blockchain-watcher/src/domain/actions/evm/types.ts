@@ -4,7 +4,7 @@ export interface HandleEvmConfig {
   commitment: string;
   chainId: number;
   chain: string;
-  abi: string;
+  abis: Abis;
   id: string;
 }
 
@@ -16,4 +16,9 @@ export type Filters = {
   addresses: string[];
   strategy?: string;
   topics: string[];
+}[];
+
+export type Abis = {
+  topic: string;
+  abi: string;
 }[];

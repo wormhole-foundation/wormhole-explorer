@@ -66,7 +66,13 @@ data:
             "target": "sns",
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
-              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "abis": [
+                {
+                  "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                  "topic": "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2",
+                  "type": "Portal Token Bridge"
+                }
+              ],
               "metricName": "process_source_event"
             }
           }
@@ -98,7 +104,13 @@ data:
             "target": "sns",
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
-              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "abis": [
+                {
+                  "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                  "topic": "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2",
+                  "type": "Portal Token Bridge"
+                }
+              ],
               "metricName": "process_source_event"
             }
           }
@@ -130,7 +142,13 @@ data:
             "target": "sns",
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
-              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "abis": [
+                {
+                  "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                  "topic": "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2",
+                  "type": "Portal Token Bridge"
+                }
+              ],
               "metricName": "process_source_event"
             }
           }
@@ -162,7 +180,13 @@ data:
             "target": "sns",
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
-              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "abis": [
+                {
+                  "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                  "topic": "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2",
+                  "type": "Portal Token Bridge"
+                }
+              ],
               "metricName": "process_source_event"
             }
           }
@@ -194,7 +218,13 @@ data:
             "target": "sns",
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
-              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "abis": [
+                {
+                  "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                  "topic": "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2",
+                  "type": "Portal Token Bridge"
+                }
+              ],
               "metricName": "process_source_event"
             }
           }
@@ -226,7 +256,13 @@ data:
             "target": "sns",
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
-              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "abis": [
+                {
+                  "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                  "topic": "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2",
+                  "type": "Portal Token Bridge"
+                }
+              ],
               "metricName": "process_source_event"
             }
           }
@@ -258,7 +294,13 @@ data:
             "target": "sns",
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
-              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "abis": [
+                {
+                  "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                  "topic": "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2",
+                  "type": "Portal Token Bridge"
+                }
+              ],
               "metricName": "process_source_event"
             }
           }
@@ -284,7 +326,6 @@ data:
             "target": "sns",
             "mapper": "wormchainLogMessagePublishedMapper",
             "config": {
-              "abi": "",
               "filter": {
                 "addresses": ["wormhole16jzpxp0e8550c9aht6q9svcux30vtyyyyxv5w2l2djjra46580wsazcjwp"]
               },
@@ -319,7 +360,13 @@ data:
             "target": "sns",
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
-              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "abis": [
+                {
+                  "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                  "topic": "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2",
+                  "type": "Portal Token Bridge"
+                }
+              ],
               "metricName": "process_source_event"
             }
           }
@@ -351,7 +398,13 @@ data:
             "target": "sns",
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
-              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "abis": [
+                {
+                  "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                  "topic": "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2",
+                  "type": "Portal Token Bridge"
+                }
+              ],
               "metricName": "process_source_event"
             }
           }
@@ -383,7 +436,13 @@ data:
             "target": "sns",
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
-              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "abis": [
+                {
+                  "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                  "topic": "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2",
+                  "type": "Portal Token Bridge"
+                }
+              ],
               "metricName": "process_source_event"
             }
           }
@@ -419,7 +478,13 @@ data:
             "target": "sns",
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
-              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "abis": [
+                {
+                  "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                  "topic": "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2",
+                  "type": "Portal Token Bridge"
+                }
+              ],
               "metricName": "process_source_event"
             }
           }
@@ -451,7 +516,13 @@ data:
             "target": "sns",
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
-              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "abis": [
+                {
+                  "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                  "topic": "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2",
+                  "type": "Portal Token Bridge"
+                }
+              ],
               "metricName": "process_source_event"
             }
           }
@@ -483,7 +554,13 @@ data:
             "target": "sns",
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
-              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "abis": [
+                {
+                  "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                  "topic": "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2",
+                  "type": "Portal Token Bridge"
+                }
+              ],
               "metricName": "process_source_event"
             }
           }
@@ -515,7 +592,13 @@ data:
             "target": "sns",
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
-              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "abis": [
+                {
+                  "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                  "topic": "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2",
+                  "type": "Portal Token Bridge"
+                }
+              ],
               "metricName": "process_source_event"
             }
           }
@@ -547,7 +630,13 @@ data:
             "target": "sns",
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
-              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "abis": [
+                {
+                  "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                  "topic": "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2",
+                  "type": "Portal Token Bridge"
+                }
+              ],
               "metricName": "process_source_event"
             }
           }
@@ -579,7 +668,13 @@ data:
             "target": "sns",
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
-              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "abis": [
+                {
+                  "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                  "topic": "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2",
+                  "type": "Portal Token Bridge"
+                }
+              ],
               "metricName": "process_source_event"
             }
           }
@@ -608,7 +703,6 @@ data:
             "target": "sns",
             "mapper": "wormchainLogMessagePublishedMapper",
             "config": {
-              "abi": "",
               "filter": {
                 "addresses": [
                   "wormhole1ufs3tlq4umljk0qfe8k5ya0x6hpavn897u2cnf9k0en9jr7qarqqaqfk2j",
@@ -646,7 +740,13 @@ data:
             "target": "sns",
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
-              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "abis": [
+                {
+                  "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                  "topic": "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2",
+                  "type": "Portal Token Bridge"
+                }
+              ],
               "metricName": "process_source_event"
             }
           }
@@ -678,7 +778,13 @@ data:
             "target": "sns",
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
-              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "abis": [
+                {
+                  "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                  "topic": "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2",
+                  "type": "Portal Token Bridge"
+                }
+              ],
               "metricName": "process_source_event"
             }
           }
@@ -710,7 +816,13 @@ data:
             "target": "sns",
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
-              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "abis": [
+                {
+                  "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                  "topic": "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2",
+                  "type": "Portal Token Bridge"
+                }
+              ],
               "metricName": "process_source_event"
             }
           }
@@ -742,7 +854,13 @@ data:
             "target": "sns",
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
-              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "abis": [
+                {
+                  "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                  "topic": "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2",
+                  "type": "Portal Token Bridge"
+                }
+              ],
               "metricName": "process_source_event"
             }
           }

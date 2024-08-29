@@ -1,10 +1,10 @@
+import { HandleEvmConfig } from "./types";
 import { StatRepository } from "../../repositories";
 import {
   EvmTransactionFoundAttributes,
   TransactionFoundEvent,
   EvmTransaction,
 } from "../../entities";
-import { HandleEvmConfig } from "./types";
 
 /**
  * Handling means mapping and forward to a given target.
@@ -61,7 +61,7 @@ export class HandleEvmTransactions<T> {
       commitment: cfg.commitment,
       chain: cfg.chain,
       chainId: cfg.chainId,
-      abi: cfg.abi,
+      abis: cfg.abis,
       id: cfg.id,
     };
   }
