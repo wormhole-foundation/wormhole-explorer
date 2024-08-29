@@ -20,7 +20,8 @@ func TestService_GetTokenSymbolActivity(t *testing.T) {
 	mockRepo := new(mockRepository)
 	svc := transactions.NewService(mockRepo, cache.NewDummyCacheClient(), 0, nil, metrics.NewNoOpMetrics(), zap.NewNop())
 
-	now := time.Now()
+	from := time.Now().Truncate(2 * time.Hour)
+	to := time.Now().Truncate(1 * time.Hour)
 	tests := []struct {
 		name           string
 		query          transactions.TokenSymbolActivityQuery
@@ -32,37 +33,38 @@ func TestService_GetTokenSymbolActivity(t *testing.T) {
 		{
 			name: "Valid Data",
 			query: transactions.TokenSymbolActivityQuery{
-				From:         now.Add(-time.Hour * 24),
-				To:           now,
+				From:         from.Add(-time.Hour * 24),
+				To:           to,
 				TokenSymbols: []string{"USDC", "USDT"},
+				Timespan:     transactions.Hour,
 			},
 			mockResponse: []transactions.TokenSymbolActivityResult{
 				{
-					Symbol:              "USDC",
-					EmitterChainStr:     "1",
-					DestinationChainStr: "2",
-					Txs:                 10,
-					Volume:              1000.0,
-					From:                now.Add(-time.Hour * 24),
-					To:                  now,
+					Symbol:           "USDC",
+					EmitterChain:     1,
+					DestinationChain: 2,
+					Txs:              10,
+					Volume:           1000.0,
+					From:             from,
+					To:               to,
 				},
 				{
-					Symbol:              "USDC",
-					EmitterChainStr:     "5",
-					DestinationChainStr: "3",
-					Txs:                 10,
-					Volume:              1000.0,
-					From:                now.Add(-time.Hour * 24),
-					To:                  now,
+					Symbol:           "USDC",
+					EmitterChain:     5,
+					DestinationChain: 3,
+					Txs:              10,
+					Volume:           1000.0,
+					From:             from,
+					To:               to,
 				},
 				{
-					Symbol:              "USDT",
-					EmitterChainStr:     "1",
-					DestinationChainStr: "3",
-					Txs:                 5,
-					Volume:              500.0,
-					From:                now.Add(-time.Hour * 24),
-					To:                  now,
+					Symbol:           "USDT",
+					EmitterChain:     1,
+					DestinationChain: 3,
+					Txs:              5,
+					Volume:           500.0,
+					From:             from,
+					To:               to,
 				},
 			},
 			mockError: nil,
@@ -74,14 +76,20 @@ func TestService_GetTokenSymbolActivity(t *testing.T) {
 						TotalValueTransferred: 2000.0,
 						TimeRangeData: []*transactions.TimeRangeData[*transactions.TokenSymbolPerChainPairData]{
 							{
-								From:                  now.Add(-time.Hour * 24),
-								To:                    now,
-								TotalMessages:         10,
-								TotalValueTransferred: 1000.0,
+								From:                  from,
+								To:                    to,
+								TotalMessages:         20,
+								TotalValueTransferred: 2000.0,
 								Aggregations: []*transactions.TokenSymbolPerChainPairData{
 									{
 										SourceChain:           1,
 										TargetChain:           2,
+										TotalMessages:         10,
+										TotalValueTransferred: 1000.0,
+									},
+									{
+										SourceChain:           5,
+										TargetChain:           3,
 										TotalMessages:         10,
 										TotalValueTransferred: 1000.0,
 									},
@@ -95,8 +103,8 @@ func TestService_GetTokenSymbolActivity(t *testing.T) {
 						TotalValueTransferred: 500.0,
 						TimeRangeData: []*transactions.TimeRangeData[*transactions.TokenSymbolPerChainPairData]{
 							{
-								From:                  now.Add(-time.Hour * 24),
-								To:                    now,
+								From:                  from,
+								To:                    to,
 								TotalMessages:         5,
 								TotalValueTransferred: 500.0,
 								Aggregations: []*transactions.TokenSymbolPerChainPairData{
@@ -117,8 +125,8 @@ func TestService_GetTokenSymbolActivity(t *testing.T) {
 		{
 			name: "No Data",
 			query: transactions.TokenSymbolActivityQuery{
-				From:         now.Add(-time.Hour * 24),
-				To:           now,
+				From:         from.Add(-time.Hour * 24),
+				To:           from,
 				TokenSymbols: []string{"TOKEN3"},
 			},
 			mockResponse:   []transactions.TokenSymbolActivityResult{},
@@ -129,8 +137,8 @@ func TestService_GetTokenSymbolActivity(t *testing.T) {
 		{
 			name: "Error from Repository",
 			query: transactions.TokenSymbolActivityQuery{
-				From:         now.Add(-time.Hour * 24),
-				To:           now,
+				From:         from.Add(-time.Hour * 24),
+				To:           from,
 				TokenSymbols: []string{"TOKEN1"},
 			},
 			mockResponse:   nil,
@@ -181,17 +189,18 @@ func TestService_GetTokenSymbolActivity(t *testing.T) {
 											}
 										}
 										if !foundAggregation {
-											t.Errorf("Aggregation source_chain %d ; targe_chain %d not found in time range:[%s-%s]",
+											t.Errorf("Aggregation source_chain %d ; targe_chain %d not found in time range:[%s-%s] for token %s",
 												expectedAggregation.SourceChain,
 												expectedAggregation.TargetChain,
 												expectedTimeRangeData.From.String(),
-												expectedTimeRangeData.To.String())
+												expectedTimeRangeData.To.String(),
+												expectedToken.TokenSymbol)
 										}
 									}
 								}
 							}
 							if !foundTimeRangeData {
-								t.Errorf("TimeRangeData from %s to %s not found", expectedTimeRangeData.From.String(), expectedTimeRangeData.To.String())
+								t.Errorf("TimeRangeData from %s to %s not found for token:%s", expectedTimeRangeData.From.String(), expectedTimeRangeData.To.String(), resToken.TokenSymbol)
 							}
 						}
 					}
