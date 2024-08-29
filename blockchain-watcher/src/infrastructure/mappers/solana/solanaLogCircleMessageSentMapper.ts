@@ -10,7 +10,7 @@ import { Connection } from "@solana/web3.js";
 import winston from "winston";
 
 const WORMHOLE_CORE_CONTRACT = "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth";
-const WORMHOLE_METHOD = "1";
+const WORMHOLE_METHOD = 1;
 
 const connection = new Connection(configuration.chains.solana.rpcs[0]);
 const messageTransmitter = new Program<MessageTransmitter>(
