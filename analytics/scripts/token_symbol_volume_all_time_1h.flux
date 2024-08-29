@@ -17,9 +17,9 @@ lastData = from(bucket: bucket24Hr)
     	|> drop(columns:["_start","_stop"])
 
 lastExecutionTime = lastData
-    				|> keep(columns:["_time"])
-    				|> tableFind(fn: (key) => true)
-    				|> getRecord(idx: 0)
+                |> keep(columns:["_time"])
+                |> tableFind(fn: (key) => true)
+                |> getRecord(idx: 0)
 
 deltaSinceLastExecution = from(bucket: bucketInfinite)
     		|> range(start: lastExecutionTime._time, stop:now())
