@@ -1,7 +1,8 @@
 import { EvmTransaction, LogFoundEvent, CircleMessageSent } from "../../../domain/entities";
 import { deserializeCircleMessage } from "./helpers/circle";
-import { encoding, circle } from "@wormhole-foundation/sdk-connect";
+import { MessageProtocol, toCirceChain } from "../utils/circle";
 import { HandleEvmConfig } from "../../../domain/actions";
+import { encoding } from "@wormhole-foundation/sdk-connect";
 import { ethers } from "ethers";
 import winston from "winston";
 
@@ -102,21 +103,9 @@ const mappedMessageProtocol = (logs: EvmTransactionLog[]): string => {
     : MessageProtocol.None;
 };
 
-const toCirceChain = (env: string, domain: number) => {
-  // Remove this when the SDK is updated to accept Noble as a domain with 4 value
-  // @wormhole-foundation/sdk-base/dist/cjs/constants/circle.d.ts
-  const environment = env === "mainnet" ? "Mainnet" : "Testnet";
-  return domain === 4 ? "Noble" : circle.toCircleChain(environment, domain);
-};
-
 const EVENT_TOPICS: Record<string, LogToVaaMapper> = {
   "0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036": mapCircleBodyFromTopics, // CCTP MessageSent (circle bridge)
 };
-
-enum MessageProtocol {
-  Wormhole = "wormhole",
-  None = "",
-}
 
 type LogToVaaMapper = (log: EvmTransactionLog, cfg: HandleEvmConfig) => any | undefined;
 

@@ -19,6 +19,10 @@
   "author": "chase-45",
   "license": "ISC",
   "dependencies": {
+    "@coral-xyz/anchor": "0.29.0",
+    "@coral-xyz/borsh": "0.29.0",
+    "@solana/spl-token": "0.3.9",
+    "@solana/web3.js": "^1.95.2",
     "@aws-sdk/client-sns": "^3.445.0",
     "@certusone/wormhole-sdk": "0.10.5",
     "@cosmjs/proto-signing": "^0.32.3",
