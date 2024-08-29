@@ -1161,7 +1161,7 @@ func (r *Repository) FindTokensVolume(ctx context.Context) ([]TokenVolume, error
 		import "date"
 
 		from(bucket: "%s")
-			|> range(start: 1970-01-01T00:00:00Z)
+			|> range(start: -1d)
 			|> filter(fn: (r) => r._measurement == "tokens_symbol_volume_all_time")
 			|> group(columns:["symbol"])
 			|> last()
