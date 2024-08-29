@@ -15,16 +15,11 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-// Implement other methods of the repository interface if needed...
-
 func TestService_GetTokenSymbolActivity(t *testing.T) {
-	// Create a mock repository
-	mockRepo := new(mockRepository)
 
-	// Create the service with the mock repository
+	mockRepo := new(mockRepository)
 	svc := transactions.NewService(mockRepo, cache.NewDummyCacheClient(), 0, nil, metrics.NewNoOpMetrics(), zap.NewNop())
 
-	// Define the test cases
 	now := time.Now()
 	tests := []struct {
 		name           string

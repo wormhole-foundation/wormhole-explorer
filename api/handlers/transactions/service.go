@@ -313,7 +313,6 @@ func (s *Service) GetTokenSymbolActivity(ctx context.Context, payload TokenSymbo
 		return TokenSymbolActivityResponse{}, err
 	}
 
-	// Map to accumulate tokens data
 	tokens := make(map[string]TokenSymbolActivity)
 
 	for _, row := range rows {
@@ -325,8 +324,6 @@ func (s *Service) GetTokenSymbolActivity(ctx context.Context, payload TokenSymbo
 				TimeRangeData: []*TimeRangeData[*TokenSymbolPerChainPairData]{},
 			}
 		}
-
-		// Update the total messages and value transferred
 		token.TotalMessages += row.Txs
 		token.TotalValueTransferred += row.Volume
 
@@ -348,11 +345,9 @@ func (s *Service) GetTokenSymbolActivity(ctx context.Context, payload TokenSymbo
 			token.TimeRangeData = append(token.TimeRangeData, timeRange)
 		}
 
-		// Update time range data
 		timeRange.TotalMessages += row.Txs
 		timeRange.TotalValueTransferred += row.Volume
 
-		// Create aggregation
 		agg := &TokenSymbolPerChainPairData{
 			SourceChain:           row.EmitterChain,
 			TargetChain:           row.DestinationChain,
@@ -360,7 +355,6 @@ func (s *Service) GetTokenSymbolActivity(ctx context.Context, payload TokenSymbo
 			TotalValueTransferred: row.Volume,
 		}
 		timeRange.Aggregations = append(timeRange.Aggregations, agg)
-
 		tokens[row.Symbol] = token
 	}
 
