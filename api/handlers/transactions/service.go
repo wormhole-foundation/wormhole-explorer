@@ -20,13 +20,29 @@ import (
 )
 
 type Service struct {
-	repo              *Repository
+	repo              repository
 	cache             cache.Cache
 	expiration        time.Duration
 	supportedChainIDs map[vaa.ChainID]string
 	tokenProvider     *domain.TokenProvider
 	metrics           metrics.Metrics
 	logger            *zap.Logger
+}
+
+// decouple service from repository
+type repository interface {
+	GetTopAssets(ctx context.Context, timeSpan *TopStatisticsTimeSpan) ([]AssetDTO, error)
+	GetTopChainPairs(ctx context.Context, timeSpan *TopStatisticsTimeSpan) ([]ChainPairDTO, error)
+	FindChainActivity(ctx context.Context, q *ChainActivityQuery) ([]ChainActivityResult, error)
+	GetScorecards(ctx context.Context) (*Scorecards, error)
+	FindGlobalTransactionByID(ctx context.Context, q *GlobalTransactionQuery) (*GlobalTransactionDoc, error)
+	FindTransactions(ctx context.Context, input *FindTransactionsInput) ([]TransactionDto, error)
+	ListTransactionsByAddress(ctx context.Context, address string, pagination *pagination.Pagination) ([]TransactionDto, error)
+	FindChainActivityTops(ctx *fasthttp.RequestCtx, q ChainActivityTopsQuery) ([]ChainActivityTopResult, error)
+	FindApplicationActivity(ctx *fasthttp.RequestCtx, q ApplicationActivityQuery) ([]ApplicationActivityTotalsResult, []ApplicationActivityResult, error)
+	FindTokensVolume(ctx context.Context) ([]TokenVolume, error)
+	FindTokenSymbolActivity(ctx context.Context, payload TokenSymbolActivityQuery) ([]TokenSymbolActivityResult, error)
+	GetTransactionCount(ctx context.Context, q *TransactionCountQuery) ([]TransactionCountResult, error)
 }
 
 const (
@@ -39,7 +55,7 @@ const (
 )
 
 // NewService create a new Service.
-func NewService(repo *Repository, cache cache.Cache, expiration time.Duration, tokenProvider *domain.TokenProvider, metrics metrics.Metrics, logger *zap.Logger) *Service {
+func NewService(repo repository, cache cache.Cache, expiration time.Duration, tokenProvider *domain.TokenProvider, metrics metrics.Metrics, logger *zap.Logger) *Service {
 	supportedChainIDs := domain.GetSupportedChainIDs()
 	return &Service{repo: repo, supportedChainIDs: supportedChainIDs,
 		cache: cache, expiration: expiration, tokenProvider: tokenProvider, metrics: metrics,
@@ -91,6 +107,18 @@ func (s *Service) GetChainActivity(ctx context.Context, q *ChainActivityQuery) (
 		func() ([]ChainActivityResult, error) {
 			return s.repo.FindChainActivity(ctx, q)
 		})
+}
+
+func (s *Service) GetTokensByVolume(ctx context.Context, limit int) ([]TokenVolume, error) {
+	key := "wormscan:tokens-by-volume"
+	value, err := cacheable.GetOrLoad(ctx, s.logger, s.cache, s.expiration, key, s.metrics,
+		func() ([]TokenVolume, error) {
+			return s.repo.FindTokensVolume(ctx)
+		})
+	if err == nil && limit < len(value) {
+		value = value[:limit]
+	}
+	return value, err
 }
 
 // FindGlobalTransactionByID find a global transaction by id.
@@ -225,12 +253,12 @@ func (s *Service) GetApplicationActivity(ctx *fasthttp.RequestCtx, q Application
 		for i := 0; i < len(result); i++ {
 			if result[i].AppID == total.AppID {
 				foundTotalObj = true
-				result[i].TimeRangeData = append(result[i].TimeRangeData, TimeRangeData{
+				result[i].TimeRangeData = append(result[i].TimeRangeData, TimeRangeData[AggregationsAppActivity]{
 					TotalMessages:         total.Txs,
 					TotalValueTransferred: total.Volume,
 					From:                  total.From,
 					To:                    total.To,
-					Aggregations:          make([]Aggregations, 0, len(appActivities)),
+					Aggregations:          make([]AggregationsAppActivity, 0, len(appActivities)),
 				})
 				break
 			}
@@ -239,13 +267,13 @@ func (s *Service) GetApplicationActivity(ctx *fasthttp.RequestCtx, q Application
 		if !foundTotalObj {
 			data := AppActivityTotalData{
 				AppID: total.AppID,
-				TimeRangeData: []TimeRangeData{
+				TimeRangeData: []TimeRangeData[AggregationsAppActivity]{
 					{
 						TotalMessages:         total.Txs,
 						TotalValueTransferred: total.Volume,
 						From:                  total.From,
 						To:                    total.To,
-						Aggregations:          make([]Aggregations, 0, len(appActivities)),
+						Aggregations:          make([]AggregationsAppActivity, 0, len(appActivities)),
 					},
 				},
 			}
@@ -279,6 +307,65 @@ func (s *Service) GetApplicationActivity(ctx *fasthttp.RequestCtx, q Application
 	return result, nil
 }
 
+func (s *Service) GetTokenSymbolActivity(ctx context.Context, payload TokenSymbolActivityQuery) (TokenSymbolActivityResponse, error) {
+	rows, err := s.repo.FindTokenSymbolActivity(ctx, payload)
+	if err != nil {
+		return TokenSymbolActivityResponse{}, err
+	}
+
+	tokens := make(map[string]TokenSymbolActivity)
+
+	for _, row := range rows {
+
+		token, exists := tokens[row.Symbol]
+		if !exists {
+			token = TokenSymbolActivity{
+				TokenSymbol:   row.Symbol,
+				TimeRangeData: []*TimeRangeData[*TokenSymbolPerChainPairData]{},
+			}
+		}
+		token.TotalMessages += row.Txs
+		token.TotalValueTransferred += row.Volume
+
+		// Find the correct time range or create a new one
+		var timeRange *TimeRangeData[*TokenSymbolPerChainPairData]
+		for i := range token.TimeRangeData {
+			if token.TimeRangeData[i].From == row.From {
+				timeRange = token.TimeRangeData[i]
+				break
+			}
+		}
+
+		if timeRange == nil {
+			timeRange = &TimeRangeData[*TokenSymbolPerChainPairData]{
+				From:         row.From,
+				To:           row.To,
+				Aggregations: []*TokenSymbolPerChainPairData{},
+			}
+			token.TimeRangeData = append(token.TimeRangeData, timeRange)
+		}
+
+		timeRange.TotalMessages += row.Txs
+		timeRange.TotalValueTransferred += row.Volume
+
+		agg := &TokenSymbolPerChainPairData{
+			SourceChain:           row.EmitterChain,
+			TargetChain:           row.DestinationChain,
+			TotalMessages:         row.Txs,
+			TotalValueTransferred: row.Volume,
+		}
+		timeRange.Aggregations = append(timeRange.Aggregations, agg)
+		tokens[row.Symbol] = token
+	}
+
+	resp := TokenSymbolActivityResponse{}
+	for _, token := range tokens {
+		resp.Tokens = append(resp.Tokens, token)
+	}
+
+	return resp, nil
+}
+
 func addAppActivity(appID1, appID2 string, from, to time.Time, volume float64, txs uint64, result []AppActivityTotalData) []AppActivityTotalData {
 
 	appID := appID1
@@ -292,7 +379,7 @@ func addAppActivity(appID1, appID2 string, from, to time.Time, volume float64, t
 			for j := 0; j < len(res.TimeRangeData); j++ {
 				rtrd := &res.TimeRangeData[j]
 				if rtrd.From == from && rtrd.To == to {
-					rtrd.Aggregations = append(rtrd.Aggregations, Aggregations{
+					rtrd.Aggregations = append(rtrd.Aggregations, AggregationsAppActivity{
 						AppID:                 appID,
 						TotalMessages:         txs,
 						TotalValueTransferred: volume,
@@ -300,12 +387,12 @@ func addAppActivity(appID1, appID2 string, from, to time.Time, volume float64, t
 					return result
 				}
 			}
-			res.TimeRangeData = append(res.TimeRangeData, TimeRangeData{
+			res.TimeRangeData = append(res.TimeRangeData, TimeRangeData[AggregationsAppActivity]{
 				TotalMessages:         txs,
 				TotalValueTransferred: volume,
 				From:                  from,
 				To:                    to,
-				Aggregations: []Aggregations{
+				Aggregations: []AggregationsAppActivity{
 					{
 						AppID:                 appID,
 						TotalMessages:         txs,
@@ -319,13 +406,13 @@ func addAppActivity(appID1, appID2 string, from, to time.Time, volume float64, t
 
 	data := AppActivityTotalData{
 		AppID: appID1,
-		TimeRangeData: []TimeRangeData{
+		TimeRangeData: []TimeRangeData[AggregationsAppActivity]{
 			{
 				TotalMessages:         txs,
 				TotalValueTransferred: volume,
 				From:                  from,
 				To:                    to,
-				Aggregations: []Aggregations{
+				Aggregations: []AggregationsAppActivity{
 					{
 						AppID:                 appID,
 						TotalMessages:         txs,
@@ -339,20 +426,38 @@ func addAppActivity(appID1, appID2 string, from, to time.Time, volume float64, t
 }
 
 type AppActivityTotalData struct {
-	AppID         string          `json:"app_id"`
-	TimeRangeData []TimeRangeData `json:"time_range_data"`
+	AppID         string                                   `json:"app_id"`
+	TimeRangeData []TimeRangeData[AggregationsAppActivity] `json:"time_range_data"`
 }
 
-type TimeRangeData struct {
-	From                  time.Time      `json:"from"`
-	To                    time.Time      `json:"to"`
-	TotalMessages         uint64         `json:"total_messages"`
-	TotalValueTransferred float64        `json:"total_value_transferred"`
-	Aggregations          []Aggregations `json:"aggregations,omitempty"`
+type TimeRangeData[T any] struct {
+	From                  time.Time `json:"from"`
+	To                    time.Time `json:"to"`
+	TotalMessages         uint64    `json:"total_messages"`
+	TotalValueTransferred float64   `json:"total_value_transferred"`
+	Aggregations          []T       `json:"aggregations,omitempty"`
 }
 
-type Aggregations struct {
+type AggregationsAppActivity struct {
 	AppID                 string  `json:"app_id"`
 	TotalMessages         uint64  `json:"total_messages"`
 	TotalValueTransferred float64 `json:"total_value_transferred"`
+}
+
+type TokenSymbolActivity struct {
+	TokenSymbol           string                                         `json:"token_symbol"`
+	TotalMessages         uint64                                         `json:"total_messages"`
+	TotalValueTransferred float64                                        `json:"total_value_transferred"`
+	TimeRangeData         []*TimeRangeData[*TokenSymbolPerChainPairData] `json:"time_range_data"`
+}
+
+type TokenSymbolPerChainPairData struct {
+	TotalMessages         uint64      `json:"total_messages"`
+	TotalValueTransferred float64     `json:"total_value_transferred"`
+	SourceChain           vaa.ChainID `json:"source_chain"`
+	TargetChain           vaa.ChainID `json:"target_chain"`
+}
+
+type TokenSymbolActivityResponse struct {
+	Tokens []TokenSymbolActivity `json:"tokens"`
 }
