@@ -2,6 +2,7 @@ package transactions
 
 import (
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -632,4 +633,90 @@ func (c *Controller) GetTransactionByID(ctx *fiber.Ctx) error {
 
 	tx := c.makeTransactionDetail(dto)
 	return ctx.JSON(tx)
+}
+
+func (c *Controller) GetTokensVolume(ctx *fiber.Ctx) error {
+
+	limit := ctx.QueryInt("limit", 10)
+
+	tokens, err := c.srv.GetTokensByVolume(ctx.Context(), limit)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(tokens)
+}
+
+func (c *Controller) GetTokenSymbolActivity(ctx *fiber.Ctx) error {
+
+	from, err := middleware.ExtractTime(ctx, time.RFC3339, "from")
+	if err != nil {
+		return err
+	}
+	to, err := middleware.ExtractTime(ctx, time.RFC3339, "to")
+	if err != nil {
+		return err
+	}
+	if from == nil || to == nil {
+		return response.NewInvalidParamError(ctx, "missing from/to query params ", nil)
+	}
+	sourceChains, err := middleware.ExtractSourceChain(ctx, c.logger)
+	if err != nil {
+		return err
+	}
+	targetChains, err := middleware.ExtractTargetChain(ctx, c.logger)
+	if err != nil {
+		return err
+	}
+
+	var tokenSymbols []string
+	for _, param := range strings.Split(ctx.Query("symbol"), ",") {
+		if param != "" {
+			tokenSymbols = append(tokenSymbols, param)
+		}
+	}
+
+	payload := transactions.TokenSymbolActivityQuery{
+		From:         *from,
+		To:           *to,
+		TokenSymbols: tokenSymbols,
+		Timespan:     transactions.Timespan(ctx.Query("timespan")),
+		SourceChains: sourceChains,
+		TargetChains: targetChains,
+	}
+
+	if payload.Timespan != transactions.Hour && payload.Timespan != transactions.Day && payload.Timespan != transactions.Month {
+		return response.NewInvalidParamError(ctx, "invalid timespan", nil)
+	}
+
+	nowUTC := time.Now().UTC()
+	if nowUTC.Before(payload.To.UTC()) {
+		payload.To = nowUTC
+	}
+
+	timeWindow := payload.To.Sub(payload.From)
+	if timeWindow <= 0 {
+		return response.NewInvalidParamError(ctx, "invalid time range", nil)
+	}
+
+	if payload.Timespan == transactions.Hour && timeWindow > 7*24*time.Hour {
+		return response.NewInvalidParamError(ctx, "For timespan=1h, at most 7 days is allowed.", nil)
+	}
+
+	if payload.Timespan == transactions.Day && timeWindow < 24*time.Hour {
+		return response.NewInvalidParamError(ctx, "For timespan=1d, minimum is 1 day.", nil)
+	}
+
+	if payload.Timespan == transactions.Month && timeWindow < 30*24*time.Hour {
+		return response.NewInvalidParamError(ctx, "For timespan=1mo, minimum is 30 days.", nil)
+	}
+
+	activity, err := c.srv.GetTokenSymbolActivity(ctx.Context(), payload)
+	if err != nil {
+		c.logger.Error("Error retrieving token symbol activity", zap.Error(err))
+		return err
+	}
+
+	return ctx.JSON(activity)
+
 }

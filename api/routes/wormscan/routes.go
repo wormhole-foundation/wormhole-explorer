@@ -1,10 +1,12 @@
 package wormscan
 
 import (
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cache"
+	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	addrsvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/address"
 	govsvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/governor"
@@ -71,6 +73,19 @@ func RegisterRoutes(
 	// Set up route handlers
 	api := app.Group("/api/v1")
 	api.Use(cors.New()) // TODO CORS restrictions?
+	api.Use(compress.New(compress.Config{
+		Next: func(c *fiber.Ctx) bool {
+			endpointsToCompress := []string{"/tokens-symbol-activity", "/application-activity"}
+			path := c.Path()
+			for _, endpoint := range endpointsToCompress {
+				if strings.HasSuffix(path, endpoint) {
+					return false
+				}
+			}
+			return true // Don't execute middleware if Next returns true
+		},
+		Level: compress.LevelBestSpeed,
+	}))
 
 	// monitoring
 	api.Get("/health", infrastructureCtrl.HealthCheck)
@@ -92,6 +107,8 @@ func RegisterRoutes(
 	api.Get("/transactions", transactionCtrl.ListTransactions)
 	api.Get("/transactions/:chain/:emitter/:sequence", transactionCtrl.GetTransactionByID)
 	api.Get("/application-activity", transactionCtrl.GetApplicationActivity)
+	api.Get("/tokens-symbol-volume", transactionCtrl.GetTokensVolume)
+	api.Get("/tokens-symbol-activity", transactionCtrl.GetTokenSymbolActivity)
 
 	// stats custom endpoints
 	api.Get("/top-symbols-by-volume", statsCtrl.GetTopSymbolsByVolume)
