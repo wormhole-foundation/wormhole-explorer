@@ -34,7 +34,7 @@ export class HandleEvmLogs<T> {
       )
       .map((log) => {
         const abi = this.cfg.abis.find((abi) => abi.topic === log.topics[0]) ?? this.cfg.abis[0];
-        const iface = new ethers.utils.Interface([abi!.abi]);
+        const iface = new ethers.utils.Interface([abi.abi]);
         const parsedLog = iface.parseLog(log);
         const logMap = this.mapper(log, parsedLog.args);
         this.report();

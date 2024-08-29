@@ -64,7 +64,10 @@ export type HandleSolanaTxConfig = {
   commitment: string;
   chainId: number;
   chain: string;
-  abi: string;
+  abis: {
+    topic: string;
+    abi: string;
+  }[];
   id: string;
 
   // TODO: perhaps create mapper object in the config with the params instead
