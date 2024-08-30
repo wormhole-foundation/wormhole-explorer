@@ -72,8 +72,8 @@ const mapCircleBodyFromTopics: LogToVaaMapper = (log: EvmTransactionLog, cfg: Ha
   if (!log.topics[0]) {
     return undefined;
   }
-
-  const iface = new ethers.utils.Interface([cfg.abi]);
+  const abi = cfg.abis?.find((abi) => abi.topic === log.topics[0]) ?? cfg.abis[0];
+  const iface = new ethers.utils.Interface([abi.abi]);
   const parsedLog = iface.parseLog(log);
   const bytes = encoding.hex.decode(parsedLog.args[0]);
   const [protocol, circleMessage] = deserializeCircleMessage(bytes);

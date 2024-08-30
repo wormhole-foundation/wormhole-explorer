@@ -10,7 +10,12 @@ let statsRepo = {
 
 const handler = new HandleEvmTransactions(
   {
-    abi: "event MessageSent (bytes message)",
+    abis: [
+      {
+        abi: "event MessageSent (bytes message)",
+        topic: "0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036",
+      },
+    ],
     metricName: "process_message_sent_event",
     commitment: "latest",
     environment: "testnet",

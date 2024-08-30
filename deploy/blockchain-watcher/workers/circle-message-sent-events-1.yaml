@@ -68,7 +68,13 @@ data:
             "target": "influx",
             "mapper": "evmLogCircleMessageSentMapper",
             "config": {
-              "abi": "event MessageSent (bytes message)",
+              "abis": [
+                {
+                  "abi": "event MessageSent (bytes message)",
+                  "topic": "0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036",
+                  "type": "CCTP"
+                }
+              ],
               "metricName": "process_circle_message_event",
               "environment": "testnet"
             }
@@ -104,7 +110,13 @@ data:
             "target": "influx",
             "mapper": "evmLogCircleMessageSentMapper",
             "config": {
-              "abi": "event MessageSent (bytes message)",
+              "abis": [
+                {
+                  "abi": "event MessageSent (bytes message)",
+                  "topic": "0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036",
+                  "type": "CCTP"
+                }
+              ],
               "metricName": "process_circle_message_event",
               "environment": "testnet"
             }
@@ -139,7 +151,13 @@ data:
             "target": "influx",
             "mapper": "evmLogCircleMessageSentMapper",
             "config": {
-              "abi": "event MessageSent (bytes message)",
+              "abis": [
+                {
+                  "abi": "event MessageSent (bytes message)",
+                  "topic": "0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036",
+                  "type": "CCTP"
+                }
+              ],
               "metricName": "process_circle_message_event",
               "environment": "testnet"
             }
@@ -174,7 +192,13 @@ data:
             "target": "influx",
             "mapper": "evmLogCircleMessageSentMapper",
             "config": {
-              "abi": "event MessageSent (bytes message)",
+              "abis": [
+                {
+                  "abi": "event MessageSent (bytes message)",
+                  "topic": "0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036",
+                  "type": "CCTP"
+                }
+              ],
               "metricName": "process_circle_message_event",
               "environment": "testnet"
             }
@@ -209,7 +233,13 @@ data:
             "target": "influx",
             "mapper": "evmLogCircleMessageSentMapper",
             "config": {
-              "abi": "event MessageSent (bytes message)",
+              "abis": [
+                {
+                  "abi": "event MessageSent (bytes message)",
+                  "topic": "0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036",
+                  "type": "CCTP"
+                }
+              ],
               "metricName": "process_circle_message_event",
               "environment": "testnet"
             }
@@ -244,7 +274,13 @@ data:
             "target": "influx",
             "mapper": "evmLogCircleMessageSentMapper",
             "config": {
-              "abi": "event MessageSent (bytes message)",
+              "abis": [
+                {
+                  "abi": "event MessageSent (bytes message)",
+                  "topic": "0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036",
+                  "type": "CCTP"
+                }
+              ],
               "metricName": "process_circle_message_event",
               "environment": "testnet"
             }
@@ -282,7 +318,13 @@ data:
             "target": "influx",
             "mapper": "evmLogCircleMessageSentMapper",
             "config": {
-              "abi": "event MessageSent (bytes message)",
+              "abis": [
+                {
+                  "abi": "event MessageSent (bytes message)",
+                  "topic": "0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036",
+                  "type": "CCTP"
+                }
+              ],
               "metricName": "process_circle_message_event",
               "environment": "mainnet"
             }
@@ -317,7 +359,13 @@ data:
             "target": "influx",
             "mapper": "evmLogCircleMessageSentMapper",
             "config": {
-              "abi": "event MessageSent (bytes message)",
+              "abis": [
+                {
+                  "abi": "event MessageSent (bytes message)",
+                  "topic": "0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036",
+                  "type": "CCTP"
+                }
+              ],
               "metricName": "process_circle_message_event",
               "environment": "mainnet"
             }
@@ -352,7 +400,13 @@ data:
             "target": "influx",
             "mapper": "evmLogCircleMessageSentMapper",
             "config": {
-              "abi": "event MessageSent (bytes message)",
+              "abis": [
+                {
+                  "abi": "event MessageSent (bytes message)",
+                  "topic": "0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036",
+                  "type": "CCTP"
+                }
+              ],
               "metricName": "process_circle_message_event",
               "environment": "mainnet"
             }
@@ -387,7 +441,13 @@ data:
             "target": "influx",
             "mapper": "evmLogCircleMessageSentMapper",
             "config": {
-              "abi": "event MessageSent (bytes message)",
+              "abis": [
+                {
+                  "abi": "event MessageSent (bytes message)",
+                  "topic": "0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036",
+                  "type": "CCTP"
+                }
+              ],
               "metricName": "process_circle_message_event",
               "environment": "mainnet"
             }
@@ -422,7 +482,13 @@ data:
             "target": "influx",
             "mapper": "evmLogCircleMessageSentMapper",
             "config": {
-              "abi": "event MessageSent (bytes message)",
+              "abis": [
+                {
+                  "abi": "event MessageSent (bytes message)",
+                  "topic": "0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036",
+                  "type": "CCTP"
+                }
+              ],
               "metricName": "process_circle_message_event",
               "environment": "mainnet"
             }
@@ -457,7 +523,13 @@ data:
             "target": "influx",
             "mapper": "evmLogCircleMessageSentMapper",
             "config": {
-              "abi": "event MessageSent (bytes message)",
+              "abis": [
+                {
+                  "abi": "event MessageSent (bytes message)",
+                  "topic": "0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036",
+                  "type": "CCTP"
+                }
+              ],
               "metricName": "process_circle_message_event",
               "environment": "mainnet"
             }
@@ -599,6 +671,10 @@ spec:
             {{ if .ARBITRUM_RPCS }}
             - name: ARBITRUM_RPCS
               value: '{{ .ARBITRUM_RPCS }}'
+            {{ end }}
+            {{ if .SOLANA_RPCS }}
+            - name: SOLANA_RPCS
+              value: '{{ .SOLANA_RPCS }}'
             {{ end }}
           resources:
             limits:
