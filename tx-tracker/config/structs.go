@@ -158,6 +158,10 @@ type RpcProviderSettings struct {
 	SeiRequestsPerMinute               uint16 `split_words:"true" required:"false"`
 	SeiFallbackUrls                    string `split_words:"true" required:"false"`
 	SeiFallbackRequestsPerMinute       string `split_words:"true" required:"false"`
+	SnaxchainBaseUrl                   string `split_words:"true" required:"false"`
+	SnaxchainRequestsPerMinute         uint16 `split_words:"true" required:"false"`
+	SnaxchainFallbackUrls              string `split_words:"true" required:"false"`
+	SnaxchainFallbackRequestsPerMinute string `split_words:"true" required:"false"`
 	SolanaBaseUrl                      string `split_words:"true" required:"false"`
 	SolanaRequestsPerMinute            uint16 `split_words:"true" required:"false"`
 	SolanaFallbackUrls                 string `split_words:"true" required:"false"`
@@ -490,6 +494,17 @@ func (r RpcProviderSettings) ToMap() (map[sdk.ChainID][]RpcConfig, error) {
 		return nil, err
 	}
 	rpcs[sdk.ChainIDMantle] = mantleRpcConfigs
+
+	// add snaxchain rpcs
+	snaxchainRpcConfigs, err := addRpcConfig(
+		r.SnaxchainBaseUrl,
+		r.SnaxchainRequestsPerMinute,
+		r.SnaxchainFallbackUrls,
+		r.SnaxchainFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDSnaxchain] = snaxchainRpcConfigs
 
 	// add blast rpcs
 	blastRpcConfigs, err := addRpcConfig(
