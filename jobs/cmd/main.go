@@ -107,11 +107,11 @@ func main() {
 		job := initNTTMedianStatsJob(ctx, logger)
 		err = job.Run(ctx)
 	default:
-		logger.Fatal("Invalid job id", zap.String("job_id", cfg.JobID))
+		logger.Error("Invalid job id", zap.String("job_id", cfg.JobID))
 	}
 
 	if err != nil {
-		logger.Error("failed job execution", zap.String("job_id", cfg.JobID), zap.Error(err))
+		logger.Fatal("failed job execution", zap.String("job_id", cfg.JobID), zap.Error(err))
 	} else {
 		logger.Info("finish job execution successfully", zap.String("job_id", cfg.JobID))
 	}
