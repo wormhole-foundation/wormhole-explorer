@@ -206,6 +206,7 @@ func (s *Service) getProtocolStats(ctx context.Context, protocol string) (Protoc
 		TotalMessages:         rStats.result.Latest.TotalMessages,
 		TotalValueTransferred: activity.TotalValueTransferred,
 		TotalValueSecured:     activity.TotalValueSecure,
+		Last24HourVolume:      activity.Last24HrTotalValueTransferred,
 	}
 
 	totalMsgNow := rStats.result.Latest.TotalMessages
