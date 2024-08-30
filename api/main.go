@@ -254,9 +254,10 @@ func main() {
 		app.Use(rl)
 	}
 
+	notSupportedByEnv := middleware.NotSupportedByTestnetEnv(cfg.P2pNetwork)
 	// Set up route handlers
 	app.Get("/swagger.json", GetSwagger)
-	wormscan.RegisterRoutes(app, rootLogger, addressService, vaaService, obsService, governorService, infrastructureService, transactionsService, relaysService, operationsService, statsService, protocolsService)
+	wormscan.RegisterRoutes(notSupportedByEnv, app, rootLogger, addressService, vaaService, obsService, governorService, infrastructureService, transactionsService, relaysService, operationsService, statsService, protocolsService)
 	guardian.RegisterRoutes(cfg, app, rootLogger, vaaService, governorService, heartbeatsService, guardianService)
 
 	// Set up gRPC handlers
