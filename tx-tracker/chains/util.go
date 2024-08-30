@@ -5,11 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
-	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"io"
 	"net/http"
 	"strings"
+
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 
 	"github.com/ethereum/go-ethereum/rpc"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -139,7 +140,8 @@ func FormatTxHashByChain(chainId sdk.ChainID, txHash string) string {
 		sdk.ChainIDBlast,
 		sdk.ChainIDXLayer,
 		sdk.ChainIDMantle,
-		sdk.ChainIDPolygonSepolia:
+		sdk.ChainIDPolygonSepolia,
+		sdk.ChainIDSnaxchain:
 		return txHashLowerCaseWith0x(txHash)
 	case sdk.ChainIDSei, sdk.ChainIDWormchain:
 		return txHashLowerCaseWith0x(txHash)

@@ -19,7 +19,7 @@ describe("HandleSolanaTransactions", () => {
     commitment: "finalized",
     chainId: 1,
     chain: "solana",
-    abi: "",
+    abis: [{ topic: "", abi: "" }],
     id: "poll-log-message-published-solana",
   };
 

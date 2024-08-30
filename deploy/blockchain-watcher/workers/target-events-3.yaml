@@ -162,7 +162,6 @@ data:
             "target": "sns",
             "mapper": "wormchainRedeemedTransactionFoundMapper",
             "config": {
-              "abi": "",
               "filter": {
                 "addresses": ["wormhole1aaf9r6s7nxhysuegqrxv0wpm27ypyv4886medd3mrkrw6t4yfcnst3qpex"]
               },
@@ -393,7 +392,6 @@ data:
             "target": "sns",
             "mapper": "wormchainRedeemedTransactionFoundMapper",
             "config": {
-              "abi": "",
               "filter": {
                 "addresses": ["wormhole1466nf3zuxpya8q9emxukd7vftaf6h4psr0a07srl5zw74zh84yjq4lyjmh"]
               },
@@ -426,7 +424,6 @@ data:
             "target": "sns",
             "mapper": "cosmosRedeemedTransactionFoundMapper",
             "config": {
-              "abi": "",
               "filter": {
                 "addresses": [
                   "sei1smzlm9t79kur392nu9egl8p8je9j92q4gzguewj56a05kyxxra0qy0nuf3"
@@ -558,7 +555,6 @@ data:
             "target": "sns",
             "mapper": "cosmosRedeemedTransactionFoundMapper",
             "config": {
-              "abi": "",
               "filter": {
                 "addresses": [
                   "terra10nmmwe8r3g99a9newtqa7a75xfgs2e8z87r2sf"
@@ -593,7 +589,6 @@ data:
             "target": "sns",
             "mapper": "cosmosRedeemedTransactionFoundMapper",
             "config": {
-              "abi": "",
               "filter": {
                 "addresses": [
                   "terra153366q50k7t8nn7gec00hg66crnhkdggpgdtaxltaq6xrutkkz3s992fw9"

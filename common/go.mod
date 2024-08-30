@@ -1,6 +1,8 @@
 module github.com/wormhole-foundation/wormhole-explorer/common
 
-go 1.19
+go 1.21
+
+toolchain go1.22.4
 
 require (
 	github.com/algorand/go-algorand-sdk v1.23.0
@@ -23,7 +25,7 @@ require (
 	github.com/shopspring/decimal v1.3.1
 	github.com/stretchr/testify v1.8.4
 	github.com/test-go/testify v1.1.4
-	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240416174455-25e60611a867
+	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240823200831-78771ff5297e
 	go.mongodb.org/mongo-driver v1.11.2
 	go.uber.org/zap v1.26.0
 	golang.org/x/net v0.21.0
