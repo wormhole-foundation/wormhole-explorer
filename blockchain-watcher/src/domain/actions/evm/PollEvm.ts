@@ -3,7 +3,7 @@ import { EvmLog, EvmTransaction } from "../../entities";
 import { GetEvmTransactions } from "./GetEvmTransactions";
 import { RunPollingJob } from "../RunPollingJob";
 import { GetEvmLogs } from "./GetEvmLogs";
-import { Filters } from "./types";
+import { Filter } from "./types";
 import winston from "winston";
 
 const MAX_DIFF_BLOCK_HEIGHT = 10_000;
@@ -172,7 +172,7 @@ export interface PollEvmLogsConfigProps {
   chain: string;
   chainId: number;
   environment: string;
-  filters: Filters;
+  filters: Filter[];
 }
 
 export class PollEvmLogsConfig {
@@ -256,7 +256,7 @@ export class PollEvmLogsConfig {
 }
 
 export type GetEvmOpts = {
-  filters: Filters;
+  filters: Filter[];
   chain: string;
   chainId: number;
   environment: string;

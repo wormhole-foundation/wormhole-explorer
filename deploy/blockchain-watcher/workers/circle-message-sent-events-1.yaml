@@ -672,6 +672,10 @@ spec:
             - name: ARBITRUM_RPCS
               value: '{{ .ARBITRUM_RPCS }}'
             {{ end }}
+            {{ if .SOLANA_RPCS }}
+            - name: SOLANA_RPCS
+              value: '{{ .SOLANA_RPCS }}'
+            {{ end }}
           resources:
             limits:
               cpu: {{ .RESOURCES_LIMITS_CPU }}
