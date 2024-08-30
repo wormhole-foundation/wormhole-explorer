@@ -2,3 +2,4 @@ export * from "./evm/evmLogMessagePublishedMapper";
 export * from "./evm/evmRedeemedTransactionFoundMapper";
 export * from "./solana/solanaLogMessagePublishedMapper";
 export * from "./solana/solanaTransferRedeemedMapper";
+export * from "./solana/solanaLogCircleMessageSentMapper";

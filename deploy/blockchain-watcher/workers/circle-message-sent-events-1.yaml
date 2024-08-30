@@ -75,7 +75,7 @@ data:
                   "type": "CCTP"
                 }
               ],
-              "metricName": "process_message_sent_event",
+              "metricName": "process_circle_message_event",
               "environment": "testnet"
             }
           }
@@ -117,7 +117,7 @@ data:
                   "type": "CCTP"
                 }
               ],
-              "metricName": "process_message_sent_event",
+              "metricName": "process_circle_message_event",
               "environment": "testnet"
             }
           }
@@ -158,7 +158,7 @@ data:
                   "type": "CCTP"
                 }
               ],
-              "metricName": "process_message_sent_event",
+              "metricName": "process_circle_message_event",
               "environment": "testnet"
             }
           }
@@ -199,7 +199,7 @@ data:
                   "type": "CCTP"
                 }
               ],
-              "metricName": "process_message_sent_event",
+              "metricName": "process_circle_message_event",
               "environment": "testnet"
             }
           }
@@ -240,7 +240,7 @@ data:
                   "type": "CCTP"
                 }
               ],
-              "metricName": "process_message_sent_event",
+              "metricName": "process_circle_message_event",
               "environment": "testnet"
             }
           }
@@ -281,7 +281,7 @@ data:
                   "type": "CCTP"
                 }
               ],
-              "metricName": "process_message_sent_event",
+              "metricName": "process_circle_message_event",
               "environment": "testnet"
             }
           }
@@ -325,7 +325,7 @@ data:
                   "type": "CCTP"
                 }
               ],
-              "metricName": "process_message_sent_event",
+              "metricName": "process_circle_message_event",
               "environment": "mainnet"
             }
           }
@@ -366,7 +366,7 @@ data:
                   "type": "CCTP"
                 }
               ],
-              "metricName": "process_message_sent_event",
+              "metricName": "process_circle_message_event",
               "environment": "mainnet"
             }
           }
@@ -407,7 +407,7 @@ data:
                   "type": "CCTP"
                 }
               ],
-              "metricName": "process_message_sent_event",
+              "metricName": "process_circle_message_event",
               "environment": "mainnet"
             }
           }
@@ -448,7 +448,7 @@ data:
                   "type": "CCTP"
                 }
               ],
-              "metricName": "process_message_sent_event",
+              "metricName": "process_circle_message_event",
               "environment": "mainnet"
             }
           }
@@ -489,7 +489,7 @@ data:
                   "type": "CCTP"
                 }
               ],
-              "metricName": "process_message_sent_event",
+              "metricName": "process_circle_message_event",
               "environment": "mainnet"
             }
           }
@@ -530,7 +530,42 @@ data:
                   "type": "CCTP"
                 }
               ],
-              "metricName": "process_message_sent_event",
+              "metricName": "process_circle_message_event",
+              "environment": "mainnet"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-sent-solana",
+        "chain": "solana",
+        "source": {
+          "action": "PollSolanaTransactions",
+          "records": "GetSolanaTransactions",
+          "config": {
+            "slotBatchSize": 1000,
+            "commitment": "finalized",
+            "interval": 15000,
+            "signaturesLimit": 200,
+            "programIds": [
+              "CCTPmbSD7gX1bxKPAmg77w8oFzNFpaQiQUWD43TKaecd"
+            ],
+            "chain": "solana",
+            "chainId": 1
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleSolanaTransactions",
+            "target": "influx",
+            "mapper": "solanaLogCircleMessageSentMapper",
+            "config": {
+              "programs": {
+                "CCTPmbSD7gX1bxKPAmg77w8oFzNFpaQiQUWD43TKaecd": {
+                  "vaaAccountIndex": 3
+                }
+              },
+              "metricName": "process_circle_message_event",
               "environment": "mainnet"
             }
           }

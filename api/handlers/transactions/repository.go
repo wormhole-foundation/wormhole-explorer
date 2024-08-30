@@ -1156,6 +1156,165 @@ func (r *Repository) FindChainActivityTops(ctx *fasthttp.RequestCtx, q ChainActi
 	return response, nil
 }
 
+func (r *Repository) FindTokensVolume(ctx context.Context) ([]TokenVolume, error) {
+	query := `
+		import "date"
+
+		from(bucket: "%s")
+			|> range(start: -1d)
+			|> filter(fn: (r) => r._measurement == "tokens_symbol_volume_all_time")
+			|> group(columns:["symbol"])
+			|> last()
+			|> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+			|> group()
+			|> sort(columns:["volume"],desc:true)
+			|> limit(n:100)
+			|> map(fn: (r) => ({r with volume: float(v:r.volume) / 100000000.0 }))
+	`
+	query = fmt.Sprintf(query, r.bucket24HoursRetention)
+	result, err := r.queryAPI.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+	var response []TokenVolume
+	for result.Next() {
+		var row TokenVolume
+		if err = mapstructure.Decode(result.Record().Values(), &row); err != nil {
+			return nil, err
+		}
+		response = append(response, row)
+	}
+	return response, nil
+}
+
+func (r *Repository) FindTokenSymbolActivity(ctx context.Context, payload TokenSymbolActivityQuery) ([]TokenSymbolActivityResult, error) {
+	query := r.buildTokenSymbolActivityQuery(payload)
+
+	result, err := r.queryAPI.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+	var response []TokenSymbolActivityResult
+	for result.Next() {
+		var row TokenSymbolActivityResult
+		if err = mapstructure.Decode(result.Record().Values(), &row); err != nil {
+			return nil, err
+		}
+
+		emitterChainID, err := strconv.Atoi(row.EmitterChainStr)
+		if err != nil {
+			r.logger.Error("failed to convert emitter chain id to int", zap.Error(err))
+		}
+		destChainID, err := strconv.Atoi(row.DestinationChainStr)
+		if err != nil {
+			r.logger.Error("failed to convert destination chain id to int", zap.Error(err))
+		}
+		row.EmitterChain = sdk.ChainID(emitterChainID)
+		row.DestinationChain = sdk.ChainID(destChainID)
+		response = append(response, row)
+	}
+
+	return response, nil
+}
+
+func (r *Repository) buildTokenSymbolActivityQuery(q TokenSymbolActivityQuery) string {
+
+	var start, stop string
+
+	switch q.Timespan {
+	case Hour:
+		stop = q.To.Truncate(1 * time.Hour).UTC().Format(time.RFC3339)
+		start = q.From.Truncate(1 * time.Hour).UTC().Format(time.RFC3339)
+	case Day:
+		start = q.From.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
+		stop = q.To.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
+	case Month:
+		start = time.Date(q.From.Year(), q.From.Month(), 1, 0, 0, 0, 0, q.From.Location()).UTC().Format(time.RFC3339)
+		stop = time.Date(q.To.Year(), q.To.Month(), 1, 0, 0, 0, 0, q.To.Location()).UTC().Format(time.RFC3339)
+	default:
+		start = time.Date(q.From.Year(), 1, 1, 0, 0, 0, 0, q.From.Location()).UTC().Format(time.RFC3339)
+		stop = time.Date(q.To.Year(), 1, 1, 0, 0, 0, 0, q.To.Location()).UTC().Format(time.RFC3339)
+	}
+
+	filterTargetChain := ""
+	if len(q.TargetChains) > 0 {
+		val := fmt.Sprintf("r.destination_chain == \"%d\"", q.TargetChains[0])
+		buff := ""
+		for _, tc := range q.TargetChains[1:] {
+			buff += fmt.Sprintf(" or r.destination_chain == \"%d\"", tc)
+		}
+		filterTargetChain = fmt.Sprintf("|> filter(fn: (r) => %s%s)", val, buff)
+	}
+
+	filterSourceChain := ""
+	if len(q.SourceChains) > 0 {
+		val := fmt.Sprintf("r.emitter_chain == \"%d\"", q.SourceChains[0])
+		buff := ""
+		for _, tc := range q.SourceChains[1:] {
+			buff += fmt.Sprintf(" or r.emitter_chain == \"%d\"", tc)
+		}
+		filterSourceChain = fmt.Sprintf("|> filter(fn: (r) => %s%s)", val, buff)
+	}
+
+	filterTokenSymbol := ""
+	if len(q.TokenSymbols) > 0 {
+		val := fmt.Sprintf("r.symbol == \"%s\"", q.TokenSymbols[0])
+		buff := ""
+		for _, tc := range q.TokenSymbols[1:] {
+			buff += fmt.Sprintf(" or r.symbol == \"%s\"", tc)
+		}
+		filterTokenSymbol = fmt.Sprintf("|> filter(fn: (r) => %s%s)", val, buff)
+	}
+
+	query := `
+	import "date"
+
+	sumAndCount = (tables=<-, column) => {
+		return tables
+				|> reduce(
+					identity: {
+						_value: uint(v:0),
+						txs: uint(v:0)
+					},
+					fn: (r, accumulator) => ({
+						_value: accumulator._value + r._value,
+						txs: accumulator.txs + uint(v:1)
+					})
+				)
+	}
+	
+	from(bucket: "%s")
+		|> range(start: %s, stop: %s)
+		|> filter(fn: (r) => r._measurement == "vaa_volume_v3" and r.version == "v5")
+		|> filter(fn: (r) => r._field == "volume" or r._field == "symbol")
+		|> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+		|> keep(columns:["_start","_stop","_time","emitter_chain","destination_chain","symbol","volume"])
+		|> filter(fn: (r) => r.volume > 0)
+		%s //filter by symbol
+		%s //filter by source_chain
+		%s //filter by target_chain
+		|> rename(columns: {volume: "_value"})
+		|> set(key: "_field", value: "volume")
+		|> group(columns:["symbol","emitter_chain","destination_chain","_field"])
+		|> aggregateWindow(every: %s, fn: sumAndCount, createEmpty: true)
+		|> map(fn: (r) => ({
+				r with 
+				volume: if exists r._value then float(v:r._value) / 100000000.0 else float(v:0),
+				to: r._time,
+				_time: date.sub(d: %s, from: r._time),
+		}))
+		|> drop(columns:["_value","_start","_stop","_field"])	
+	`
+
+	return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterTokenSymbol, filterSourceChain, filterTargetChain, q.Timespan, q.Timespan)
+}
+
 func (r *Repository) buildChainActivityQueryTops(q ChainActivityTopsQuery) string {
 
 	var start, stop string

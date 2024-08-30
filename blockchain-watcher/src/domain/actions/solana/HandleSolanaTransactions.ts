@@ -60,6 +60,7 @@ export class HandleSolanaTransactions<T> {
 }
 
 export type HandleSolanaTxConfig = {
+  environment: string;
   metricName: string;
   commitment: string;
   chainId: number;
@@ -69,7 +70,6 @@ export type HandleSolanaTxConfig = {
     abi: string;
   }[];
   id: string;
-
   // TODO: perhaps create mapper object in the config with the params instead
   // of having them in the handler config
   programId?: string;
