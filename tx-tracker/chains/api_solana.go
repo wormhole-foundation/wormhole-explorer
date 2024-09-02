@@ -4,9 +4,10 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"time"
+
 	notional "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
-	"time"
 
 	"github.com/mr-tron/base58"
 	"github.com/shopspring/decimal"
@@ -96,7 +97,7 @@ func (a *apiSolana) FetchSolanaTx(
 		}
 	}
 
-	if txDetail.FeeDetail != nil && txDetail.FeeDetail.Fee != "" && a.p2pNetwork == domain.P2pMainNet {
+	if txDetail != nil && txDetail.FeeDetail != nil && txDetail.FeeDetail.Fee != "" && a.p2pNetwork == domain.P2pMainNet {
 		gasPrice, errGasPrice := GetGasTokenNotional(sdk.ChainIDSolana, a.notionalCache)
 		if errGasPrice != nil {
 			logger.Error("Failed to get gas price", zap.Error(errGasPrice), zap.String("chainId", sdk.ChainIDSolana.String()), zap.String("txHash", txHash))
