@@ -1,6 +1,6 @@
 module github.com/wormhole-foundation/wormhole-explorer/fly-event-processor
 
-go 1.20
+go 1.21.9
 
 require (
 	github.com/ansrivas/fiberprometheus/v2 v2.6.1
@@ -13,7 +13,7 @@ require (
 	github.com/sethvargo/go-envconfig v1.0.0
 	github.com/spf13/cobra v1.8.0
 	github.com/wormhole-foundation/wormhole-explorer/common v0.0.0-20240422172607-688a0d0f718e
-	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240416174455-25e60611a867
+	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240823200831-78771ff5297e
 	go.mongodb.org/mongo-driver v1.11.2
 	go.uber.org/zap v1.27.0
 	golang.org/x/net v0.21.0
