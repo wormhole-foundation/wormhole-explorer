@@ -41,6 +41,7 @@ type ProtocolStats struct {
 	TotalValueTransferred float64 `json:"total_value_transferred,omitempty"`
 	LastDayMessages       uint64  `json:"last_day_messages,omitempty"`
 	LastDayDiffPercentage string  `json:"last_day_diff_percentage,omitempty"`
+	Last24HourVolume      float64 `json:"last_24_hour_volume,omitempty"`
 }
 
 type tvlProvider interface {
@@ -139,6 +140,7 @@ func (s *Service) getCoreProtocolStats(ctx context.Context, protocol string) (Pr
 		TotalValueTransferred: float64(protocolStats.Latest.TotalValueTransferred) / 1e8,
 		TotalMessages:         protocolStats.Latest.TotalMessages,
 		LastDayMessages:       diffLastDay,
+		Last24HourVolume:      float64(protocolStats.DeltaLast24hr.TotalValueTransferred) / 1e8,
 	}
 
 	lastDayTotalMessages := protocolStats.Latest.TotalMessages - diffLastDay
@@ -204,6 +206,7 @@ func (s *Service) getProtocolStats(ctx context.Context, protocol string) (Protoc
 		TotalMessages:         rStats.result.Latest.TotalMessages,
 		TotalValueTransferred: activity.TotalValueTransferred,
 		TotalValueSecured:     activity.TotalValueSecure,
+		Last24HourVolume:      activity.Last24HrTotalValueTransferred,
 	}
 
 	totalMsgNow := rStats.result.Latest.TotalMessages
