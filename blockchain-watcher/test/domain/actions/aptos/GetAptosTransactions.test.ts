@@ -326,6 +326,157 @@ describe("GetAptosTransactions", () => {
       () => expect(getTransactionsSpy).toBeCalledWith({ from: 146040, limit: 100 })
     );
   });
+
+  it("should be return an empty array and not run the process because the newLastFrom is minor than lastFrom", async () => {
+    // Given
+    const tx = {
+      version: "117581688",
+      hash: "0x2853cb063b5351ea1b1ea46295bfadcd18117d20bc7b65de8db624284fd19061",
+      state_change_hash: "0x1513a95994c2b8319cef0bb728e56dcf51519cc5982d494541dbb91e7ba9ee2e",
+      event_root_hash: "0xadc25c39d0530da619a7620261194d6f3911aeed8c212dc3dfb699b2b6a07834",
+      state_checkpoint_hash: null,
+      gas_used: "753",
+      success: true,
+      vm_status: "Executed successfully",
+      accumulator_root_hash: "0x9b6e4552555f3584e13910c3a998159fef6c31568a23a9934832661f5bde5a09",
+      changes: [
+        {
+          address: "0xa9e33cfc7bb1f0d8fc63dcfbfecaff4806facfee290c284cd83ae10763ca0bd2",
+          state_key_hash: "0xaf2393fef64599629efda83739a73fea2fc70c4d9bdff14e5681c396c51ab8f6",
+          data: {
+            type: "0x1::coin::CoinStore<0x5e156f1207d0ebfa19a9eeff00d62a282278fb8719f4fab3a586a0a2c0fffbea::coin::T>",
+            data: {
+              coin: { value: "524897921" },
+              deposit_events: {
+                counter: "1291",
+                guid: {
+                  id: {
+                    addr: "0xa9e33cfc7bb1f0d8fc63dcfbfecaff4806facfee290c284cd83ae10763ca0bd2",
+                    creation_num: "4",
+                  },
+                },
+              },
+              frozen: false,
+              withdraw_events: {
+                counter: "750",
+                guid: {
+                  id: {
+                    addr: "0xa9e33cfc7bb1f0d8fc63dcfbfecaff4806facfee290c284cd83ae10763ca0bd2",
+                    creation_num: "5",
+                  },
+                },
+              },
+            },
+          },
+          type: "write_resource",
+        },
+        {
+          address: "0xa9e33cfc7bb1f0d8fc63dcfbfecaff4806facfee290c284cd83ae10763ca0bd2",
+          state_key_hash: "0x18a0f4ffd938393773095ff40524b113a48e1c088fef980f202096402be6bd7b",
+          data: {
+            type: "0x1::account::Account",
+            data: {
+              authentication_key:
+                "0xa9e33cfc7bb1f0d8fc63dcfbfecaff4806facfee290c284cd83ae10763ca0bd2",
+              coin_register_events: {
+                counter: "25",
+                guid: {
+                  id: {
+                    addr: "0xa9e33cfc7bb1f0d8fc63dcfbfecaff4806facfee290c284cd83ae10763ca0bd2",
+                    creation_num: "0",
+                  },
+                },
+              },
+              guid_creation_num: "52",
+              key_rotation_events: {
+                counter: "0",
+                guid: {
+                  id: {
+                    addr: "0xa9e33cfc7bb1f0d8fc63dcfbfecaff4806facfee290c284cd83ae10763ca0bd2",
+                    creation_num: "1",
+                  },
+                },
+              },
+              rotation_capability_offer: { for: { vec: [] } },
+              sequence_number: "2050",
+              signer_capability_offer: { for: { vec: [] } },
+            },
+          },
+          type: "write_resource",
+        },
+      ],
+      sender: "0xa9e33cfc7bb1f0d8fc63dcfbfecaff4806facfee290c284cd83ae10763ca0bd2",
+      sequence_number: "2049",
+      max_gas_amount: "904",
+      gas_unit_price: "100",
+      expiration_timestamp_secs: "1709822592",
+      payload: {
+        function:
+          "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f::complete_transfer::submit_vaa_and_register_entry",
+        type_arguments: [
+          "0x5e156f1207d0ebfa19a9eeff00d62a282278fb8719f4fab3a586a0a2c0fffbea::coin::T",
+        ],
+        arguments: [
+          "0x01000000030d0160b44a3ef503cf5a38ea72be662214c57b1431818e96fce55581085dc926379461f7942c11676bb9e992bf3dfca07c2ed1fc6d6df2dc50f1efee226cc66efae301039451110dcf560d2a79b8ba9aca679bcd56eba1c4db1c8f6f44c12973e394f2126b5e8944472b513b3196323bdddd31de64c20294dda6858b3ca77d0c8de940730004ffd7ac756815bce35c1e2cb72247ab4ab4ead25f4b072dc1c74937101b1e09cf04475447fbff003adb686338816d50bc3fedf988e733f03f8c11c359895b5a05000642879078f0c4964ed01bd46e977a032acc8aa0bf5140df04349c2fa843ee152a570b03286040702c59a40b9ddc8e99cd3d46c5529ce9f2d5cc3a3c0b7aafcd960007f910ed72608e482fce0b2afcc243dcb3e7b0f2e450215c8f056288e631abc8966467f976eb39c992f20ef61b47b3587f0566fc934880357ad019da98ba29768c00088aa7b98f820581e011a5e554d347f5d714e16a74674d6117e3772ee77b20ca30157144b31ec203e18c8815f3c21feca7e549d5111e48c2f7d9362139abeb6bd1010989e8c573acb24be1915f0152f790d53c195ee8850eb7e41988e6e019e4a6decf390d19a16ae161b65ef265ff75a01b3ad23fe9e99d124e140a6d64fd8808d738010a9aa6b777d25f2bf4500f6ce574617350a136e217c2bfe8ba97a62a6cf3375eff158fb81149ae439f0f43ae7727189a8f6b5557318caa35829484ba1f5abb3eb8000c12fc58d0e3cfa020f126495e5d3f9401ac82dc48d6af1a22d8950b9cdb5fd8370181d4ca59ec41cc193bbb39618b1b645d557999ef97e89c919cec99aabe42c7010daa874ee1b0d6f3462c8f83d108953eb80d797d908d3c121c46e8a5514f50f2470822076d8f59e2934c4ee365520c53f9ea9ee3014d0ed8adc85c3653a0ac77000010e31607f6bfd58aa3d9c423b410c1081cbef7ee215a6a412c12ba60807867bcbd680d82a5ecf92ac99bb0682e670c38415304ed6eb9e7c95b0095866fdd2a67a100115e20281a08ebb632a9ff584f11924dd62edcaaceb89123814ce3598bd231b6d8678c13876a1f7c0b8c07acb7e0fad4d002f839db2f6f84b5f2ddfdc4ba3930f001126414cd214b9d5e0e0dbb2fad61ee9d567ffb79b7a575d84acd0bc8dbd28ea15f74feca54a47c5adae94b1718556b44f88a7993dc78602b9907738b0bd6427dcd0165e9d1e4400b01000010000000000000000000000000b1731c586ca89a23809861c6103f0b96b3f57d92000000000001219e0101000000000000000000000000000000000000000000000000000000001dcd6500000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb480002a9e33cfc7bb1f0d8fc63dcfbfecaff4806facfee290c284cd83ae10763ca0bd200160000000000000000000000000000000000000000000000000000000000000000",
+        ],
+        type: "entry_function_payload",
+      },
+      signature: {
+        public_key: "0x5d4d25db389615c6ba75d3920690a8dfbe2108e21835668ebdee9d2096b7e104",
+        signature:
+          "0xd849b7400247c747268ccc30a6879995d8792e83116cccbe53ba564bd0517f0c82299302014fd7bd089e6e00090b0d9ad46c8f2ecd1bd81ef2d6d0ae094a870f",
+        type: "ed25519_signature",
+      },
+      events: [
+        {
+          guid: {
+            creation_number: "4",
+            account_address: "0xa9e33cfc7bb1f0d8fc63dcfbfecaff4806facfee290c284cd83ae10763ca0bd2",
+          },
+          sequence_number: "1289",
+          type: "0x1::coin::DepositEvent",
+          data: { amount: "500000000" },
+        },
+        {
+          guid: {
+            creation_number: "4",
+            account_address: "0xa9e33cfc7bb1f0d8fc63dcfbfecaff4806facfee290c284cd83ae10763ca0bd2",
+          },
+          sequence_number: "1290",
+          type: "0x1::coin::DepositEvent",
+          data: { amount: "0" },
+        },
+        {
+          guid: { creation_number: "0", account_address: "0x0" },
+          sequence_number: "0",
+          type: "0x1::transaction_fee::FeeStatement",
+          data: {
+            execution_gas_units: "118",
+            io_gas_units: "8",
+            storage_fee_octas: "62820",
+            storage_fee_refund_octas: "0",
+            total_charge_gas_units: "753",
+          },
+        },
+      ],
+      timestamp: "1709822474112433",
+      type: "user_transaction",
+    };
+    givenAptosBlockRepository(tx);
+    givenMetadataRepository({ previousFrom: 487581288n, lastFrom: 487581388n });
+    givenStatsRepository();
+    givenPollAptosTx(cfg);
+
+    // Whem
+    await whenPollAptosLogsStarts();
+
+    // Then
+    // previousFrom: 487581288n, lastFrom: 487581388n, newLastFrom: 117581688n from the rpc response
+    await thenWaitForAssertion(
+      () => expect(getTransactionsSpy).toHaveReturnedTimes(1),
+      () => expect(getTransactionsSpy).toBeCalledWith({ from: 487581388, limit: 100 })
+    );
+  });
 });
 
 const givenAptosBlockRepository = (tx: any = {}) => {

@@ -60,6 +60,7 @@ export class PollAptos extends RunPollingJob {
       filters: this.cfg.filters,
       previousFrom: this.previousFrom,
       lastFrom: this.lastFrom,
+      cfgFrom: this.cfg.from,
     });
 
     this.updateRange();
@@ -192,4 +193,5 @@ export type GetAptosOpts = {
   filters: TransactionFilter[];
   previousFrom?: bigint | undefined;
   lastFrom?: bigint | undefined;
+  cfgFrom: bigint | undefined;
 };
