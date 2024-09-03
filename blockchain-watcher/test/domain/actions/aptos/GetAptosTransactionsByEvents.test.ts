@@ -58,7 +58,7 @@ describe("GetAptosTransactionsByEvents", () => {
     await pollAptos.stop();
   });
 
-  it("should be return an empty array and not run the process because the newLastFrom is minor than lastFrom", async () => {
+  it("should be return an empty array and not to run the process because the newLastFrom is minor than lastFrom", async () => {
     // Given
     givenAptosBlockRepository("6040");
     givenMetadataRepository({ previousFrom: 146040n, lastFrom: 146140n });

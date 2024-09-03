@@ -53,6 +53,10 @@ export class GetAptosTransactions {
       });
     }
 
+    this.logger.info(
+      `[aptos][exec] Got ${populatedTransactions?.length} transactions to process for [addresses:${opts.addresses}][from: ${range?.from} - limit: ${range?.limit}]`
+    );
+
     this.lastFrom = newLastFrom; // Update lastFrom
     this.previousFrom = lastFrom; // Update previousFrom
     return populatedTransactions;

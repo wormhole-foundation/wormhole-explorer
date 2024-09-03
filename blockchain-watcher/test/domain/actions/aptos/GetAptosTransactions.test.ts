@@ -327,7 +327,7 @@ describe("GetAptosTransactions", () => {
     );
   });
 
-  it("should be return an empty array and not run the process because the newLastFrom is minor than lastFrom", async () => {
+  it("should be return an empty array and not to run the process because the newLastFrom is minor than lastFrom", async () => {
     // Given
     const tx = {
       version: "117581688",
