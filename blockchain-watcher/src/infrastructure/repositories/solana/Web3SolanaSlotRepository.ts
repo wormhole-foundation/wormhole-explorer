@@ -1,34 +1,39 @@
-import {
-  Commitment,
-  Finality,
-  PublicKey,
-  SolanaJSONRPCError,
-  VersionedTransactionResponse,
-} from "@solana/web3.js";
-import { InstrumentedConnection, ProviderPool } from "@xlabs/rpc-pool";
-import { solana } from "../../../domain/entities";
+import { InstrumentedConnectionWrapper } from "../../rpc/http/InstrumentedConnectionWrapper";
 import { Fallible, SolanaFailure } from "../../../domain/errors";
 import { SolanaSlotRepository } from "../../../domain/repositories";
+import { ProviderPool } from "@xlabs/rpc-pool";
+import { solana } from "../../../domain/entities";
+import winston from "../../log";
+import {
+  VersionedTransactionResponse,
+  SolanaJSONRPCError,
+  Commitment,
+  PublicKey,
+  Finality,
+} from "@solana/web3.js";
 
 export class Web3SolanaSlotRepository implements SolanaSlotRepository {
-  constructor(private readonly pool: ProviderPool<InstrumentedConnection>) {}
+  protected readonly logger;
+
+  constructor(private readonly pool: ProviderPool<InstrumentedConnectionWrapper>) {
+    this.logger = winston.child({ module: "Web3SolanaSlotRepository" });
+  }
 
   getLatestSlot(commitment: string): Promise<number> {
     return this.pool.get().getSlot(commitment as Commitment);
   }
 
   getBlock(slot: number, finality?: string): Promise<Fallible<solana.Block, SolanaFailure>> {
-    return this.pool
-      .get()
+    const provider = this.pool.get();
+    return provider
       .getBlock(slot, {
         maxSupportedTransactionVersion: 0,
         commitment: this.normalizeFinality(finality),
       })
       .then((block) => {
         if (block === null) {
-          return Fallible.error<solana.Block, SolanaFailure>(
-            new SolanaFailure(0, "Block not found")
-          );
+          // In this case we throw and error and we try to retry the request
+          throw new Error("Unable to parse result of getBlock");
         }
         return Fallible.ok<solana.Block, SolanaFailure>({
           ...block,
@@ -40,9 +45,16 @@ export class Web3SolanaSlotRepository implements SolanaSlotRepository {
       })
       .catch((err) => {
         if (err instanceof SolanaJSONRPCError) {
+          // We skip the block if it is not available (e.g error: Slot N was skipped)
           return Fallible.error(new SolanaFailure(err.code, err.message));
         }
 
+        this.logger.error(
+          `[solana][getBlock] Cannot process this slot: ${slot}}, error ${JSON.stringify(
+            err
+          )} on ${provider.getUrl()}`
+        );
+        provider.setProviderOffline();
         throw err;
       });
   }
@@ -69,13 +81,20 @@ export class Web3SolanaSlotRepository implements SolanaSlotRepository {
     sigs: solana.ConfirmedSignatureInfo[],
     finality?: string
   ): Promise<solana.Transaction[]> {
-    const txs = await this.pool.get().getTransactions(
+    const provider = this.pool.get();
+    const txs = await provider.getTransactions(
       sigs.map((sig) => sig.signature),
       { maxSupportedTransactionVersion: 0, commitment: this.normalizeFinality(finality) }
     );
 
     if (txs.length !== sigs.length) {
-      throw new Error(`Expected ${sigs.length} transactions, but got ${txs.length} instead`);
+      this.logger.error(
+        `[solana][getTransactions] Expected ${sigs.length} transactions, but got ${
+          txs.length
+        } instead on ${provider.getUrl()}`
+      );
+      provider.setProviderOffline();
+      throw new Error("Unable to parse result of getTransactions");
     }
 
     return txs

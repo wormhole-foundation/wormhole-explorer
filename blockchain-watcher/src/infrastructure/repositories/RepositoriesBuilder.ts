@@ -7,6 +7,7 @@ import { RateLimitedEvmJsonRPCBlockRepository } from "./evm/RateLimitedEvmJsonRP
 import { RateLimitedSuiJsonRPCBlockRepository } from "./sui/RateLimitedSuiJsonRPCBlockRepository";
 import { WormchainJsonRPCBlockRepository } from "./wormchain/WormchainJsonRPCBlockRepository";
 import { AlgorandJsonRPCBlockRepository } from "./algorand/AlgorandJsonRPCBlockRepository";
+import { InstrumentedConnectionWrapper } from "../rpc/http/InstrumentedConnectionWrapper";
 import { CosmosJsonRPCBlockRepository } from "./cosmos/CosmosJsonRPCBlockRepository";
 import { extendedProviderPoolSupplier } from "../rpc/http/ProviderPoolDecorator";
 import { AptosJsonRPCBlockRepository } from "./aptos/AptosJsonRPCBlockRepository";
@@ -39,12 +40,7 @@ import {
   PromStatRepository,
   SnsEventRepository,
 } from ".";
-import {
-  InstrumentedConnection,
-  InstrumentedSuiClient,
-  ProviderPool,
-  RpcConfig,
-} from "@xlabs/rpc-pool";
+import { InstrumentedSuiClient, ProviderPool, RpcConfig } from "@xlabs/rpc-pool";
 
 const WORMCHAIN_CHAIN = "wormchain";
 const ALGORAND_CHAIN = "algorand";
@@ -225,16 +221,21 @@ export class RepositoriesBuilder {
 
   private buildSolanaRepository(chain: string): void {
     if (chain == SOLANA_CHAIN) {
+      const cfg = this.cfg.chains[chain];
+
       const solanaProviderPool = extendedProviderPoolSupplier(
         this.cfg.chains[chain].rpcs.map((url) => ({ url })),
         (rpcCfg: RpcConfig) =>
-          new InstrumentedConnection(rpcCfg.url, {
-            commitment: rpcCfg.commitment || "confirmed",
-          }),
+          new InstrumentedConnectionWrapper(
+            rpcCfg.url,
+            {
+              commitment: rpcCfg.commitment || "confirmed",
+            },
+            cfg.timeout ?? 1_000
+          ),
         POOL_STRATEGY
       );
 
-      const cfg = this.cfg.chains[chain];
       const solanaSlotRepository = new RateLimitedSolanaSlotRepository(
         new Web3SolanaSlotRepository(solanaProviderPool),
         SOLANA_CHAIN,
