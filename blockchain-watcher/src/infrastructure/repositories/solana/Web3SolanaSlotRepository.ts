@@ -32,7 +32,7 @@ export class Web3SolanaSlotRepository implements SolanaSlotRepository {
       })
       .then((block) => {
         if (block === null) {
-          // In this case we throw and error and we try to retry the request
+          // In this case we throw and error and we retry the request
           throw new Error("Unable to parse result of getBlock");
         }
         return Fallible.ok<solana.Block, SolanaFailure>({
@@ -45,7 +45,7 @@ export class Web3SolanaSlotRepository implements SolanaSlotRepository {
       })
       .catch((err) => {
         if (err instanceof SolanaJSONRPCError) {
-          // We skip the block if it is not available (e.g error: Slot N was skipped)
+          // We skip the block if it is not available (e.g Slot N was skipped - Error code: -32007, -32009)
           return Fallible.error(new SolanaFailure(err.code, err.message));
         }
 

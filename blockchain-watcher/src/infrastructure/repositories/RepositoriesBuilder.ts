@@ -1,3 +1,4 @@
+import { InstrumentedSuiClient, ProviderPool, RpcConfig } from "@xlabs/rpc-pool";
 import { RateLimitedWormchainJsonRPCBlockRepository } from "./wormchain/RateLimitedWormchainJsonRPCBlockRepository";
 import { RateLimitedAlgorandJsonRPCBlockRepository } from "./algorand/RateLimitedAlgorandJsonRPCBlockRepository";
 import { RateLimitedCosmosJsonRPCBlockRepository } from "./cosmos/RateLimitedCosmosJsonRPCBlockRepository";
@@ -40,7 +41,6 @@ import {
   PromStatRepository,
   SnsEventRepository,
 } from ".";
-import { InstrumentedSuiClient, ProviderPool, RpcConfig } from "@xlabs/rpc-pool";
 
 const WORMCHAIN_CHAIN = "wormchain";
 const ALGORAND_CHAIN = "algorand";
