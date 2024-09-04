@@ -238,8 +238,8 @@ github.com/valyala/fasttemplate v1.0.1/go.mod h1:UQGH1tvbgY+Nz5t2n7tXsz52dQxojPU
 github.com/valyala/fasttemplate v1.2.1/go.mod h1:KHLXt3tVN2HBp8eijSv/kGJopbvo7S+qRAEEKiv+SiQ=
 github.com/valyala/tcplisten v1.0.0 h1:rBHj/Xf+E1tRGZyWIWwJDiRY0zc1Js+CV5DqwacVSA8=
 github.com/valyala/tcplisten v1.0.0/go.mod h1:T0xQ8SeCZGxckz9qRXTfG43PvQ/mcWh7FwZEA7Ioqkc=
-github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240416174455-25e60611a867 h1:GXUBP09C/bnEukdU6H2AY81d0m8UWrWEejDp6CgiFQA=
-github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240416174455-25e60611a867/go.mod h1:pE/jYet19kY4P3V6mE2+01zvEfxdyBqv6L6HsnSa5uc=
+github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240823200831-78771ff5297e h1:0XoMrnKqnn/wWa0L+KxyNZ7FibspPSXTIHh8TlztrdA=
+github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240823200831-78771ff5297e/go.mod h1:pE/jYet19kY4P3V6mE2+01zvEfxdyBqv6L6HsnSa5uc=
 github.com/xdg-go/pbkdf2 v1.0.0 h1:Su7DPu48wXMwC3bs7MCNG+z4FhcyEuz5dlvchbq0B0c=
 github.com/xdg-go/pbkdf2 v1.0.0/go.mod h1:jrpuAogTd400dnrH08LKmI/xc1MbPOebTwRqcT5RDeI=
 github.com/xdg-go/scram v1.1.1/go.mod h1:RaEWvsqvNKKvBPvcKeFjrG2cJqOkHTiyTpzz23ni57g=
