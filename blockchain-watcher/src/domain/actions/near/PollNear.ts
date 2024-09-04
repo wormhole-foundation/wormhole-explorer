@@ -4,6 +4,7 @@ import { NearTransaction } from "../../entities/near";
 import { RunPollingJob } from "../RunPollingJob";
 import winston from "winston";
 
+const MAX_DIFF_BLOCK_HEIGHT = 10_000;
 const ID = "watch-near-logs";
 
 export class PollNear extends RunPollingJob {
@@ -93,10 +94,15 @@ export class PollNear extends RunPollingJob {
     }
 
     let toBlock = BigInt(fromBlock) + BigInt(this.cfg.blockBatchSize);
-    // limit toBlock to obtained block height
+    // Limit toBlock to obtained block height
     if (toBlock > fromBlock && toBlock > latestBlockHeight) {
-      toBlock = latestBlockHeight;
+      // Restrict toBlock update because the latestBlockHeight may be outdated
+      const diffBlockHeight = toBlock - latestBlockHeight;
+      if (diffBlockHeight <= MAX_DIFF_BLOCK_HEIGHT) {
+        toBlock = latestBlockHeight;
+      }
     }
+
     // limit toBlock to configured toBlock
     if (this.cfg.toBlock && toBlock > this.cfg.toBlock) {
       toBlock = this.cfg.toBlock;
