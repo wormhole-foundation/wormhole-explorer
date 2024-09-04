@@ -1,0 +1,53 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ntt-top-address-stats-hourly
+  namespace: {{ .NAMESPACE }}
+spec: #cronjob specs
+  schedule: "0 * * * *"
+  jobTemplate:
+    spec: # job specs
+      template:
+        spec: # pod specs
+          containers:
+            - name: ntt-top-address-stats-hourly
+              image: {{ .IMAGE_NAME }}
+              imagePullPolicy: Always
+              env:
+                - name: ENVIRONMENT
+                  value: {{ .ENVIRONMENT }}
+                - name: LOG_LEVEL
+                  value: {{ .LOG_LEVEL }}
+                - name: JOB_ID
+                  value: JOB_NTT_TOP_ADDRESS_STATS
+                - name: CACHE_URL
+                  valueFrom:
+                    configMapKeyRef:
+                      name: config
+                      key: redis-uri
+                - name: CACHE_PREFIX
+                  valueFrom:
+                    configMapKeyRef:
+                      name: config
+                      key: redis-prefix                  
+                - name: INFLUX_URL
+                  valueFrom:
+                    configMapKeyRef:
+                      name: config
+                      key: influxdb-url
+                - name: INFLUX_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: influxdb
+                      key: token
+                - name: INFLUX_ORGANIZATION
+                  valueFrom:
+                    configMapKeyRef:
+                      name: config
+                      key: influxdb-organization
+                - name: INFLUX_BUCKET_INFINITE
+                  valueFrom:
+                    configMapKeyRef:
+                      name: config
+                      key: influxdb-bucket-infinite
+          restartPolicy: OnFailure

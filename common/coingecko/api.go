@@ -14,6 +14,7 @@ type CoinGeckoAPI struct {
 	ApiURL     string
 	HeaderKey  string
 	ApiKey     string
+	client     *http.Client
 	tokenCache map[string]TokenItem
 }
 
@@ -29,6 +30,7 @@ func NewCoinGeckoAPI(url, headerKey string, apiKey string) *CoinGeckoAPI {
 		ApiURL:     url,
 		HeaderKey:  headerKey,
 		ApiKey:     apiKey,
+		client:     http.DefaultClient,
 		tokenCache: make(map[string]TokenItem),
 	}
 }
@@ -165,4 +167,49 @@ func (cg *CoinGeckoAPI) GetSymbolByContract(ChainId string, ContractId string) (
 	fmt.Printf("\"%s\": \"%s\",\n", ContractId, ti.Symbol)
 
 	return &ti, nil
+}
+
+// GetMarketData returns the market cap and circulating supply of the coin in USD.
+func (cg *CoinGeckoAPI) GetMarketData(coinID string) (*CoinMarketDataResponse, error) {
+	url := fmt.Sprintf("%s/api/v3/coins/%s", cg.ApiURL, coinID)
+	method := "GET"
+
+	req, err := http.NewRequest(method, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if cg.HeaderKey != "" && cg.ApiKey != "" {
+		req.Header.Add(cg.HeaderKey, cg.ApiKey)
+	}
+
+	res, err := cg.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != 200 {
+		switch res.StatusCode {
+		case 404:
+			return nil, ErrCoinNotFound
+		case 429:
+			return nil, ErrTooManyRequests
+		default:
+			return nil, fmt.Errorf("failed request with status code; %d", res.StatusCode)
+		}
+	}
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var response CoinMarketDataResponse
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
 }
