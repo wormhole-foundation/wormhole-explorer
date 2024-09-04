@@ -63,6 +63,17 @@ func TestService_GetProtocolsTotalValues(t *testing.T) {
 		"total_value_secure":      float64(9),
 	}))
 
+	last24respActivity := &mockQueryTableResult{}
+	last24respActivity.On("Next").Return(true)
+	last24respActivity.On("Err").Return(errNil)
+	last24respActivity.On("Close").Return(errNil)
+	last24respActivity.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
+		"protocol":                "protocol1",
+		"total_messages":          uint64(4),
+		"total_value_transferred": float64(67),
+		"total_value_secure":      float64(9),
+	}))
+
 	ctx := context.Background()
 	queryAPI := &mockQueryAPI{}
 	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateProtocolStats, "bucket30d", dbconsts.ProtocolsStatsMeasurementHourly, "protocol1")).Return(respStatsLatest, nil)
@@ -71,6 +82,7 @@ func TestService_GetProtocolsTotalValues(t *testing.T) {
 	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateProtocolStatsLastDay, "bucket30d", from.Format(time.RFC3339), to.Format(time.RFC3339), dbconsts.ProtocolsStatsMeasurementHourly, "protocol1")).Return(respStatsLastDay, nil)
 	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateProtocolActivity, "bucketInfinite", "1970-01-01T00:00:00Z", dbconsts.ProtocolsActivityMeasurementDaily, "protocol1")).Return(respActivityLast, nil)
 	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateProtocolActivity, "bucket30d", ts.Format(time.RFC3339), dbconsts.ProtocolsActivityMeasurementHourly, "protocol1")).Return(respActivity2, nil)
+	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryLast24HrActivity, "bucketInfinite", dbconsts.ProtocolsActivityMeasurementDaily, "protocol1")).Return(last24respActivity, nil)
 
 	repository := protocols.NewRepository(queryAPI, "bucketInfinite", "bucket30d", zap.NewNop())
 	service := protocols.NewService([]string{"protocol1"}, nil, repository, zap.NewNop(), cache.NewDummyCacheClient(), "WORMSCAN:PROTOCOLS", 0, metrics.NewNoOpMetrics(), &mockTvl{})
@@ -84,6 +96,7 @@ func TestService_GetProtocolsTotalValues(t *testing.T) {
 	assert.Equal(t, 14.00, values[0].TotalValueTransferred)
 	assert.Equal(t, uint64(3), values[0].LastDayMessages)
 	assert.Equal(t, "75.00%", values[0].LastDayDiffPercentage)
+	assert.Equal(t, float64(67), values[0].Last24HourVolume)
 
 }
 
@@ -172,6 +185,7 @@ func TestService_GetProtocolsTotalValues_FailedFetchingStats(t *testing.T) {
 	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateProtocolStatsLastDay, "bucket30d", from.Format(time.RFC3339), to.Format(time.RFC3339), dbconsts.ProtocolsStatsMeasurementHourly, "protocol1")).Return(respStatsLastDay, nil)
 	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateProtocolActivity, "bucketInfinite", "1970-01-01T00:00:00Z", dbconsts.ProtocolsActivityMeasurementDaily, "protocol1")).Return(respActivityLast, nil)
 	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateProtocolActivity, "bucket30d", ts.Format(time.RFC3339), dbconsts.ProtocolsActivityMeasurementHourly, "protocol1")).Return(respActivity2, nil)
+	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryLast24HrActivity, "bucketInfinite", dbconsts.ProtocolsActivityMeasurementDaily, "protocol1")).Return(respActivity2, nil)
 
 	repository := protocols.NewRepository(queryAPI, "bucketInfinite", "bucket30d", zap.NewNop())
 	service := protocols.NewService([]string{"protocol1"}, nil, repository, zap.NewNop(), cache.NewDummyCacheClient(), "WORMSCAN:PROTOCOLS", 0, metrics.NewNoOpMetrics(), &mockTvl{})
