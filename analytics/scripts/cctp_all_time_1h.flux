@@ -7,14 +7,14 @@ option task = {
 
 bucketInfinite = "wormscan"
 bucket24Hr = "wormscan-24hours"
-destMeasurement = "cctp_status_total"
+destMeasurement = "cctp_status_total_v2"
 nowts = date.truncate(t: now(), unit: 1h)
 
 lastData = from(bucket: bucket24Hr)
     	|> range(start: -1d)
     	|> filter(fn: (r) => r._measurement == destMeasurement)
     	|> last()
-    	|> drop(columns:["_start","_stop"])
+    	|> drop(columns:["_start","_stop","_measurement"])
 
 lastTxs = lastData
             |> filter(fn: (r) => r._field == "txs")
@@ -30,6 +30,7 @@ lastExecutionTime = lastData
 deltaData = from(bucket: bucketInfinite)
     		    |> range(start: lastExecutionTime._time, stop:now())
     		    |> filter(fn: (r) => r._measurement == "circle-message-sent")
+    		    |> filter(fn: (r) =>  r.messageProtocol == "wormhole")
     		    |> filter(fn: (r) => r._field == "amount")
                 |> keep(columns:["_field","_value"])
                 |> toUInt()
