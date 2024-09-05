@@ -665,6 +665,12 @@ data:
                 "strategy": "GetTransactionsByLogFiltersStrategy"
               },
               {
+                "addresses": [],
+                "type": "Fast Transfer",                
+                "topics": ["0x67cc74e969bff447b6e0f32eea34930545a732749bdcaaf3530c70e311900b06"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
                 "addresses": ["0x3dD14D553cFD986EAC8e3bddF629d82073e188c8"],
                 "type": "NFT",                
                 "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
@@ -894,6 +900,12 @@ data:
                 "addresses": [],
                 "type": "Standard Relayer",
                 "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "Fast Transfer",                
+                "topics": ["0x67cc74e969bff447b6e0f32eea34930545a732749bdcaaf3530c70e311900b06"],
                 "strategy": "GetTransactionsByLogFiltersStrategy"
               },
               {

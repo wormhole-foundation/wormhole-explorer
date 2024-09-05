@@ -19,17 +19,33 @@ export const findProtocol = (
 ): Protocol => {
   for (const contract of contractsMapperConfig.contracts) {
     if (contract.chain === chain) {
-      const foundProtocol = contract.protocols.find((protocol) =>
+      const foundProtocolByAddress = contract.protocols.find((protocol) =>
         protocol.addresses.some((addr) => addr.toLowerCase() === address.toLowerCase())
       );
-      const foundMethod = foundProtocol?.methods.find(
+
+      if (!foundProtocolByAddress) {
+        // Find the protocol that contains the method with the given comparativeMethod
+        const foundProtocolByMethod = contract.protocols.find((protocol) =>
+          protocol.methods.some((method) => method.methodId === comparativeMethod)
+        );
+
+        // Extract the method and type, providing default values if not found
+        const method =
+          foundProtocolByMethod?.methods.find((method) => method.methodId === comparativeMethod)
+            ?.method ?? "unknown";
+        const type = foundProtocolByMethod?.type ?? "unknown";
+
+        return { method, type };
+      }
+
+      const foundMethod = foundProtocolByAddress?.methods.find(
         (method) => method.methodId === String(comparativeMethod)
       );
 
-      if (foundMethod && foundProtocol) {
+      if (foundMethod && foundProtocolByAddress) {
         return {
           method: foundMethod.method,
-          type: foundProtocol.type,
+          type: foundProtocolByAddress.type,
         };
       }
     }

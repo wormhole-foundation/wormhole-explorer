@@ -210,4 +210,5 @@ const REDEEM_TOPICS: Record<string, LogToVaaMapper> = {
   "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e": mapVaaFromTopics, // CCTP
   "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e":
     mapVaaFromStandardRelayerDelivery, // Standard Relayer
+  "0x67cc74e969bff447b6e0f32eea34930545a732749bdcaaf3530c70e311900b06": mapVaaFromTopics, // Fast Transfer
 };

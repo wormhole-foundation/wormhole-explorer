@@ -519,6 +519,16 @@
               "method": "MethodCompleteTransfer"
             }
           ]
+        },
+        {
+          "addresses": [],
+          "type": "Fast Transfer",
+          "methods": [
+            {
+              "methodId": "0x604009a9",
+              "method": "MethodCompleteTransfer"
+            }
+          ]
         }
       ]
     },
@@ -1043,6 +1053,16 @@
           "methods": [
             {
               "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
+            }
+          ]
+        },
+        {
+          "addresses": [],
+          "type": "Fast Transfer",
+          "methods": [
+            {
+              "methodId": "0x604009a9",
               "method": "MethodCompleteTransfer"
             }
           ]
