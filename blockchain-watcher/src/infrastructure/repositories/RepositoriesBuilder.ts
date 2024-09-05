@@ -231,7 +231,8 @@ export class RepositoriesBuilder {
             {
               commitment: rpcCfg.commitment || "confirmed",
             },
-            cfg.timeout ?? 1_000
+            cfg.timeout ?? 1_000,
+            SOLANA_CHAIN
           ),
         POOL_STRATEGY
       );

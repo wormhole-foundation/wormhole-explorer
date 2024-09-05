@@ -5,9 +5,14 @@ export class InstrumentedConnectionWrapper extends Connection {
   health: ProviderHealthInstrumentation;
   private url: string;
 
-  constructor(endpoint: string, commitment: Commitment | ConnectionConfig, timeout: number) {
+  constructor(
+    endpoint: string,
+    commitment: Commitment | ConnectionConfig,
+    timeout: number,
+    chain: string
+  ) {
     super(endpoint, commitment);
-    this.health = new ProviderHealthInstrumentation(timeout, "solana");
+    this.health = new ProviderHealthInstrumentation(timeout, chain);
     this.url = endpoint;
   }
 
