@@ -526,7 +526,7 @@
           "methods": [
             {
               "methodId": "0x604009a9",
-              "method": "MethodCompleteTransfer"
+              "method": "FillRedeemed"
             }
           ]
         }
@@ -1063,7 +1063,7 @@
           "methods": [
             {
               "methodId": "0x604009a9",
-              "method": "MethodCompleteTransfer"
+              "method": "FillRedeemed"
             }
           ]
         }

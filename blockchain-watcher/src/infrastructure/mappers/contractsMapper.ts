@@ -1,6 +1,8 @@
 import * as configData from "./contractsMapperConfig.json";
 import winston from "../log";
 
+const UNKNOWN = "unknown";
+
 let logger: winston.Logger;
 logger = winston.child({ module: "contractsMapperConfig" });
 
@@ -19,44 +21,37 @@ export const findProtocol = (
 ): Protocol => {
   for (const contract of contractsMapperConfig.contracts) {
     if (contract.chain === chain) {
-      const foundProtocolByAddress = contract.protocols.find((protocol) =>
+      // Find the protocol by address
+      let protocol = contract.protocols.find((protocol) =>
         protocol.addresses.some((addr) => addr.toLowerCase() === address.toLowerCase())
       );
 
-      if (!foundProtocolByAddress) {
-        // Find the protocol that contains the method with the given comparativeMethod
-        const foundProtocolByMethod = contract.protocols.find((protocol) =>
+      if (!protocol) {
+        // If not found by address, try to find by method
+        protocol = contract.protocols.find((protocol) =>
           protocol.methods.some((method) => method.methodId === comparativeMethod)
         );
-
-        // Extract the method and type, providing default values if not found
-        const method =
-          foundProtocolByMethod?.methods.find((method) => method.methodId === comparativeMethod)
-            ?.method ?? "unknown";
-        const type = foundProtocolByMethod?.type ?? "unknown";
-
-        return { method, type };
       }
 
-      const foundMethod = foundProtocolByAddress?.methods.find(
+      // Find the method in the identified protocol
+      const method = protocol?.methods.find(
         (method) => method.methodId === String(comparativeMethod)
       );
 
-      if (foundMethod && foundProtocolByAddress) {
-        return {
-          method: foundMethod.method,
-          type: foundProtocolByAddress.type,
-        };
-      }
+      return {
+        method: method?.method ?? UNKNOWN,
+        type: protocol?.type ?? UNKNOWN,
+      };
     }
   }
+
   logger.warn(
     `[${chain}] Protocol not found, [hash: ${hash}][address: ${address}][method: ${comparativeMethod}]`
   );
 
   return {
-    method: "unknown",
-    type: "unknown",
+    method: UNKNOWN,
+    type: UNKNOWN,
   };
 };
 
