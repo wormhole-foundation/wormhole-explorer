@@ -2,6 +2,7 @@ package stats
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/shopspring/decimal"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -10,6 +11,7 @@ import (
 // SymbolWithAssetsTimeSpan is used as an input parameter for the functions `GetTopAssets` and `GetTopChainPairs`.
 type SymbolWithAssetsTimeSpan string
 type TopCorridorsTimeSpan string
+type NttTimespan string
 
 const (
 	TimeSpan7Days  SymbolWithAssetsTimeSpan = "7d"
@@ -18,6 +20,11 @@ const (
 
 	TimeSpan2DaysTopCorridors TopCorridorsTimeSpan = "2d"
 	TimeSpan7DaysTopCorridors TopCorridorsTimeSpan = "7d"
+
+	HourNttTimespan  NttTimespan = "1h"
+	DayNttTimespan   NttTimespan = "1d"
+	MonthNttTimespan NttTimespan = "1mo"
+	YearNttTimespan  NttTimespan = "1y"
 )
 
 // ParseSymbolsWithAssetsTimeSpan parses a string and returns a `SymbolsWithAssetsTimeSpan`.
@@ -54,10 +61,44 @@ func ParseTopCorridorsTimeSpan(s string) (*TopCorridorsTimeSpan, error) {
 	return nil, fmt.Errorf("invalid time span: %s", s)
 }
 
+func ParseNttTimespan(s string) (*NttTimespan, error) {
+	if s == string(HourNttTimespan) ||
+		s == string(DayNttTimespan) ||
+		s == string(MonthNttTimespan) ||
+		s == string(YearNttTimespan) {
+		tmp := NttTimespan(s)
+		return &tmp, nil
+	}
+
+	return nil, fmt.Errorf("invalid time span: %s", s)
+}
+
 type TopCorridorsDTO struct {
 	EmitterChainID     sdk.ChainID
 	DestinationChainID sdk.ChainID
 	TokenChainID       sdk.ChainID
 	TokenAddress       string
 	Txs                uint64
+}
+
+type NativeTokenTransferSummary struct {
+	TotalValueTokenTransferred *decimal.Decimal `json:"totalValueTokenTransferred"`
+	TotalTokenTransferred      *decimal.Decimal `json:"totalTokenTransferred"`
+	AverageTransferSize        *decimal.Decimal `json:"averageTransferSize"`
+	MedianTransferSize         *decimal.Decimal `json:"medianTransferSize"`
+	MarketCap                  *decimal.Decimal `json:"marketCap"`
+	CirculatingSupply          *decimal.Decimal `json:"circulatingSupply"`
+}
+
+type NativeTokenTransferActivity struct {
+	EmitterChainID     sdk.ChainID     `json:"emitterChain"`
+	DestinationChainID sdk.ChainID     `json:"destinationChain"`
+	Symbol             string          `json:"symbol"`
+	Value              decimal.Decimal `json:"value"`
+}
+
+type NativeTokenTransferByTime struct {
+	Time   time.Time       `json:"time"`
+	Symbol string          `json:"symbol"`
+	Value  decimal.Decimal `json:"value"`
 }

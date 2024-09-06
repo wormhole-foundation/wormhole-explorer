@@ -44,6 +44,7 @@ var cacheConfig = cache.Config{
 
 // RegisterRoutes sets up the handlers for the Wormscan API.
 func RegisterRoutes(
+	notSupportedByEnv fiber.Handler,
 	app *fiber.App,
 	rootLogger *zap.Logger,
 	addressService *addrsvc.Service,
@@ -114,6 +115,11 @@ func RegisterRoutes(
 	api.Get("/top-symbols-by-volume", statsCtrl.GetTopSymbolsByVolume)
 	api.Get("/top-100-corridors", statsCtrl.GetTopCorridors)
 	api.Get("/protocols/stats", contributorsCtrl.GetProtocolsTotalValues)
+	api.Get("/native-token-transfer/summary", notSupportedByEnv, statsCtrl.GetNativeTokenTransferSummary)
+	api.Get("/native-token-transfer/activity", notSupportedByEnv, statsCtrl.GetNativeTokenTransferActivity)
+	api.Get("/native-token-transfer/transfer-by-time", notSupportedByEnv, statsCtrl.GetNativeTokenTransferByTime)
+	api.Get("/native-token-transfer/top-address", notSupportedByEnv, statsCtrl.GetNativeTokenTransferAddressTop)
+	api.Get("/native-token-transfer/top-holder", notSupportedByEnv, statsCtrl.GetNativeTokenTransferTopHolder)
 
 	// operations resource
 	operations := api.Group("/operations")

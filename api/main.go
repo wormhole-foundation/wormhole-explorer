@@ -47,10 +47,12 @@ import (
 	rpcApi "github.com/wormhole-foundation/wormhole-explorer/api/rpc"
 	wormscanCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache"
 	vaaPayloadParser "github.com/wormhole-foundation/wormhole-explorer/common/client/parser"
+	"github.com/wormhole-foundation/wormhole-explorer/common/coingecko"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	xlogger "github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/common/repository"
+	stats2 "github.com/wormhole-foundation/wormhole-explorer/common/stats"
 	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
@@ -130,6 +132,10 @@ func main() {
 	rootLogger.Info("initializing TVL cache")
 	tvl := tvl.NewTVL(cfg.P2pNetwork, cache, cfg.Cache.TvlKey, cfg.Cache.TvlExpiration, rootLogger)
 
+	// coingeckoAPI client
+	coingeckoAPI := coingecko.NewCoinGeckoAPI(cfg.Coingecko.URL,
+		cfg.Coingecko.HeaderKey, cfg.Coingecko.ApiKey)
+
 	//InfluxDB client
 	rootLogger.Info("initializing InfluxDB client")
 	influxCli := newInfluxClient(cfg.Influx.URL, cfg.Influx.Token)
@@ -139,6 +145,9 @@ func main() {
 	if err != nil {
 		rootLogger.Fatal("failed to initialize VAA parser", zap.Error(err))
 	}
+
+	// create token provider
+	tokenProvider := domain.NewTokenProvider(cfg.P2pNetwork)
 
 	// Set up repositories
 	rootLogger.Info("initializing repositories")
@@ -161,11 +170,36 @@ func main() {
 	)
 	relaysRepo := relays.NewRepository(db.Database, rootLogger)
 	operationsRepo := operations.NewRepository(db.Database, rootLogger)
-	statsRepo := stats.NewRepository(influxCli, cfg.Influx.Organization, cfg.Influx.Bucket24Hours, rootLogger)
-	protocolsRepo := protocols.NewRepository(protocols.WrapQueryAPI(influxCli.QueryAPI(cfg.Influx.Organization)), cfg.Influx.BucketInfinite, cfg.Influx.Bucket30Days, cfg.Influx.Bucket24Hours, rootLogger)
+	nttRepo := stats2.NewNTTRepository(
+		influxCli,
+		cfg.Influx.Organization,
+		cfg.Influx.BucketInfinite,
+		cache,
+		rootLogger)
+	statsRepo := stats.NewRepository(
+		nttRepo,
+		influxCli,
+		cfg.Influx.Organization,
+		cfg.Influx.Bucket24Hours,
+		cfg.Influx.BucketInfinite,
+		coingeckoAPI,
+		tokenProvider,
+		rootLogger)
+	statsAddressRepo := stats2.NewAddressRepository(
+		influxCli,
+		cfg.Influx.Organization,
+		cfg.Influx.BucketInfinite,
+		cache,
+		rootLogger)
+	statsHolderRepo := stats2.NewHolderRepositoryReadable(cache, rootLogger)
+
+	protocolsRepo := protocols.NewRepository(
+		protocols.WrapQueryAPI(influxCli.QueryAPI(cfg.Influx.Organization)),
+		cfg.Influx.BucketInfinite,
+		cfg.Influx.Bucket30Days,
+		cfg.Influx.Bucket24Hours,
+		rootLogger)
 	guardianSetRepository := repository.NewGuardianSetRepository(db.Database, rootLogger)
-	// create token provider
-	tokenProvider := domain.NewTokenProvider(cfg.P2pNetwork)
 
 	metrics := metrics.NewPrometheusMetrics(cfg.Environment)
 
@@ -181,7 +215,7 @@ func main() {
 	transactionsService := transactions.NewService(transactionsRepo, cache, expirationTime, tokenProvider, metrics, rootLogger)
 	relaysService := relays.NewService(relaysRepo, rootLogger)
 	operationsService := operations.NewService(operationsRepo, rootLogger)
-	statsService := stats.NewService(statsRepo, cache, expirationTime, metrics, rootLogger)
+	statsService := stats.NewService(statsRepo, statsAddressRepo, statsHolderRepo, cache, expirationTime, metrics, rootLogger)
 	protocolsService := protocols.NewService(cfg.Protocols, []string{protocols.CCTP, protocols.PortalTokenBridge, protocols.NTT}, protocolsRepo, rootLogger, cache, cfg.Cache.ProtocolsStatsKey, cfg.Cache.ProtocolsStatsExpiration, metrics, tvl)
 	guardianService := guardianHandlers.NewService(guardianSetRepository, cfg.P2pNetwork, cache, metrics, rootLogger)
 
@@ -221,9 +255,10 @@ func main() {
 		app.Use(rl)
 	}
 
+	notSupportedByEnv := middleware.NotSupportedByTestnetEnv(cfg.P2pNetwork)
 	// Set up route handlers
 	app.Get("/swagger.json", GetSwagger)
-	wormscan.RegisterRoutes(app, rootLogger, addressService, vaaService, obsService, governorService, infrastructureService, transactionsService, relaysService, operationsService, statsService, protocolsService)
+	wormscan.RegisterRoutes(notSupportedByEnv, app, rootLogger, addressService, vaaService, obsService, governorService, infrastructureService, transactionsService, relaysService, operationsService, statsService, protocolsService)
 	guardian.RegisterRoutes(cfg, app, rootLogger, vaaService, governorService, heartbeatsService, guardianService)
 
 	// Set up gRPC handlers

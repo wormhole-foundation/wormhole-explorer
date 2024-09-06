@@ -55,6 +55,11 @@ type AppConfig struct {
 		Bucket30Days   string
 		BucketInfinite string
 	}
+	Coingecko struct {
+		URL       string
+		HeaderKey string
+		ApiKey    string
+	}
 	VaaPayloadParser struct {
 		Enabled bool
 		URL     string

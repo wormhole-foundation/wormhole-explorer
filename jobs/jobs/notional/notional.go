@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 	"github.com/shopspring/decimal"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
@@ -68,7 +68,7 @@ func (j *NotionalJob) Run() error {
 	j.logger.Info("convert to symbol", zap.Int("notionals", len(coingeckoNotionals)), zap.Int("symbols", len(notionals)))
 
 	// save notional value of assets in cache.
-	err = j.updateNotionalCache(notionals)
+	err = j.updateNotionalCache(ctx, notionals)
 	if err != nil {
 		j.logger.Error("failed to update notional value of assets in cache",
 			zap.Error(err),
@@ -77,7 +77,7 @@ func (j *NotionalJob) Run() error {
 	}
 
 	// publish notional value of assets to redis pubsub.
-	err = j.cacheClient.Publish(j.cacheChannel, "NOTIONAL_UPDATED").Err()
+	err = j.cacheClient.Publish(ctx, j.cacheChannel, "NOTIONAL_UPDATED").Err()
 	if err != nil {
 		j.logger.Error("failed to publish notional update message to redis pubsub",
 			zap.Error(err))
@@ -93,11 +93,11 @@ func (j *NotionalJob) Run() error {
 }
 
 // updateNotionalCache updates the notional value of assets in cache.
-func (j *NotionalJob) updateNotionalCache(notionals map[string]notional.PriceData) error {
+func (j *NotionalJob) updateNotionalCache(ctx context.Context, notionals map[string]notional.PriceData) error {
 
 	for chainID, n := range notionals {
 		key := j.renderKey(fmt.Sprintf(notional.KeyTokenFormatString, chainID))
-		err := j.cacheClient.Set(key, n, 0).Err()
+		err := j.cacheClient.Set(ctx, key, n, 0).Err()
 		if err != nil {
 			return err
 		}

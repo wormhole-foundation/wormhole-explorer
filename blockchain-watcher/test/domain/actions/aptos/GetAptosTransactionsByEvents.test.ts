@@ -58,6 +58,34 @@ describe("GetAptosTransactionsByEvents", () => {
     await pollAptos.stop();
   });
 
+  it("should be return an empty array and not to run the process because the newLastFrom is minor than lastFrom", async () => {
+    // Given
+    givenAptosBlockRepository("6040");
+    givenMetadataRepository({ previousFrom: 146040n, lastFrom: 146140n });
+    givenStatsRepository();
+    givenPollAptosTx(cfg);
+
+    // When
+    await whenPollAptosLogsStarts();
+
+    // Then
+    // previousFrom: 146040n, lastFrom: 146140n, newLastFrom: 6040n from the rpc response
+    await thenWaitForAssertion(
+      () => expect(getSequenceNumberSpy).toHaveReturnedTimes(1),
+      () =>
+        expect(getSequenceNumberSpy).toBeCalledWith(
+          { from: 146140, limit: 101 },
+          {
+            address: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
+            event:
+              "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessageHandle",
+            fieldName: "event",
+            type: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessage",
+          }
+        )
+    );
+  });
+
   it("should be not generate range (from and limit) and search the latest from plus from batch size cfg", async () => {
     // Given
     givenAptosBlockRepository();
@@ -177,7 +205,7 @@ describe("GetAptosTransactionsByEvents", () => {
   });
 });
 
-const givenAptosBlockRepository = () => {
+const givenAptosBlockRepository = (sequenceNumber: string = "148985") => {
   const events = [
     {
       version: "481740133",
@@ -185,7 +213,7 @@ const givenAptosBlockRepository = () => {
         creation_number: "2",
         account_address: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
       },
-      sequence_number: "148985",
+      sequence_number: sequenceNumber,
       type: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessage",
       data: {
         consistency_level: 0,

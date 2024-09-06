@@ -406,6 +406,14 @@ func ExtractTime(c *fiber.Ctx, timeLayout, queryParam string) (*time.Time, error
 	return &t, nil
 }
 
+func ExtractSymbol(c *fiber.Ctx) (string, error) {
+	symbol := c.Query("symbol")
+	if symbol == "" {
+		return "", response.NewInvalidQueryParamError(c, "INVALID <symbol> QUERY PARAMETER", nil)
+	}
+	return symbol, nil
+}
+
 func ExtractApps(ctx *fiber.Ctx) ([]string, error) {
 	apps := ctx.Query("apps")
 	if apps == "" {
@@ -490,6 +498,17 @@ func ExtractTopCorridorsTimeSpan(ctx *fiber.Ctx) (*stats.TopCorridorsTimeSpan, e
 		return &defaultTimeSpan, nil
 	}
 	timeSpan, err := stats.ParseTopCorridorsTimeSpan(s)
+	if err != nil {
+		return nil, response.NewInvalidQueryParamError(ctx, "INVALID <timeSpan> QUERY PARAMETER", nil)
+	}
+
+	return timeSpan, nil
+}
+
+func ExtractNttTimeSpan(ctx *fiber.Ctx) (*stats.NttTimespan, error) {
+
+	s := ctx.Query("timeSpan")
+	timeSpan, err := stats.ParseNttTimespan(s)
 	if err != nil {
 		return nil, response.NewInvalidQueryParamError(ctx, "INVALID <timeSpan> QUERY PARAMETER", nil)
 	}
