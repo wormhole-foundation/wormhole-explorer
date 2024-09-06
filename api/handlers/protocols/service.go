@@ -143,7 +143,7 @@ func (s *Service) getCoreProtocolStats(ctx context.Context, protocol string) (Pr
 		TotalValueTransferred: protocolStats.Latest.TotalValueTransferred,
 		TotalMessages:         protocolStats.Latest.TotalMessages,
 		LastDayMessages:       diffLastDay,
-		Last24HourVolume:      float64(protocolStats.DeltaLast24hr.TotalValueTransferred) / 1e8,
+		Last24HourVolume:      protocolStats.DeltaLast24hr.TotalValueTransferred,
 	}
 
 	lastDayTotalMessages := protocolStats.Latest.TotalMessages - diffLastDay

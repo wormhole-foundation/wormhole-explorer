@@ -11,10 +11,10 @@ destMeasurement = "cctp_status_total_v2"
 nowts = date.truncate(t: now(), unit: 1h)
 
 lastData = from(bucket: bucket24Hr)
-    	|> range(start: -1d)
-    	|> filter(fn: (r) => r._measurement == destMeasurement)
-    	|> last()
-    	|> drop(columns:["_start","_stop","_measurement"])
+    	    |> range(start: -1d)
+    	    |> filter(fn: (r) => r._measurement == destMeasurement)
+    	    |> last()
+    	    |> drop(columns:["_start","_stop","_measurement"])
 
 lastTxs = lastData
             |> filter(fn: (r) => r._field == "txs")
@@ -32,9 +32,9 @@ deltaData = from(bucket: bucketInfinite)
     		    |> filter(fn: (r) => r._measurement == "circle-message-sent")
     		    |> filter(fn: (r) =>  r.messageProtocol == "wormhole")
     		    |> filter(fn: (r) => r._field == "amount")
-                |> keep(columns:["_field","_value"])
-                |> toUInt()
-                |> reduce(
+    		    |> keep(columns:["_field","_value"])
+    		    |> toUInt()
+    		    |> reduce(
                     identity: {
                             volume: uint(v:0),
                             txs: uint(v:0)
@@ -46,14 +46,14 @@ deltaData = from(bucket: bucketInfinite)
                     )
 
 deltaTxs = deltaData
-				|> drop(columns:["volume"])
-				|> rename(columns: {txs: "_value"})
-				|> set(key:"_field",value:"txs")
+            |> drop(columns:["volume"])
+            |> rename(columns: {txs: "_value"})
+            |> set(key:"_field",value:"txs")
 
 deltaVolume = deltaData
-				|> drop(columns:["txs"])
-				|> rename(columns: {volume: "_value"})
-				|> set(key:"_field",value:"volume")
+                |> drop(columns:["txs"])
+                |> rename(columns: {volume: "_value"})
+                |> set(key:"_field",value:"volume")
 
 txs = union(tables:[lastTxs, deltaTxs])
 				|> sum()
