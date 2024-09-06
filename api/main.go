@@ -162,7 +162,7 @@ func main() {
 	relaysRepo := relays.NewRepository(db.Database, rootLogger)
 	operationsRepo := operations.NewRepository(db.Database, rootLogger)
 	statsRepo := stats.NewRepository(influxCli, cfg.Influx.Organization, cfg.Influx.Bucket24Hours, rootLogger)
-	protocolsRepo := protocols.NewRepository(protocols.WrapQueryAPI(influxCli.QueryAPI(cfg.Influx.Organization)), cfg.Influx.BucketInfinite, cfg.Influx.Bucket30Days, rootLogger)
+	protocolsRepo := protocols.NewRepository(protocols.WrapQueryAPI(influxCli.QueryAPI(cfg.Influx.Organization)), cfg.Influx.BucketInfinite, cfg.Influx.Bucket30Days, cfg.Influx.Bucket24Hours, rootLogger)
 	guardianSetRepository := repository.NewGuardianSetRepository(db.Database, rootLogger)
 	// create token provider
 	tokenProvider := domain.NewTokenProvider(cfg.P2pNetwork)

@@ -47,6 +47,8 @@ type tvlProvider interface {
 	Get(ctx context.Context) (string, error)
 }
 
+type fetchProtocolStats func(ctx context.Context, protocol string) (intStats, error)
+
 func NewService(extProtocols, coreProtocols []string, repo *Repository, logger *zap.Logger, cache cache.Cache, cacheKeyPrefix string, cacheTTL int, metrics metrics.Metrics, tvlProvider tvlProvider) *Service {
 	return &Service{
 		Protocols:      extProtocols,
@@ -63,10 +65,10 @@ func NewService(extProtocols, coreProtocols []string, repo *Repository, logger *
 
 func (s *Service) GetProtocolsTotalValues(ctx context.Context) []ProtocolTotalValuesDTO {
 
-	wg := &sync.WaitGroup{}
 	totalProtocols := len(s.Protocols) + len(s.coreProtocols)
-	wg.Add(totalProtocols)
 	results := make(chan ProtocolTotalValuesDTO, totalProtocols)
+	wg := &sync.WaitGroup{}
+	wg.Add(totalProtocols)
 
 	for _, p := range s.Protocols {
 		go s.fetchProtocolValues(ctx, wg, p, results, s.getProtocolStats)
@@ -74,6 +76,7 @@ func (s *Service) GetProtocolsTotalValues(ctx context.Context) []ProtocolTotalVa
 	for _, p := range s.coreProtocols {
 		go s.fetchProtocolValues(ctx, wg, p, results, s.getCoreProtocolStats)
 	}
+
 	wg.Wait()
 	close(results)
 
@@ -121,14 +124,14 @@ func (s *Service) fetchProtocolValues(ctx context.Context, wg *sync.WaitGroup, p
 	results <- res
 }
 
-// getProtocolStats fetches stats for CCTP and PortalTokenBridge
+// getProtocolStats fetches stats for PortalTokenBridge and NTT
 func (s *Service) getCoreProtocolStats(ctx context.Context, protocol string) (ProtocolStats, error) {
 
-	protocolStats, err := s.repo.getCoreProtocolStats(ctx, protocol)
+	protocolStats, err := s.getFetchFn(protocol)(ctx, protocol)
 	if err != nil {
 		return ProtocolStats{
 			Protocol:              protocol,
-			TotalValueTransferred: float64(protocolStats.Latest.TotalValueTransferred) / 1e8,
+			TotalValueTransferred: protocolStats.Latest.TotalValueTransferred,
 			TotalMessages:         protocolStats.Latest.TotalMessages,
 		}, err
 	}
@@ -136,7 +139,7 @@ func (s *Service) getCoreProtocolStats(ctx context.Context, protocol string) (Pr
 	diffLastDay := protocolStats.DeltaLast24hr.TotalMessages
 	val := ProtocolStats{
 		Protocol:              protocol,
-		TotalValueTransferred: float64(protocolStats.Latest.TotalValueTransferred) / 1e8,
+		TotalValueTransferred: protocolStats.Latest.TotalValueTransferred,
 		TotalMessages:         protocolStats.Latest.TotalMessages,
 		LastDayMessages:       diffLastDay,
 	}
@@ -162,6 +165,15 @@ func (s *Service) getCoreProtocolStats(ctx context.Context, protocol string) (Pr
 	}
 
 	return val, nil
+}
+
+func (s *Service) getFetchFn(protocol string) fetchProtocolStats {
+	switch protocol {
+	case CCTP:
+		return s.repo.getCCTPStats
+	default:
+		return s.repo.getCoreProtocolStats
+	}
 }
 
 func (s *Service) getProtocolStats(ctx context.Context, protocol string) (ProtocolStats, error) {

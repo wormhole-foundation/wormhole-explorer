@@ -44,6 +44,7 @@ deltaData = from(bucket: bucketInfinite)
                             txs: accumulator.txs + uint(v:1)
                         })
                     )
+
 deltaTxs = deltaData
 				|> drop(columns:["volume"])
 				|> rename(columns: {txs: "_value"})

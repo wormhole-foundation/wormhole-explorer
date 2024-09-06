@@ -175,6 +175,7 @@ const QueryTemplateProtocolActivity = `
 type Repository struct {
 	queryAPI                QueryDoer
 	logger                  *zap.Logger
+	bucket24Hrs             string
 	bucketInfinite          string
 	bucket30d               string
 	coreProtocolMeasurement struct {
@@ -192,9 +193,9 @@ type rowStat struct {
 }
 
 type intRowStat struct {
-	Protocol              string `mapstructure:"app_id"`
-	TotalMessages         uint64 `mapstructure:"total_messages"`
-	TotalValueTransferred uint64 `mapstructure:"total_value_transferred"`
+	Protocol              string  `mapstructure:"app_id"`
+	TotalMessages         uint64  `mapstructure:"total_messages"`
+	TotalValueTransferred float64 `mapstructure:"total_value_transferred"`
 }
 
 type intStats struct {
@@ -235,11 +236,12 @@ func WrapQueryAPI(qApi api.QueryAPI) QueryDoer {
 	return &queryApiWrapper{qApi: qApi}
 }
 
-func NewRepository(qApi QueryDoer, bucketInfinite, bucket30d string, logger *zap.Logger) *Repository {
+func NewRepository(qApi QueryDoer, bucketInfinite, bucket30d, bucket24Hrs string, logger *zap.Logger) *Repository {
 	return &Repository{
 		queryAPI:       qApi,
 		bucketInfinite: bucketInfinite,
 		bucket30d:      bucket30d,
+		bucket24Hrs:    bucket24Hrs,
 		logger:         logger,
 		coreProtocolMeasurement: struct {
 			Daily  string
@@ -311,7 +313,7 @@ func (r *Repository) getProtocolActivity(ctx context.Context, protocol string) (
 	}, nil
 }
 
-// returns latest and last 24 hr for core protocols (cctp and portal_token_bridge)
+// returns latest and last 24 hr for core protocols (portal_token_bridge and ntt)
 func (r *Repository) getCoreProtocolStats(ctx context.Context, protocol string) (intStats, error) {
 
 	// calculate total values till the start of current day
@@ -331,7 +333,7 @@ func (r *Repository) getCoreProtocolStats(ctx context.Context, protocol string) 
 	latestTotal := intRowStat{
 		Protocol:              protocol,
 		TotalMessages:         totalsUntilToday.TotalMessages + currentDayStats.TotalMessages,
-		TotalValueTransferred: totalsUntilToday.TotalValueTransferred + currentDayStats.TotalValueTransferred,
+		TotalValueTransferred: (totalsUntilToday.TotalValueTransferred + currentDayStats.TotalValueTransferred) / getProtocolDecimals(protocol),
 	}
 
 	result := intStats{
@@ -344,9 +346,49 @@ func (r *Repository) getCoreProtocolStats(ctx context.Context, protocol string) 
 	if errQ3 != nil {
 		return result, errQ3
 	}
+	deltaYesterdayStats.TotalValueTransferred = deltaYesterdayStats.TotalValueTransferred / getProtocolDecimals(protocol)
 
 	result.DeltaLast24hr = deltaYesterdayStats
 	return result, nil
+}
+
+func (r *Repository) getCCTPStats(ctx context.Context, protocol string) (intStats, error) {
+
+	queryTemplate := `
+		from(bucket: "%s")
+			|> range(start: -1d)
+			|> filter(fn: (r) => r._measurement == "cctp_status_total_v2")
+			%s
+			|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
+			|> rename(columns: {txs: "total_messages", volume: "total_value_transferred"})
+	`
+	q := fmt.Sprintf(queryTemplate, r.bucket24Hrs, "|> last()")
+	statsData, err := fetchSingleRecordData[intRowStat](r.logger, r.queryAPI, ctx, q, protocol)
+	if err != nil {
+		r.logger.Error("error fetching cctp totals stats", zap.Error(err))
+		return intStats{}, err
+	}
+
+	q = fmt.Sprintf(queryTemplate, r.bucket24Hrs, "|> first()")
+	totals24HrAgo, err := fetchSingleRecordData[intRowStat](r.logger, r.queryAPI, ctx, q, protocol)
+	if err != nil {
+		r.logger.Error("error fetching cctp totals stats", zap.Error(err))
+		return intStats{}, err
+	}
+
+	return intStats{
+		Latest: intRowStat{
+			Protocol:              protocol,
+			TotalMessages:         statsData.TotalMessages,
+			TotalValueTransferred: statsData.TotalValueTransferred / getProtocolDecimals(protocol),
+		},
+		DeltaLast24hr: intRowStat{
+			Protocol:              protocol,
+			TotalMessages:         statsData.TotalMessages - totals24HrAgo.TotalMessages,
+			TotalValueTransferred: (statsData.TotalValueTransferred - totals24HrAgo.TotalValueTransferred) / getProtocolDecimals(protocol),
+		},
+	}, nil
+
 }
 
 func fetchSingleRecordData[T any](logger *zap.Logger, queryAPI QueryDoer, ctx context.Context, query, protocol string) (T, error) {
@@ -369,4 +411,13 @@ func fetchSingleRecordData[T any](logger *zap.Logger, queryAPI QueryDoer, ctx co
 
 	err = mapstructure.Decode(result.Record().Values(), &res)
 	return res, err
+}
+
+func getProtocolDecimals(protocol string) float64 {
+	switch protocol {
+	case CCTP:
+		return 1e6
+	default:
+		return 1e8
+	}
 }
