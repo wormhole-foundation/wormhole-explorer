@@ -9,11 +9,12 @@ import (
 )
 
 type PrometheusMetrics struct {
-	measurementCount      *prometheus.CounterVec
-	notionalCount         *prometheus.CounterVec
-	tokenRequestsCount    *prometheus.CounterVec
-	processedMessage      *prometheus.CounterVec
-	vaaProcessingDuration *prometheus.HistogramVec
+	measurementCount       *prometheus.CounterVec
+	transferPricesInserted *prometheus.CounterVec
+	notionalCount          *prometheus.CounterVec
+	tokenRequestsCount     *prometheus.CounterVec
+	processedMessage       *prometheus.CounterVec
+	vaaProcessingDuration  *prometheus.HistogramVec
 }
 
 // NewPrometheusMetrics returns a new instance of PrometheusMetrics.
@@ -31,6 +32,12 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 			ConstLabels: constLabels,
 		}, []string{"measurement", "status"})
 
+	transferPricesInserted := promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name:        "transfer_prices_inserted",
+			Help:        "Total number of transfer prices inserted",
+			ConstLabels: constLabels,
+		}, []string{"measurement", "dbLayer"})
 	notionalRequestsCount := promauto.NewCounterVec(
 		prometheus.CounterOpts{
 			Name:        "notional_requests_count_by_symbol",
@@ -67,11 +74,12 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 		[]string{"chain"},
 	)
 	return &PrometheusMetrics{
-		measurementCount:      measurementCount,
-		notionalCount:         notionalRequestsCount,
-		tokenRequestsCount:    tokenRequestsCount,
-		processedMessage:      processedMessage,
-		vaaProcessingDuration: vaaProcessingDuration,
+		measurementCount:       measurementCount,
+		transferPricesInserted: transferPricesInserted,
+		notionalCount:          notionalRequestsCount,
+		tokenRequestsCount:     tokenRequestsCount,
+		processedMessage:       processedMessage,
+		vaaProcessingDuration:  vaaProcessingDuration,
 	}
 }
 
@@ -81,6 +89,10 @@ func (p *PrometheusMetrics) IncFailedMeasurement(measurement string) {
 
 func (p *PrometheusMetrics) IncSuccessfulMeasurement(measurement string) {
 	p.measurementCount.WithLabelValues(measurement, "successful").Inc()
+}
+
+func (p *PrometheusMetrics) IncTransferPricesInserted(dbLayer string) {
+	p.transferPricesInserted.WithLabelValues(dbLayer).Inc()
 }
 
 func (p *PrometheusMetrics) IncMissingNotional(symbol string) {

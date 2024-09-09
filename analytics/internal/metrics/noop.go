@@ -17,6 +17,9 @@ func (p *NoopMetrics) IncFailedMeasurement(measurement string) {
 func (p *NoopMetrics) IncSuccessfulMeasurement(measurement string) {
 }
 
+func (p *NoopMetrics) IncTransferPricesInserted(dbLayer string) {
+}
+
 func (p *NoopMetrics) IncMissingNotional(symbol string) {
 }
 
