@@ -26,11 +26,14 @@ type Scorecards struct {
 	// Total value locked in USD.
 	Tvl string
 
-	// Number of VAAs emitted in the last 24 hours (does not include Pyth messages).
-	TxCount24h string
-
 	// Volume transferred through the token bridge in the last 24 hours, in USD.
 	Volume24h string
+
+	// Volume transferred in the last 7 days, in USD.
+	Volume7d string
+
+	// Volume transferred in the last 30 days, in USD.
+	Volume30d string
 }
 
 // AssetDTO is used for the return value of the function `GetTopAssets`.
@@ -260,4 +263,30 @@ const (
 
 func (t Timespan) IsValid() bool {
 	return t == Hour || t == Day || t == Month || t == Year
+}
+
+type TokenSymbolActivityQuery struct {
+	From         time.Time
+	To           time.Time
+	TokenSymbols []string
+	SourceChains []sdk.ChainID
+	TargetChains []sdk.ChainID
+	Timespan     Timespan
+}
+
+type TokenVolume struct {
+	Symbol string  `json:"symbol"`
+	Volume float64 `json:"volume"`
+}
+
+type TokenSymbolActivityResult struct {
+	Symbol              string      `mapstructure:"symbol" json:"symbol,omitempty"`
+	From                time.Time   `mapstructure:"_time" json:"from"`
+	To                  time.Time   `mapstructure:"to" json:"to"`
+	Volume              float64     `mapstructure:"volume" json:"total_value_transferred"`
+	Txs                 uint64      `mapstructure:"txs" json:"total_messages"`
+	EmitterChainStr     string      `mapstructure:"emitter_chain"`
+	DestinationChainStr string      `mapstructure:"destination_chain"`
+	EmitterChain        sdk.ChainID `json:"emitter_chain"`
+	DestinationChain    sdk.ChainID `json:"destination_chain"`
 }

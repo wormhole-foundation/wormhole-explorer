@@ -1,9 +1,8 @@
+import { solana, LogFoundEvent, LogMessagePublished } from "../../../domain/entities";
+import { normalizeCompileInstruction } from "./utils";
 import { Connection, Commitment } from "@solana/web3.js";
 import { getPostedMessage } from "@certusone/wormhole-sdk/lib/cjs/solana/wormhole";
-import { solana, LogFoundEvent, LogMessagePublished } from "../../../domain/entities";
-import { CompiledInstruction, MessageCompiledInstruction } from "../../../domain/entities/solana";
 import { configuration } from "../../config";
-import bs58 from "bs58";
 import winston from "winston";
 
 const connection = new Connection(configuration.chains.solana.rpcs[0]); // TODO: should be better to inject this to improve testability
@@ -19,6 +18,15 @@ export const solanaLogMessagePublishedMapper = async (
     throw new Error(
       `Block time is missing for tx ${tx?.transaction?.signatures} in slot ${tx?.slot}`
     );
+  }
+
+  if (tx.meta?.err) {
+    logger.info(
+      `[solana] Ignoring tx ${tx.transaction.signatures[0]} because it failed: ${JSON.stringify(
+        tx.meta.err
+      )}`
+    );
+    return [];
   }
 
   const message = tx.transaction.message;
@@ -71,18 +79,4 @@ export const solanaLogMessagePublishedMapper = async (
   }
 
   return results;
-};
-
-const normalizeCompileInstruction = (
-  instruction: CompiledInstruction | MessageCompiledInstruction
-): MessageCompiledInstruction => {
-  if ("accounts" in instruction) {
-    return {
-      accountKeyIndexes: instruction.accounts,
-      data: bs58.decode(instruction.data),
-      programIdIndex: instruction.programIdIndex,
-    };
-  } else {
-    return instruction;
-  }
 };

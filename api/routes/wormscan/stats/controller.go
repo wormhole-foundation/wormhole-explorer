@@ -2,11 +2,14 @@ package stats
 
 import (
 	"sort"
+	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/shopspring/decimal"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/stats"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
+	"github.com/wormhole-foundation/wormhole-explorer/api/response"
 	"go.uber.org/zap"
 )
 
@@ -141,4 +144,155 @@ func createTop100CorridorsResult(corridors []stats.TopCorridorsDTO) []*TopCorrid
 		return result[:100]
 	}
 	return result
+}
+
+// GetNativeTokenTransferSummary godoc
+// @Description Returns a summary of the Native Token Transfer.
+// @Tags wormholescan
+// @ID /api/v1/native-token-transfer/summary
+// @Param symbol query string true "Symbol of the token. Currently only supports W."
+// @Success 200 {object} stats.NativeTokenTransferSummary
+// @Failure 400
+// @Failure 500
+// @Router /api/v1/native-token-transfer/summary [get]
+func (c *Controller) GetNativeTokenTransferSummary(ctx *fiber.Ctx) error {
+	symbolParam, err := middleware.ExtractSymbol(ctx)
+	if err != nil {
+		return err
+	}
+
+	symbol := strings.ToUpper(symbolParam)
+	response, err := c.srv.GetNativeTokenTransferSummary(ctx.Context(), symbol)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(response)
+}
+
+// GetNativeTokenTransferActivity godoc
+// @Description Returns a list of values (tx count or notional) of the Native Token Transfer for a emitter and destination chains.
+// @Tags wormholescan
+// @ID /api/v1/native-token-transfer/activity
+// @Param symbol query string true "Symbol of the token. Currently only supports W."
+// @Param by query string false "Renders the results using notional or tx count (default is notional)."
+// @Success 200 {object} []stats.NativeTokenTransferActivity
+// @Failure 400
+// @Failure 500
+// @Router /api/v1/native-token-transfer/activity [get]
+func (c *Controller) GetNativeTokenTransferActivity(ctx *fiber.Ctx) error {
+	symbolParam, err := middleware.ExtractSymbol(ctx)
+	if err != nil {
+		return err
+	}
+
+	isNotional, err := middleware.ExtractIsNotional(ctx)
+	if err != nil {
+		isNotional = true
+	}
+	symbol := strings.ToUpper(symbolParam)
+	response, err := c.srv.GetNativeTokenTransferActivity(ctx.Context(), isNotional, strings.ToUpper(symbol))
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(response)
+}
+
+// GetNativeTokenTransferByTime godoc
+// @Description Returns a list of values (tx count or notional) of the Native Token Transfer for a emitter and destination chains.
+// @Tags wormholescan
+// @ID /api/v1/native-token-transfer/transfer-by-time
+// @Param from query string true "From date, supported format 2006-01-02T15:04:05Z07:00"
+// @Param to query string true "To date, supported format 2006-01-02T15:04:05Z07:00"
+// @Param symbol query string true "Symbol of the token. Currently only supports W."
+// @Param by query string false "Renders the results using notional or tx count (default is notional)."
+// @Param timeSpan query string true "Time Span, supported values: [1h, 1d, 1mo, 1y]."
+// @Success 200 {object} []stats.NativeTokenTransferByTime
+// @Failure 400
+// @Failure 500
+// @Router /api/v1/native-token-transfer/transfer-by-time [get]
+func (c *Controller) GetNativeTokenTransferByTime(ctx *fiber.Ctx) error {
+	from, err := middleware.ExtractTime(ctx, time.RFC3339, "from")
+	if err != nil {
+		return err
+	}
+	to, err := middleware.ExtractTime(ctx, time.RFC3339, "to")
+	if err != nil {
+		return err
+	}
+	if from == nil || to == nil {
+		return response.NewInvalidParamError(ctx, "missing from/to query params ", nil)
+	}
+	symbolParam, err := middleware.ExtractSymbol(ctx)
+	if err != nil {
+		return err
+	}
+	isNotional, err := middleware.ExtractIsNotional(ctx)
+	if err != nil {
+		isNotional = true
+	}
+	timespan, err := middleware.ExtractNttTimeSpan(ctx)
+	if err != nil {
+		return err
+	}
+	symbol := strings.ToUpper(symbolParam)
+	response, err := c.srv.GetNativeTokenTransferByTime(ctx.Context(), *timespan, symbol, isNotional, *from, *to)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(response)
+}
+
+// GetNativeTokenTransferAddressTop godoc
+// @Description Returns a list of values (tx count or notional) of the Native Token Transfer for address.
+// @Tags wormholescan
+// @ID /api/v1/native-token-transfer/top-address
+// @Param symbol query string true "Symbol of the token. Currently only supports W."
+// @Param by query string false "Renders the results using notional or tx count (default is notional)."
+// @Success 200 {object} []stats.NativeTokenTransferTopAddress
+// @Failure 400
+// @Failure 500
+// @Router /api/v1/native-token-transfer/top-address [get]
+func (c *Controller) GetNativeTokenTransferAddressTop(ctx *fiber.Ctx) error {
+	symbolParam, err := middleware.ExtractSymbol(ctx)
+	if err != nil {
+		return err
+	}
+	isNotional, err := middleware.ExtractIsNotional(ctx)
+	if err != nil {
+		isNotional = true
+	}
+	symbol := strings.ToUpper(symbolParam)
+	response, err := c.srv.GetNativeTokenTransferAddressTop(ctx.Context(), symbol, isNotional)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(response)
+}
+
+// GetNativeTokenTransferTopHolder godoc
+// @Description Returns a list of volume and chain of the Native Token Transfer for top holders.
+// @Tags wormholescan
+// @ID /api/v1/native-token-transfer/top-holder
+// @Param symbol query string true "Symbol of the token. Currently only supports W."
+// @Success 200 {object} []stats.NativeTokenTransferTopHolder
+// @Failure 400
+// @Failure 500
+// @Router /api/v1/native-token-transfer/top-holder [get]
+func (c *Controller) GetNativeTokenTransferTopHolder(ctx *fiber.Ctx) error {
+	symbolParam, err := middleware.ExtractSymbol(ctx)
+	if err != nil {
+		return err
+	}
+
+	symbol := strings.ToUpper(symbolParam)
+	holders, err := c.srv.GetNativeTokenTransferTopHolder(ctx.Context(), symbol)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(holders)
 }

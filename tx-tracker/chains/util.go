@@ -9,6 +9,9 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
+
 	"github.com/ethereum/go-ethereum/rpc"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
@@ -137,11 +140,20 @@ func FormatTxHashByChain(chainId sdk.ChainID, txHash string) string {
 		sdk.ChainIDBlast,
 		sdk.ChainIDXLayer,
 		sdk.ChainIDMantle,
-		sdk.ChainIDPolygonSepolia:
+		sdk.ChainIDPolygonSepolia,
+		sdk.ChainIDSnaxchain:
 		return txHashLowerCaseWith0x(txHash)
 	case sdk.ChainIDSei, sdk.ChainIDWormchain:
 		return txHashLowerCaseWith0x(txHash)
 	default:
 		return txHash
 	}
+}
+
+func GetGasTokenNotional(chainID sdk.ChainID, notionalCache *notional.NotionalCache) (notional.PriceData, error) {
+	nativeToken := domain.GetGasTokenMetadata(chainID)
+	if nativeToken == nil {
+		return notional.PriceData{}, fmt.Errorf("gas token not found for chain %s", chainID)
+	}
+	return notionalCache.Get(nativeToken.GetTokenID())
 }

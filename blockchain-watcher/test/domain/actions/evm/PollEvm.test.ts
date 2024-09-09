@@ -6,7 +6,7 @@ import {
   StatRepository,
 } from "../../../../src/domain/repositories";
 import { EvmBlock, EvmLog, ReceiptTransaction } from "../../../../src/domain/entities";
-import { thenWaitForAssertion } from "../../../wait-assertion";
+import { thenWaitForAssertion } from "../../../waitAssertion";
 
 let cfg = PollEvmLogsConfig.fromBlock("acala", 0n);
 

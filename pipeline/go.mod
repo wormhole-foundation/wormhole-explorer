@@ -1,6 +1,8 @@
 module github.com/wormhole-foundation/wormhole-explorer/pipeline
 
-go 1.19
+go 1.21
+
+toolchain go1.22.4
 
 require (
 	github.com/gofiber/fiber/v2 v2.47.0
@@ -22,7 +24,7 @@ require (
 	github.com/spf13/cobra v1.8.0
 	github.com/test-go/testify v1.1.4
 	github.com/wormhole-foundation/wormhole-explorer/common v0.0.0-00010101000000-000000000000
-	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240416174455-25e60611a867
+	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240823200831-78771ff5297e
 	go.uber.org/ratelimit v0.3.1
 )
 

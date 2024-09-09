@@ -1,24 +1,40 @@
-import { PollSei, PollSeiConfig, PollSeiConfigProps } from "../../domain/actions/sei/PollSei";
+import { PollNear, PollNearConfig, PollNearConfigProps } from "../../domain/actions/near/PollNear";
 import { FileMetadataRepository, SnsEventRepository } from "./index";
 import { wormchainRedeemedTransactionFoundMapper } from "../mappers/wormchain/wormchainRedeemedTransactionFoundMapper";
 import { algorandRedeemedTransactionFoundMapper } from "../mappers/algorand/algorandRedeemedTransactionFoundMapper";
 import { JobDefinition, Handler, LogFoundEvent } from "../../domain/entities";
+import { cosmosRedeemedTransactionFoundMapper } from "../mappers/cosmos/cosmosRedeemedTransactionFoundMapper";
 import { aptosRedeemedTransactionFoundMapper } from "../mappers/aptos/aptosRedeemedTransactionFoundMapper";
+import { nearRedeemedTransactionFoundMapper } from "../mappers/near/nearRedeemedTransactionFoundMapper";
 import { wormchainLogMessagePublishedMapper } from "../mappers/wormchain/wormchainLogMessagePublishedMapper";
-import { seiRedeemedTransactionFoundMapper } from "../mappers/sei/seiRedeemedTransactionFoundMapper";
 import { algorandLogMessagePublishedMapper } from "../mappers/algorand/algorandLogMessagePublishedMapper";
 import { suiRedeemedTransactionFoundMapper } from "../mappers/sui/suiRedeemedTransactionFoundMapper";
+import { solanaLogCircleMessageSentMapper } from "../mappers/solana/solanaLogCircleMessageSentMapper";
+import { evmNttWormholeTransceiverMapper } from "../mappers/evm/evmNttWormholeTransceiverMapper";
+import { cosmosLogMessagePublishedMapper } from "../mappers/cosmos/cosmosLogMessagePublishedMapper";
 import { aptosLogMessagePublishedMapper } from "../mappers/aptos/aptosLogMessagePublishedMapper";
+import { evmLogCircleMessageSentMapper } from "../mappers/evm/evmLogCircleMessageSentMapper";
+import { evmNttAxelarTransceiverMapper } from "../mappers/evm/evmNttAxelarTransceiverMapper";
+import { evmNttMessageAttestedToMapper } from "../mappers/evm/evmNttMessageAttestedToMapper";
+import { evmNttTransferRedeemedMapper } from "../mappers/evm/evmNttTransferRedeemedMapper";
 import { suiLogMessagePublishedMapper } from "../mappers/sui/suiLogMessagePublishedMapper";
 import { HandleAlgorandTransactions } from "../../domain/actions/algorand/HandleAlgorandTransactions";
 import { HandleSolanaTransactions } from "../../domain/actions/solana/HandleSolanaTransactions";
+import { HandleCosmosTransactions } from "../../domain/actions/cosmos/HandleCosmosTransactions";
+import { evmNttTransferSentMapper } from "../mappers/evm/evmNttTransferSentMapper";
 import { HandleAptosTransactions } from "../../domain/actions/aptos/HandleAptosTransactions";
+import { HandleNearTransactions } from "../../domain/actions/near/HandleNearTransactions";
 import { HandleWormchainRedeems } from "../../domain/actions/wormchain/HandleWormchainRedeems";
 import { HandleEvmTransactions } from "../../domain/actions/evm/HandleEvmTransactions";
 import { HandleSuiTransactions } from "../../domain/actions/sui/HandleSuiTransactions";
+import { InfluxEventRepository } from "./target/InfluxEventRepository";
 import { HandleWormchainLogs } from "../../domain/actions/wormchain/HandleWormchainLogs";
-import { HandleSeiRedeems } from "../../domain/actions/sei/HandleSeiRedeems";
 import log from "../log";
+import {
+  PollCosmosConfigProps,
+  PollCosmosConfig,
+  PollCosmos,
+} from "../../domain/actions/cosmos/PollCosmos";
 import {
   PollWormchainLogsConfigProps,
   PollWormchainLogsConfig,
@@ -30,11 +46,12 @@ import {
   AlgorandRepository,
   EvmBlockRepository,
   MetadataRepository,
+  CosmosRepository,
   AptosRepository,
+  NearRepository,
   StatRepository,
   JobRepository,
   SuiRepository,
-  SeiRepository,
 } from "../../domain/repositories";
 import {
   PollSolanaTransactionsConfig,
@@ -78,13 +95,15 @@ export class StaticJobRepository implements JobRepository {
   private evmRepo: (chain: string) => EvmBlockRepository;
   private metadataRepo: MetadataRepository<any>;
   private statsRepo: StatRepository;
-  private snsRepo: SnsEventRepository;
+  private snsRepo?: SnsEventRepository;
+  private influxRepo?: InfluxEventRepository;
   private solanaSlotRepo: SolanaSlotRepository;
   private suiRepo: SuiRepository;
   private aptosRepo: AptosRepository;
   private wormchainRepo: WormchainRepository;
-  private seiRepo: SeiRepository;
+  private cosmosRepo: CosmosRepository;
   private algorandRepo: AlgorandRepository;
+  private nearRepo: NearRepository;
 
   constructor(
     environment: string,
@@ -94,13 +113,15 @@ export class StaticJobRepository implements JobRepository {
     repos: {
       metadataRepo: MetadataRepository<any>;
       statsRepo: StatRepository;
-      snsRepo: SnsEventRepository;
+      snsRepo?: SnsEventRepository;
+      influxRepo?: InfluxEventRepository;
       solanaSlotRepo: SolanaSlotRepository;
       suiRepo: SuiRepository;
       aptosRepo: AptosRepository;
       wormchainRepo: WormchainRepository;
-      seiRepo: SeiRepository;
+      cosmosRepo: CosmosRepository;
       algorandRepo: AlgorandRepository;
+      nearRepo: NearRepository;
     }
   ) {
     this.fileRepo = new FileMetadataRepository(path);
@@ -108,12 +129,14 @@ export class StaticJobRepository implements JobRepository {
     this.metadataRepo = repos.metadataRepo;
     this.statsRepo = repos.statsRepo;
     this.snsRepo = repos.snsRepo;
+    this.influxRepo = repos.influxRepo;
     this.solanaSlotRepo = repos.solanaSlotRepo;
     this.suiRepo = repos.suiRepo;
     this.aptosRepo = repos.aptosRepo;
     this.wormchainRepo = repos.wormchainRepo;
-    this.seiRepo = repos.seiRepo;
+    this.cosmosRepo = repos.cosmosRepo;
     this.algorandRepo = repos.algorandRepo;
+    this.nearRepo = repos.nearRepo;
     this.environment = environment;
     this.dryRun = dryRun;
     this.fill();
@@ -219,13 +242,13 @@ export class StaticJobRepository implements JobRepository {
         }),
         jobDef.source.records
       );
-    const pollSei = (jobDef: JobDefinition) =>
-      new PollSei(
-        this.seiRepo,
+    const pollComsos = (jobDef: JobDefinition) =>
+      new PollCosmos(
+        this.cosmosRepo,
         this.metadataRepo,
         this.statsRepo,
-        new PollSeiConfig({
-          ...(jobDef.source.config as PollSeiConfigProps),
+        new PollCosmosConfig({
+          ...(jobDef.source.config as PollCosmosConfigProps),
           id: jobDef.id,
         })
       );
@@ -239,27 +262,45 @@ export class StaticJobRepository implements JobRepository {
           id: jobDef.id,
         })
       );
+    const pollNear = (jobDef: JobDefinition) =>
+      new PollNear(
+        this.nearRepo,
+        this.metadataRepo,
+        this.statsRepo,
+        new PollNearConfig({
+          ...(jobDef.source.config as PollNearConfigProps),
+          id: jobDef.id,
+        })
+      );
 
     this.sources.set("PollEvm", pollEvm);
     this.sources.set("PollSolanaTransactions", pollSolanaTransactions);
     this.sources.set("PollSuiTransactions", pollSuiTransactions);
     this.sources.set("PollAptos", pollAptos);
     this.sources.set("PollWormchain", pollWormchain);
-    this.sources.set("PollSei", pollSei);
+    this.sources.set("PollCosmos", pollComsos);
     this.sources.set("PollAlgorand", pollAlgorand);
+    this.sources.set("PollNear", pollNear);
   }
 
   private loadMappers(): void {
     this.mappers.set("evmLogMessagePublishedMapper", evmLogMessagePublishedMapper);
+    this.mappers.set("evmLogCircleMessageSentMapper", evmLogCircleMessageSentMapper);
     this.mappers.set("evmRedeemedTransactionFoundMapper", evmRedeemedTransactionFoundMapper);
+    this.mappers.set("evmNttTransferSentMapper", evmNttTransferSentMapper);
+    this.mappers.set("evmNttAxelarTransceiverMapper", evmNttAxelarTransceiverMapper);
+    this.mappers.set("evmNttWormholeTransceiverMapper", evmNttWormholeTransceiverMapper);
+    this.mappers.set("evmNttMessageAttestedToMapper", evmNttMessageAttestedToMapper);
+    this.mappers.set("evmNttTransferRedeemedMapper", evmNttTransferRedeemedMapper);
     this.mappers.set("solanaLogMessagePublishedMapper", solanaLogMessagePublishedMapper);
     this.mappers.set("solanaTransferRedeemedMapper", solanaTransferRedeemedMapper);
+    this.mappers.set("solanaLogCircleMessageSentMapper", solanaLogCircleMessageSentMapper);
     this.mappers.set("suiLogMessagePublishedMapper", suiLogMessagePublishedMapper);
     this.mappers.set("suiRedeemedTransactionFoundMapper", suiRedeemedTransactionFoundMapper);
     this.mappers.set("aptosLogMessagePublishedMapper", aptosLogMessagePublishedMapper);
     this.mappers.set("aptosRedeemedTransactionFoundMapper", aptosRedeemedTransactionFoundMapper);
     this.mappers.set("wormchainLogMessagePublishedMapper", wormchainLogMessagePublishedMapper);
-    this.mappers.set("seiRedeemedTransactionFoundMapper", seiRedeemedTransactionFoundMapper);
+    this.mappers.set("cosmosRedeemedTransactionFoundMapper", cosmosRedeemedTransactionFoundMapper);
     this.mappers.set(
       "algorandRedeemedTransactionFoundMapper",
       algorandRedeemedTransactionFoundMapper
@@ -269,15 +310,19 @@ export class StaticJobRepository implements JobRepository {
       "wormchainRedeemedTransactionFoundMapper",
       wormchainRedeemedTransactionFoundMapper
     );
+    this.mappers.set("cosmosLogMessagePublishedMapper", cosmosLogMessagePublishedMapper);
+    this.mappers.set("nearRedeemedTransactionFoundMapper", nearRedeemedTransactionFoundMapper);
   }
 
   private loadTargets(): void {
-    const snsTarget = () => this.snsRepo.asTarget();
+    const snsTarget = () => this.snsRepo!.asTarget();
+    const influxTarget = () => this.influxRepo!.asTarget();
     const dummyTarget = async () => async (events: any[]) => {
       log.info(`[target dummy] Got ${events.length} events`);
     };
 
-    this.targets.set("sns", snsTarget);
+    this.snsRepo && this.targets.set("sns", snsTarget);
+    this.influxRepo && this.targets.set("influx", influxTarget);
     this.targets.set("dummy", dummyTarget);
   }
 
@@ -348,8 +393,8 @@ export class StaticJobRepository implements JobRepository {
       return instance.handle.bind(instance);
     };
 
-    const handleSeiRedeems = async (config: any, target: string, mapper: any) => {
-      const instance = new HandleSeiRedeems(
+    const handleCosmosTransactions = async (config: any, target: string, mapper: any) => {
+      const instance = new HandleCosmosTransactions(
         config,
         mapper,
         await this.getTarget(target),
@@ -368,6 +413,16 @@ export class StaticJobRepository implements JobRepository {
       return instance.handle.bind(instance);
     };
 
+    const handleNearTransactions = async (config: any, target: string, mapper: any) => {
+      const instance = new HandleNearTransactions(
+        config,
+        mapper,
+        await this.getTarget(target),
+        this.statsRepo
+      );
+      return instance.handle.bind(instance);
+    };
+
     this.handlers.set("HandleEvmLogs", handleEvmLogs);
     this.handlers.set("HandleEvmTransactions", handleEvmTransactions);
     this.handlers.set("HandleSolanaTransactions", handleSolanaTx);
@@ -375,8 +430,9 @@ export class StaticJobRepository implements JobRepository {
     this.handlers.set("HandleAptosTransactions", handleAptosTx);
     this.handlers.set("HandleWormchainLogs", handleWormchainLogs);
     this.handlers.set("HandleWormchainRedeems", handleWormchainRedeems);
-    this.handlers.set("HandleSeiRedeems", handleSeiRedeems);
+    this.handlers.set("HandleCosmosTransactions", handleCosmosTransactions);
     this.handlers.set("HandleAlgorandTransactions", handleAlgorandTransactions);
+    this.handlers.set("HandleNearTransactions", handleNearTransactions);
   }
 
   private async getTarget(target: string): Promise<(items: any[]) => Promise<void>> {

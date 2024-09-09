@@ -1,11 +1,10 @@
 import { solana, TransactionFoundEvent, InstructionFound } from "../../../domain/entities";
-import { CompiledInstruction, MessageCompiledInstruction } from "../../../domain/entities/solana";
+import { normalizeCompileInstruction } from "./utils";
 import { Connection, Commitment } from "@solana/web3.js";
 import { getPostedMessage } from "@certusone/wormhole-sdk/lib/cjs/solana/wormhole";
 import { configuration } from "../../config";
 import { findProtocol } from "../contractsMapper";
 import winston from "winston";
-import bs58 from "bs58";
 
 let logger: winston.Logger;
 logger = winston.child({ module: "solanaTransferRedeemedMapper" });
@@ -42,6 +41,14 @@ const processProgram = async (
     throw new Error(
       `[${chain}]Block time is missing for tx ${transaction?.transaction?.signatures} in slot ${transaction?.slot}`
     );
+  }
+  if (transaction.meta?.err) {
+    logger.info(
+      `[${chain}] Ignoring tx ${
+        transaction.transaction.signatures[0]
+      } because it failed: ${JSON.stringify(transaction.meta.err)}`
+    );
+    return [];
   }
 
   const message = transaction.transaction.message;
@@ -104,20 +111,6 @@ const processProgram = async (
 const mappedStatus = (transaction: solana.Transaction): string => {
   if (!transaction.meta || transaction.meta.err) TRANSACTION_STATUS_FAILED;
   return TRANSACTION_STATUS_COMPLETED;
-};
-
-const normalizeCompileInstruction = (
-  instruction: CompiledInstruction | MessageCompiledInstruction
-): MessageCompiledInstruction => {
-  if ("accounts" in instruction) {
-    return {
-      accountKeyIndexes: instruction.accounts,
-      data: bs58.decode(instruction.data),
-      programIdIndex: instruction.programIdIndex,
-    };
-  } else {
-    return instruction;
-  }
 };
 
 export interface ProgramParams {

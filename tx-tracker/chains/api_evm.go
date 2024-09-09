@@ -3,14 +3,15 @@ package chains
 import (
 	"context"
 	"fmt"
-	"math/big"
-	"strings"
-
 	"github.com/shopspring/decimal"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
+	"math/big"
+	"strings"
 )
 
 const (
@@ -35,7 +36,9 @@ type ethGetTransactionReceiptResponse struct {
 }
 
 type apiEvm struct {
-	chainId sdk.ChainID
+	chainId       sdk.ChainID
+	notionalCache *notional.NotionalCache
+	p2pNetwork    string
 }
 
 func (e *apiEvm) FetchEvmTx(
@@ -75,12 +78,23 @@ func (e *apiEvm) FetchEvmTx(
 				zap.Error(err),
 				zap.String("txHash", txHash),
 				zap.String("chainId", e.chainId.String()))
-		} else if fee == "" {
+		} else if fee == nil {
 			txDetail.FeeDetail = nil
 		} else {
-			txDetail.FeeDetail.Fee = fee
+			txDetail.FeeDetail.Fee = fee.String()
+			if e.p2pNetwork == domain.P2pMainNet {
+				gasPrice, errGasPrice := GetGasTokenNotional(e.chainId, e.notionalCache)
+				if errGasPrice != nil {
+					logger.Error("Failed to get gas price",
+						zap.Error(errGasPrice),
+						zap.String("chainId", e.chainId.String()),
+						zap.String("txHash", txHash))
+				} else {
+					txDetail.FeeDetail.GasTokenNotional = gasPrice.NotionalUsd.String()
+					txDetail.FeeDetail.FeeUSD = gasPrice.NotionalUsd.Mul(*fee).String()
+				}
+			}
 		}
-
 	}
 
 	return txDetail, err
@@ -176,17 +190,17 @@ func (e *apiEvm) fetchEvmTxReceiptByTxHash(
 	}, nil
 }
 
-func EvmCalculateFee(chainID sdk.ChainID, gasUsed string, effectiveGasPrice string) (string, error) {
+func EvmCalculateFee(chainID sdk.ChainID, gasUsed string, effectiveGasPrice string) (*decimal.Decimal, error) {
 	//ignore if the blockchain is L2
 	if chainID == sdk.ChainIDBase || chainID == sdk.ChainIDOptimism || chainID == sdk.ChainIDScroll {
-		return "", nil
+		return nil, nil
 	}
 
 	// get decimal gasUsed
 	gs := new(big.Int)
 	_, ok := gs.SetString(gasUsed, 0)
 	if !ok {
-		return "", fmt.Errorf("failed to convert gasUsed to big.Int")
+		return nil, fmt.Errorf("failed to convert gasUsed to big.Int")
 	}
 	decimalGasUsed := decimal.NewFromBigInt(gs, 0)
 
@@ -194,12 +208,12 @@ func EvmCalculateFee(chainID sdk.ChainID, gasUsed string, effectiveGasPrice stri
 	gp := new(big.Int)
 	_, ok = gp.SetString(effectiveGasPrice, 0)
 	if !ok {
-		return "", fmt.Errorf("failed to convert gasPrice to big.Int")
+		return nil, fmt.Errorf("failed to convert gasPrice to big.Int")
 	}
 	decimalGasPrice := decimal.NewFromBigInt(gp, 0)
 
 	// calculate gasUsed * (gasPrice / 1e18)
 	decimalFee := decimalGasUsed.Mul(decimalGasPrice)
 	decimalFee = decimalFee.DivRound(decimal.NewFromInt(1e18), 18)
-	return decimalFee.String(), nil
+	return &decimalFee, nil
 }

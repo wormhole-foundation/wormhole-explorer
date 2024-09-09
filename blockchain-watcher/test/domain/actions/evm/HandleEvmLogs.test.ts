@@ -5,8 +5,10 @@ import { StatRepository } from "../../../../src/domain/repositories";
 
 let statsRepo: StatRepository;
 
-const ABI =
-  "event SendEvent(uint64 indexed sequence, uint256 deliveryQuote, uint256 paymentForExtraReceiverValue)";
+const ABI = {
+  abi: "event SendEvent(uint64 indexed sequence, uint256 deliveryQuote, uint256 paymentForExtraReceiverValue)",
+  topic: "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2",
+};
 const mapper = (log: EvmLog, args: ReadonlyArray<any>) => {
   return {
     name: "send-event",
@@ -42,7 +44,7 @@ describe("HandleEvmLogs", () => {
 
   it("should be able to map logs", async () => {
     const expectedLength = 5;
-    givenConfig(ABI);
+    givenConfig();
     givenEvmLogs(expectedLength, expectedLength);
     givenStatsRepository();
     givenHandleEvmLogs();
@@ -62,7 +64,7 @@ const givenHandleEvmLogs = (targetFn: "save" | "failingSave" = "save") => {
   handleEvmLogs = new HandleEvmLogs(cfg, mapper, targetRepo[targetFn], statsRepo);
 };
 
-const givenConfig = (abi: string) => {
+const givenConfig = () => {
   cfg = {
     filters: [
       {
@@ -71,7 +73,8 @@ const givenConfig = (abi: string) => {
       },
     ],
     metricName: "process_source_ethereum_event",
-    abi,
+    environment: "testnet",
+    abis: [ABI],
     commitment: "latest",
     chainId: 2,
     chain: "ethereum",

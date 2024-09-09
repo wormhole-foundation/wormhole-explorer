@@ -1,4 +1,4 @@
----          
+---     
 apiVersion: v1
 kind: Service
 metadata:
@@ -20,6 +20,8 @@ kind: PersistentVolumeClaim
 metadata:
   name: blockchain-watcher-solana-target-events-1-pvc
   namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-solana-target-events-1
 spec:
   accessModes:
     - ReadWriteOnce
@@ -33,6 +35,8 @@ kind: ConfigMap
 metadata:
   name: {{ .NAME }}-solana-target-events-1-jobs
   namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-solana-target-events-1
 data:
   testnet-jobs.json: |-
     [
@@ -114,8 +118,10 @@ data:
               "NttBm3HouTCFnUBz32fEs5joQFRjFoJPA8AyhtgjFrw",
               "NTtxeqz2XjMnpcEoWMqb6pz84zHweJRYWyzmsmmW49E",
               "NttADdCvGLUhukNyePei9CkmHoe6S9xjqgqfQv51PQg",
-              "NttXP2tPLxGkNA3yrSfFZbtDbfKPKBrJUR6Jcqh6sRi"
-             ],
+              "NttXP2tPLxGkNA3yrSfFZbtDbfKPKBrJUR6Jcqh6sRi",
+              "NTt198zrFsZkvfFH5juBK98frhDNooPtd5PGefd7vNb",
+              "NtTtwqVX4SCNECrZ8ZmEaxAPFcm5r7Szx4tBmYLU17p"
+            ],
             "chain": "solana",
             "chainId": 1
           }
@@ -162,6 +168,14 @@ data:
                 "NttXP2tPLxGkNA3yrSfFZbtDbfKPKBrJUR6Jcqh6sRi": {
                   "instructions": ["86d58f44eb66e860"],
                   "vaaAccountIndex": 3
+                },
+                "NTt198zrFsZkvfFH5juBK98frhDNooPtd5PGefd7vNb": {
+                  "instructions": ["86d58f44eb66e860"],
+                  "vaaAccountIndex": 3
+                },
+                "NtTtwqVX4SCNECrZ8ZmEaxAPFcm5r7Szx4tBmYLU17p": {
+                  "instructions": ["86d58f44eb66e860"],
+                  "vaaAccountIndex": 3
                 }
               },
               "metricName": "process_vaa_event"
@@ -176,11 +190,18 @@ kind: Deployment
 metadata:
   name: {{ .NAME }}-solana-target-events-1
   namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-solana-target-events-1
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: {{ .NAME }}-solana-target-events-1
+  strategy: # Rolling update strategy for restarting the pods
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
   template:
     metadata:
       labels:
@@ -191,6 +212,7 @@ spec:
     spec:
       containers:
         - name: {{ .NAME }}
+          image: {{ .IMAGE_NAME }} # Docker image
           env:
             - name: NODE_ENV
               value: {{ .NODE_ENV }}
@@ -215,7 +237,6 @@ spec:
                   key: solana-urls
             - name: JOBS_DIR
               value: /home/node/app/jobs
-          image: {{ .IMAGE_NAME }}
           resources:
             limits:
               cpu: {{ .SOLANA_RESOURCES_LIMITS_CPU }}

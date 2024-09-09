@@ -12,22 +12,26 @@ export class RateLimitedWormchainJsonRPCBlockRepository
   extends RateLimitedRPCRepository<WormchainRepository>
   implements WormchainRepository
 {
-  constructor(delegate: WormchainRepository, opts: Options = { period: 10_000, limit: 1000 }) {
-    super(delegate, opts);
+  constructor(
+    delegate: WormchainRepository,
+    chain: string,
+    opts: Options = { period: 10_000, limit: 1000, interval: 1_000, attempts: 10 }
+  ) {
+    super(delegate, chain, opts);
     this.logger = winston.child({ module: "RateLimitedWormchainJsonRPCBlockRepository" });
   }
 
-  getBlockHeight(chainId: number): Promise<bigint | undefined> {
-    return this.breaker.fn(() => this.delegate.getBlockHeight(chainId)).execute();
+  getBlockHeight(chain: string): Promise<bigint | undefined> {
+    return this.breaker.fn(() => this.delegate.getBlockHeight(chain)).execute();
   }
 
   getBlockLogs(
-    chainId: number,
+    chain: string,
     blockNumber: bigint,
     attributesTypes: string[]
   ): Promise<WormchainBlockLogs> {
     return this.breaker
-      .fn(() => this.delegate.getBlockLogs(chainId, blockNumber, attributesTypes))
+      .fn(() => this.delegate.getBlockLogs(chain, blockNumber, attributesTypes))
       .execute();
   }
 

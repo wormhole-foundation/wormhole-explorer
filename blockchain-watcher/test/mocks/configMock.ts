@@ -1,5 +1,6 @@
 import { Config, ChainRPCConfig } from "../../src/infrastructure/config";
 import { SnsConfig } from "../../src/infrastructure/repositories";
+import { InfluxConfig } from "../../src/infrastructure/repositories/target/InfluxEventRepository";
 
 export const configMock = (): Config => {
   const chainsRecord: Record<string, ChainRPCConfig> = {
@@ -7,6 +8,13 @@ export const configMock = (): Config => {
       name: "solana",
       network: "devnet",
       chainId: 1,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
+    terra: {
+      name: "terra",
+      network: "devnet",
+      chainId: 3,
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
@@ -80,10 +88,24 @@ export const configMock = (): Config => {
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
+    near: {
+      name: "near",
+      network: "testnet",
+      chainId: 15,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
     moonbeam: {
       name: "moonbeam",
       network: "testnet",
       chainId: 16,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
+    terra2: {
+      name: "terra2",
+      network: "testnet",
+      chainId: 18,
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
@@ -119,6 +141,13 @@ export const configMock = (): Config => {
       name: "optimism",
       network: "goerli",
       chainId: 24,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
+    xpla: {
+      name: "xpla",
+      network: "mainnet",
+      chainId: 28,
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
@@ -175,6 +204,13 @@ export const configMock = (): Config => {
       name: "xlayer",
       network: "testnet",
       chainId: 37,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
+    snaxchain: {
+      name: "snaxchain",
+      network: "testnet",
+      chainId: 43,
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
@@ -248,12 +284,20 @@ export const configMock = (): Config => {
     },
   };
 
+  const influxConfig: InfluxConfig = {
+    url: "http://localhost",
+    token: "aToken",
+    org: "anOrg",
+    bucket: "aBucket",
+  };
+
   const cfg: Config = {
     environment: "testnet",
     port: 999,
     logLevel: "info",
     dryRun: false,
     sns: snsConfig,
+    influx: influxConfig,
     metadata: {
       dir: "./metadata-repo/jobs",
     },
@@ -261,7 +305,7 @@ export const configMock = (): Config => {
       dir: "./metadata-repo/jobs",
     },
     chains: chainsRecord,
-    enabledPlatforms: ["solana", "evm", "sui", "aptos", "wormchain", "sei", "algorand"],
+    enabledPlatforms: ["solana", "evm", "sui", "aptos", "wormchain", "cosmos", "algorand", "near"],
   };
 
   return cfg;

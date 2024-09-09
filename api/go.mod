@@ -1,6 +1,6 @@
 module github.com/wormhole-foundation/wormhole-explorer/api
 
-go 1.20
+go 1.21.9
 
 require (
 	github.com/ansrivas/fiberprometheus/v2 v2.4.1
@@ -8,18 +8,18 @@ require (
 	github.com/ethereum/go-ethereum v1.10.21
 	github.com/gagliardetto/solana-go v1.8.4 // indirect
 	github.com/gofiber/adaptor/v2 v2.1.29
-	github.com/gofiber/fiber/v2 v2.47.0
+	github.com/gofiber/fiber/v2 v2.52.5
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/influxdata/influxdb-client-go/v2 v2.12.2
 	github.com/ipfs/go-log/v2 v2.5.1
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/pkg/errors v0.9.1
-	github.com/shopspring/decimal v1.3.1
+	github.com/shopspring/decimal v1.4.0
 	github.com/spf13/viper v1.14.0
 	github.com/stretchr/testify v1.8.4
 	github.com/swaggo/swag v1.16.1
 	github.com/wormhole-foundation/wormhole-explorer/common v0.0.0-00010101000000-000000000000
-	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240416174455-25e60611a867
+	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240823200831-78771ff5297e
 	go.mongodb.org/mongo-driver v1.11.2
 	go.uber.org/zap v1.26.0
 	google.golang.org/grpc v1.57.1
@@ -34,14 +34,14 @@ require (
 	github.com/algorand/go-algorand-sdk v1.23.0 // indirect
 	github.com/algorand/go-codec/codec v1.1.8 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
-	github.com/google/uuid v1.3.0 // indirect
+	github.com/go-resty/resty/v2 v2.11.0 // indirect
+	github.com/google/uuid v1.5.0 // indirect
 	github.com/philhofer/fwd v1.1.2 // indirect
 	github.com/redis/go-redis/v9 v9.0.5 // indirect
-	github.com/savsgio/dictpool v0.0.0-20221023140959-7bf2e61cea94 // indirect
-	github.com/savsgio/gotils v0.0.0-20230208104028-c358bd845dee // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/tinylib/msgp v1.1.8 // indirect
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
+	golang.org/x/net v0.25.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20230726155614-23370e0ffb3e // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230807174057-1744710a1577 // indirect
 )
@@ -92,7 +92,7 @@ require (
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/mattn/go-runewidth v0.0.14 // indirect
+	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/minio/sha256-simd v1.0.1 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
@@ -129,7 +129,7 @@ require (
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasthttp v1.47.0
+	github.com/valyala/fasthttp v1.51.0
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.1 // indirect
@@ -137,13 +137,12 @@ require (
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.19.0 // indirect
-	golang.org/x/net v0.21.0 // indirect
-	golang.org/x/sync v0.4.0 // indirect
-	golang.org/x/sys v0.17.0 // indirect
-	golang.org/x/term v0.17.0 // indirect
-	golang.org/x/text v0.14.0 // indirect
-	golang.org/x/tools v0.14.0 // indirect
+	golang.org/x/crypto v0.25.0 // indirect
+	golang.org/x/sync v0.7.0 // indirect
+	golang.org/x/sys v0.22.0 // indirect
+	golang.org/x/term v0.22.0 // indirect
+	golang.org/x/text v0.16.0 // indirect
+	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
 	google.golang.org/genproto v0.0.0-20230803162519-f966b187b2e5 // indirect
 	google.golang.org/protobuf v1.32.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect

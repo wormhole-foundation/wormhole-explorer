@@ -1,4 +1,4 @@
----          
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -20,6 +20,8 @@ kind: PersistentVolumeClaim
 metadata:
   name: blockchain-watcher-backfiller-pvc
   namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-backfiller
 spec:
   accessModes:
     - ReadWriteOnce
@@ -33,6 +35,8 @@ kind: ConfigMap
 metadata:
   name: {{ .NAME }}-backfiller-jobs
   namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-backfiller
 data:
   testnet-jobs.json: |-
     [
@@ -46,11 +50,18 @@ kind: Deployment
 metadata:
   name: {{ .NAME }}-backfiller
   namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-backfiller
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: {{ .NAME }}-backfiller
+  strategy: # Rolling update strategy for restarting the pods
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
   template:
     metadata:
       labels:
@@ -61,6 +72,7 @@ spec:
     spec:
       containers:
         - name: {{ .NAME }}
+          image: {{ .IMAGE_NAME }}  # Docker image
           env:
             - name: NODE_ENV
               value: {{ .NODE_ENV }}
@@ -80,14 +92,13 @@ spec:
               value: {{ .NODE_OPTIONS }}
             - name: JOBS_DIR
               value: /home/node/app/jobs
-          image: {{ .IMAGE_NAME }}
           resources:
-            limits:
-              cpu: {{ .RESOURCES_LIMITS_CPU }}
-              memory: {{ .RESOURCES_LIMITS_MEMORY }}
             requests:
               cpu: {{ .RESOURCES_REQUESTS_CPU }}
               memory: {{ .RESOURCES_REQUESTS_MEMORY }}
+            limits:
+              cpu: {{ .RESOURCES_LIMITS_CPU }}
+              memory: {{ .RESOURCES_LIMITS_MEMORY }}
           volumeMounts:
             - name: metadata-volume
               mountPath: /home/node/app/metadata-repo 

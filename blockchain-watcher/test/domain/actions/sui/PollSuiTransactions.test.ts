@@ -14,7 +14,7 @@ import {
   SuiRepository,
 } from "../../../../src/domain/repositories";
 import { mockMetadataRepository, mockStatsRepository } from "../../../mocks/repos";
-import { thenWaitForAssertion } from "../../../wait-assertion";
+import { thenWaitForAssertion } from "../../../waitAssertion";
 import { SuiTransactionBlockReceipt } from "../../../../src/domain/entities/sui";
 
 let statsRepo: StatRepository;

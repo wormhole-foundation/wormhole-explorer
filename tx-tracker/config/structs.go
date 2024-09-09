@@ -16,14 +16,17 @@ import (
 
 type ServiceSettings struct {
 	// MonitoringPort defines the TCP port for the /health and /ready endpoints.
-	MonitoringPort      string `split_words:"true" default:"8000"`
-	Environment         string `split_words:"true" required:"true"`
-	LogLevel            string `split_words:"true" default:"INFO"`
-	PprofEnabled        bool   `split_words:"true" default:"false"`
-	MetricsEnabled      bool   `split_words:"true" default:"false"`
-	P2pNetwork          string `split_words:"true" required:"true"`
-	RpcProviderPath     string `split_words:"true" required:"false"`
-	ConsumerWorkersSize int    `split_words:"true" default:"10"`
+	MonitoringPort       string `split_words:"true" default:"8000"`
+	Environment          string `split_words:"true" required:"true"`
+	LogLevel             string `split_words:"true" default:"INFO"`
+	PprofEnabled         bool   `split_words:"true" default:"false"`
+	MetricsEnabled       bool   `split_words:"true" default:"false"`
+	P2pNetwork           string `split_words:"true" required:"true"`
+	RpcProviderPath      string `split_words:"true" required:"false"`
+	ConsumerWorkersSize  int    `split_words:"true" default:"10"`
+	NotionalCacheURL     string `split_words:"true" required:"true"`
+	NotionalCachePrefix  string `split_words:"true" required:"true"`
+	NotionalCacheChannel string `split_words:"true" required:"true"`
 	AwsSettings
 	MongodbSettings
 	*RpcProviderSettings        `required:"false"`
@@ -35,6 +38,9 @@ type ServiceSettings struct {
 type RpcProviderSettingsJson struct {
 	RpcProviders          []ChainRpcProviderSettings `json:"rpcProviders"`
 	WormchainRpcProviders []ChainRpcProviderSettings `json:"wormchainRpcProviders"`
+	NotionalCacheURL      string                     `json:"notional_cache_url"`
+	NotionalCachePrefix   string                     `json:"notional_cache_prefix"`
+	NotionalCacheChannel  string                     `json:"notional_cache_channel"`
 }
 
 type ChainRpcProviderSettings struct {
@@ -152,6 +158,10 @@ type RpcProviderSettings struct {
 	SeiRequestsPerMinute               uint16 `split_words:"true" required:"false"`
 	SeiFallbackUrls                    string `split_words:"true" required:"false"`
 	SeiFallbackRequestsPerMinute       string `split_words:"true" required:"false"`
+	SnaxchainBaseUrl                   string `split_words:"true" required:"false"`
+	SnaxchainRequestsPerMinute         uint16 `split_words:"true" required:"false"`
+	SnaxchainFallbackUrls              string `split_words:"true" required:"false"`
+	SnaxchainFallbackRequestsPerMinute string `split_words:"true" required:"false"`
 	SolanaBaseUrl                      string `split_words:"true" required:"false"`
 	SolanaRequestsPerMinute            uint16 `split_words:"true" required:"false"`
 	SolanaFallbackUrls                 string `split_words:"true" required:"false"`
@@ -484,6 +494,17 @@ func (r RpcProviderSettings) ToMap() (map[sdk.ChainID][]RpcConfig, error) {
 		return nil, err
 	}
 	rpcs[sdk.ChainIDMantle] = mantleRpcConfigs
+
+	// add snaxchain rpcs
+	snaxchainRpcConfigs, err := addRpcConfig(
+		r.SnaxchainBaseUrl,
+		r.SnaxchainRequestsPerMinute,
+		r.SnaxchainFallbackUrls,
+		r.SnaxchainFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDSnaxchain] = snaxchainRpcConfigs
 
 	// add blast rpcs
 	blastRpcConfigs, err := addRpcConfig(

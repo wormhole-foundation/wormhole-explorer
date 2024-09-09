@@ -1,6 +1,8 @@
 module github.com/wormhole-foundation/wormhole-explorer/parser
 
-go 1.19
+go 1.21
+
+toolchain go1.22.4
 
 require (
 	github.com/gofiber/fiber/v2 v2.47.0
@@ -8,7 +10,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/sethvargo/go-envconfig v1.0.0 // Configuration environment
 	github.com/stretchr/testify v1.8.4 // Testing
-	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240416174455-25e60611a867
+	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240823200831-78771ff5297e
 	go.mongodb.org/mongo-driver v1.11.2
 	go.uber.org/zap v1.26.0
 )

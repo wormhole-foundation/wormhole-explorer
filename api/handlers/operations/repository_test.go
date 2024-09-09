@@ -224,11 +224,28 @@ func TestPipeline_FindByChainAndAppId(t *testing.T) {
 				unSetStage,
 			},
 		},
+		{
+			name: "Search by payload type",
+			query: operations.OperationQuery{
+				PayloadType: []int{1, 2},
+			},
+			expected: mongo.Pipeline{
+				bson.D{{"$match", bson.M{"parsedPayload.payloadType": bson.M{"$in": []int{1, 2}}}}},
+				sortStage,
+				skipStage,
+				limitStage,
+				lookupVaasStage,
+				lookupTransferPricesStage,
+				lookupGlobalTransactionsStage,
+				addFieldsStage,
+				unSetStage,
+			},
+		},
 	}
 
 	for _, testCase := range cases {
 		t.Run(testCase.name, func(t *testing.T) {
-			result := operations.BuildPipelineSearchByChainAndAppID(testCase.query)
+			result := operations.BuildPipelineSearchFromParsedVaa(testCase.query)
 			assert.Equal(t, testCase.expected, result, "Expected pipeline did not match actual pipeline")
 		})
 	}

@@ -1,18 +1,24 @@
 export interface HandleEvmConfig {
+  environment: string;
   metricName: string;
   commitment: string;
   chainId: number;
   chain: string;
-  abi: string;
+  abis: Abi[];
   id: string;
 }
 
 export interface HandleEvmLogsConfig extends HandleEvmConfig {
-  filters: Filters;
+  filters: Filter[];
 }
 
-export type Filters = {
+export type Filter = {
   addresses: string[];
   strategy?: string;
   topics: string[];
-}[];
+};
+
+export type Abi = {
+  topic: string;
+  abi: string;
+};

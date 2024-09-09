@@ -1,16 +1,14 @@
+import { JsonRPCBlockRepositoryCfg, ProviderPoolMap } from "../RepositoriesBuilder";
+import { EvmJsonRPCBlockRepository } from "./EvmJsonRPCBlockRepository";
 import { BytesLike, ethers } from "ethers";
+import { getChainProvider } from "../common/utils";
 import { EvmTag } from "../../../domain/entities";
-import {
-  EvmJsonRPCBlockRepository,
-  EvmJsonRPCBlockRepositoryCfg,
-  ProviderPoolMap,
-} from "./EvmJsonRPCBlockRepository";
 
 const POLYGON_ROOT_CHAIN_ADDRESS = "0x86E4Dc95c7FBdBf52e33D563BbDB00823894C287";
 const FINALIZED = "finalized";
 
 export class PolygonJsonRPCBlockRepository extends EvmJsonRPCBlockRepository {
-  constructor(cfg: EvmJsonRPCBlockRepositoryCfg, pools: ProviderPoolMap) {
+  constructor(cfg: JsonRPCBlockRepositoryCfg, pools: ProviderPoolMap) {
     super(cfg, pools);
   }
 
@@ -22,7 +20,7 @@ export class PolygonJsonRPCBlockRepository extends EvmJsonRPCBlockRepository {
         ]);
         const callData = rootChain.encodeFunctionData("getLastChildBlock");
 
-        const callResult: CallResult[] = await this.getChainProvider(chain).post([
+        const callResult: CallResult[] = await getChainProvider(chain, this.pool).post([
           {
             jsonrpc: "2.0",
             id: 1,

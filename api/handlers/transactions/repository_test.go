@@ -3,6 +3,7 @@ package transactions
 import (
 	"github.com/stretchr/testify/assert"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
+	"strings"
 	"testing"
 	"time"
 )
@@ -117,12 +118,14 @@ func Test_buildChainActivityQueryTops(t *testing.T) {
 				vols = data
 						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
 				counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "count"})
 
@@ -160,12 +163,14 @@ func Test_buildChainActivityQueryTops(t *testing.T) {
 
 				vols = data
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
 				counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "count"})
 
@@ -240,12 +245,14 @@ func Test_buildChainActivityQueryTops(t *testing.T) {
 					vols = data		
 						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
 					counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "count"})
 
@@ -282,12 +289,14 @@ func Test_buildChainActivityQueryTops(t *testing.T) {
 					vols = data		
 						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
 					counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "count"})
 
@@ -325,12 +334,14 @@ func Test_buildChainActivityQueryTops(t *testing.T) {
 					vols = data		
 						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
 					counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "count"})
 
@@ -368,12 +379,14 @@ func Test_buildChainActivityQueryTops(t *testing.T) {
 					vols = data		
 						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
 					counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "count"})
 
@@ -415,12 +428,14 @@ func Test_buildChainActivityQueryTops(t *testing.T) {
 				vols = data
 						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
 				counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "count"})
 
@@ -462,12 +477,14 @@ func Test_buildChainActivityQueryTops(t *testing.T) {
 				vols = data
 						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
 				counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "count"})
 
@@ -486,6 +503,221 @@ func Test_buildChainActivityQueryTops(t *testing.T) {
 		t.Run(testCase.name, func(t *testing.T) {
 			got := repository.buildChainActivityQueryTops(testCase.input)
 			assert.Equal(t, testCase.expected, got, "Expected query did not match actual one.")
+		})
+	}
+}
+
+func Test_buildAppActivityQuery(t *testing.T) {
+	repository := &Repository{
+		bucketInfiniteRetention: "wormscan-testenv",
+		bucket30DaysRetention:   "wormscan-30days-testenv",
+	}
+
+	tcs := []struct {
+		name                string
+		input               ApplicationActivityQuery
+		expectedAppQuery    string
+		expectedTotalsQuery string
+	}{
+		{
+			name: "Search by timespan monthly",
+			input: ApplicationActivityQuery{
+				AppId:    "CCTP_WORMHOLE_INTEGRATION",
+				From:     time.Date(2023, 10, 7, 0, 0, 0, 0, time.UTC),
+				To:       time.Date(2024, 3, 3, 5, 30, 5, 0, time.UTC),
+				Timespan: Month,
+			},
+			expectedAppQuery:    "\n\t\t\timport \"date\"\n\t\t\timport \"join\"\n\n\t\t\tallData = from(bucket: \"wormscan-testenv\")\n\t\t\t\t\t\t|> range(start: 2023-10-01T00:00:00Z,stop: 2024-03-01T00:00:00Z)\n\t\t\t\t\t\t|> filter(fn: (r) => r._measurement == \"protocols_stats_1d\")\n\t\t\t\t\t\t|> filter(fn: (r) => not exists r.protocol )\n\t\t\t\t\t\t|> filter(fn: (r) => r.app_id_1 == \"CCTP_WORMHOLE_INTEGRATION\" or r.app_id_2 == \"CCTP_WORMHOLE_INTEGRATION\" or r.app_id_3 == \"CCTP_WORMHOLE_INTEGRATION\")\n\t\t\t\t\t\t|> drop(columns:[\"emitter_chain\",\"destination_chain\",\"_measurement\"])\n\n\t\t\ttotalMsgs = allData\n\t\t\t\t\t\t|> filter(fn: (r) => r._field == \"total_messages\")\n\t\t\t\t\t\t|> aggregateWindow(every: 1mo, fn: sum)\n\t\t\t\t\t\t|> rename(columns: {_value: \"total_messages\"})\n\t\t\t\t\t\t|> map(fn: (r) => ({\n\t\t\t\t\t\t\t\tr with\n\t\t\t\t\t\t\t\t_time: date.sub(d: 1mo, from: r._time),\n\t\t\t\t\t\t\t\ttotal_messages: if not exists r.total_messages then uint(v:0) else r.total_messages\n     \t\t\t\t\t\t}))\n\t\t\t\t\t\t|> drop(columns:[\"_start\",\"_stop\"])\n\t\t\t\t\t\t|> group()\n\t\t\t\n\t\t\t\n\t\t\ttvt = allData\n\t\t\t\t\t|> filter(fn: (r) => r._field == \"total_value_transferred\")\n\t\t\t\t\t|> aggregateWindow(every: 1mo, fn: sum)\n\t\t\t\t\t|> rename(columns: {_value: \"total_value_transferred\"})\t\t\n\t\t\t\t\t|> map(fn: (r) => ({\n\t\t\t\t\t\tr with\n\t\t\t\t\t\t_time: date.sub(d: 1mo, from: r._time),\n\t\t\t\t\t\ttotal_value_transferred: if not exists r.total_value_transferred then uint(v:0) else r.total_value_transferred\n\t\t\t\t\t}))\n\t\t\t\t\t|> drop(columns:[\"_start\",\"_stop\"])\n\t\t\t\t\t|> group()\n\t\t\t\t\t\t\n\t\t\tjoin.inner(\n\t\t\t    left: totalMsgs,\n\t\t\t    right: tvt,\n\t\t\t    on: (l, r) => l.app_id_1 == r.app_id_1 and l.app_id_2 == r.app_id_2 and l.app_id_3 == r.app_id_3 and l._time == r._time,\n\t\t\t    as: (l, r) => ({\n\t\t\t\t\t\"_time\":l._time,\n\t\t\t\t\t\"to\":date.add(d: 1mo, to: l._time),\n\t\t\t\t\t\"app_id_1\": l.app_id_1,\n\t\t\t\t\t\"app_id_2\": l.app_id_2,\n\t\t\t\t\t\"app_id_3\": l.app_id_3,\n\t\t\t\t\t\"total_messages\":l.total_messages,\n\t\t\t\t\t\"total_value_transferred\": float(v:r.total_value_transferred) / 100000000.0\n\t\t\t\t\t})\n\t\t\t)\n\t\t",
+			expectedTotalsQuery: "\n\t\t\timport \"date\"\n\t\t\timport \"join\"\n\n\t\t\tallData = from(bucket: \"wormscan-testenv\")\n\t\t\t\t\t\t|> range(start: 2023-10-01T00:00:00Z,stop: 2024-03-01T00:00:00Z)\n\t\t\t\t\t\t|> filter(fn: (r) => r._measurement == \"protocols_stats_totals_1d\" and r.version == \"v1\")\n\t\t\t\t\t\t|> filter(fn: (r) => r.app_id == \"TOTAL_CCTP_WORMHOLE_INTEGRATION\")\n\t\t\t\t\t\t|> drop(columns:[\"emitter_chain\",\"destination_chain\",\"version\",\"_measurement\"])\n\t\t\t\n\t\t\ttotalMsgs = allData\n\t\t\t\t\t\t|> filter(fn: (r) => r._field == \"total_messages\")\n\t\t\t\t\t\t|> aggregateWindow(every: 1mo, fn: sum)\n\t\t\t\t\t\t|> rename(columns: {_value: \"total_messages\"})\n\t\t\t\t\t\t|> group()\n\t\t\t\t\t\t\n\t\t\ttvt = allData\n\t\t\t\t\t\t|> filter(fn: (r) => r._field == \"total_value_transferred\")\n\t\t\t\t\t\t|> aggregateWindow(every: 1mo, fn: sum)\n\t\t\t\t\t\t|> rename(columns: {_value: \"total_value_transferred\"})\n\t\t\t\t\t\t|> group()\n\n\t\t\tjoin.inner(\n\t\t\t    left: totalMsgs,\n\t\t\t    right: tvt,\n\t\t\t    on: (l, r) => l.app_id == r.app_id and l._time == r._time,\n\t\t\t    as: (l, r) => ({\n\t\t\t\t\t\"to\":l._time,\n\t\t\t\t\t\"_time\": date.sub(d: 1mo, from: l._time),\n\t\t\t\t\t\"app_id\": l.app_id,\n\t\t\t\t\t\"total_messages\":l.total_messages,\n\t\t\t\t\t\"total_value_transferred\": float(v:r.total_value_transferred) / 100000000.0\n\t\t\t\t\t}),\n\t\t\t)\n\t",
+		},
+		{
+			name: "Search by timespan hourly",
+			input: ApplicationActivityQuery{
+				AppId:    "CCTP_WORMHOLE_INTEGRATION",
+				From:     time.Date(2023, 10, 7, 11, 13, 55, 0, time.UTC),
+				To:       time.Date(2024, 3, 3, 5, 30, 5, 0, time.UTC),
+				Timespan: Hour,
+			},
+			expectedAppQuery:    "\n\t\t\timport \"date\"\n\n\t\t\t\tallData = from(bucket: \"wormscan-30days-testenv\")\n\t\t\t\t\t\t\t|> range(start: 2023-10-07T11:00:00Z,stop: 2024-03-03T05:00:00Z)\n\t\t\t\t\t\t\t|> filter(fn: (r) => r._measurement == \"protocols_stats_1h\")\n\t\t\t\t\t\t\t|> filter(fn: (r) => not exists r.protocol )\n\t\t\t\t\t\t\t|> filter(fn: (r) => r.app_id_1 == \"CCTP_WORMHOLE_INTEGRATION\" or r.app_id_2 == \"CCTP_WORMHOLE_INTEGRATION\" or r.app_id_3 == \"CCTP_WORMHOLE_INTEGRATION\")\n\t\t\t\t\t\t\t|> drop(columns:[\"emitter_chain\",\"destination_chain\",\"_measurement\"])\n\n\t\t\t\ttotalMsgs = allData\n\t\t\t\t\t\t\t|> filter(fn: (r) => r._field == \"total_messages\")\n\t\t\t\t\t\t\t|> aggregateWindow(every: 1h, fn: sum, createEmpty:true)\n\t\t\t\t\t\t\t|> map(fn: (r) => ({\n\t\t\t\t\t\t\t\t\t\tr with\n\t\t\t\t\t\t\t\t\t\t_value: if not exists r._value then uint(v:0) else r._value\n\t\t\t\t\t\t\t\t}))\n\t\t\t\t\t\t\t|> group(columns:[\"_time\",\"_field\",\"app_id_1\",\"app_id_2\",\"app_id_3\"])\n\t\t\t\t\t\t\t|> sum()\n\t\t\t\t\t\t\n\t\t\t\ttvt = allData\n\t\t\t\t\t\t|> filter(fn: (r) => r._field == \"total_value_transferred\")\n\t\t\t\t\t\t|> aggregateWindow(every: 1h, fn: sum, createEmpty:true)\n\t\t\t\t\t\t|> map(fn: (r) => ({\n\t\t\t\t\t\t\t\tr with\n\t\t\t\t\t\t\t\t_value: if not exists r._value then uint(v:0) else r._value\n     \t\t\t\t\t\t}))\n\t\t\t\t\t\t|> group(columns:[\"_time\",\"_field\",\"app_id_1\",\"app_id_2\",\"app_id_3\"])\n\t\t\t\t\t\t|> sum()\n\t\t\t\t\t\t\n\t\t\t\tunion(tables: [totalMsgs, tvt])\n\t\t\t\t|> pivot(rowKey:[\"_time\",\"app_id_1\",\"app_id_2\",\"app_id_3\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n\t\t\t\t|> map(fn: (r) => ({\n\t\t\t\t\t\tr with\n\t\t\t\t\t\t\"total_value_transferred\": float(v:r.total_value_transferred) / 100000000.0,\n\t\t\t\t\t\t\"to\": r._time,\n\t\t\t\t\t\t\"_time\": date.sub(d: 1h, from: r._time)\n\t\t\t\t}))",
+			expectedTotalsQuery: "\n\t\t\timport \"date\"\n\n\t\t\tallData = from(bucket: \"wormscan-30days-testenv\")\n\t\t\t\t\t\t|> range(start: 2023-10-07T11:00:00Z,stop: 2024-03-03T05:00:00Z)\n\t\t\t\t\t\t|> filter(fn: (r) => r._measurement == \"protocols_stats_totals_1h\")\n\t\t\t\t\t\t|> filter(fn: (r) => r.app_id == \"TOTAL_CCTP_WORMHOLE_INTEGRATION\")\n\t\t\t\t\t\t|> drop(columns:[\"emitter_chain\",\"destination_chain\"])\n\t\t\t\n\t\t\ttotalMsgs = allData\n\t\t\t\t\t\t|> filter(fn: (r) => r._field == \"total_messages\")\n\t\t\t\t\t\t|> aggregateWindow(every: 1h, fn: sum,createEmpty:true)\n\t\t\t\t\t\t|> map(fn: (r) => ({\n\t\t\t\t\t\t\t\tr with\n\t\t\t\t\t\t\t\t_value: if not exists r._value then uint(v:0) else uint(v:r._value)\n     \t\t\t\t\t\t}))\n\t\t\t\t\t\t|> group(columns:[\"_time\",\"app_id\",\"_field\"])\n\t\t\t\t\t\t|> sum()\n\t\t\t\t\t\t\n\t\t\ttvt = allData\n\t\t\t\t\t\t|> filter(fn: (r) => r._field == \"total_value_transferred\")\n\t\t\t\t\t\t|> aggregateWindow(every: 1h, fn: sum, createEmpty:true)\n\t\t\t\t\t\t|> map(fn: (r) => ({\n\t\t\t\t\t\t\t\tr with\n\t\t\t\t\t\t\t\t_value: if not exists r._value then uint(v:0) else r._value\n     \t\t\t\t\t\t}))\n\t\t\t\t\t\t|> group(columns:[\"_time\",\"app_id\",\"_field\"])\n\t\t\t\t\t\t|> sum()\n\n\t\t\tunion(tables: [totalMsgs, tvt])\n\t\t\t\t|> pivot(rowKey:[\"_time\",\"app_id\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n\t\t\t\t|> map(fn: (r) => ({\n\t\t\t\t\t\tr with\n\t\t\t\t\t\t\"total_value_transferred\": float(v:r.total_value_transferred) / 100000000.0,\n\t\t\t\t\t\t\"to\": r._time,\n\t\t\t\t\t\t\"_time\": date.sub(d: 1h, from: r._time)\n     \t\t\t}))\n\t\t\t",
+		},
+	}
+
+	for _, tc := range tcs {
+		t.Run(tc.name, func(t *testing.T) {
+			query := repository.buildAppActivityQuery(tc.input)
+			assert.Equal(t, tc.expectedAppQuery, query)
+			totalsQuery := repository.buildTotalsAppActivityQuery(tc.input)
+			assert.Equal(t, tc.expectedTotalsQuery, totalsQuery)
+		})
+	}
+
+}
+
+func Test_buildTokenSymbolActivityQuery(t *testing.T) {
+	repository := &Repository{
+		bucketInfiniteRetention: "wormscan-testenv",
+		bucket30DaysRetention:   "wormscan-30days-testenv",
+	}
+
+	tcs := []struct {
+		name          string
+		input         TokenSymbolActivityQuery
+		expectedQuery string
+	}{
+		{
+			name: "Hourly timespan with single token symbol and single source/target chain",
+			input: TokenSymbolActivityQuery{
+				From:         time.Date(2023, 8, 1, 12, 0, 0, 0, time.UTC),
+				To:           time.Date(2023, 8, 1, 13, 0, 0, 0, time.UTC),
+				TokenSymbols: []string{"BTC"},
+				SourceChains: []sdk.ChainID{1},
+				TargetChains: []sdk.ChainID{2},
+				Timespan:     Hour,
+			},
+			expectedQuery: `
+	import "date"
+
+	sumAndCount = (tables=<-, column) => {
+		return tables
+				|> reduce(
+					identity: {
+						_value: uint(v:0),
+						txs: uint(v:0)
+					},
+					fn: (r, accumulator) => ({
+						_value: accumulator._value + r._value,
+						txs: accumulator.txs + uint(v:1)
+					})
+				)
+	}
+	
+	from(bucket: "wormscan-testenv")
+		|> range(start: 2023-08-01T12:00:00Z, stop: 2023-08-01T13:00:00Z)
+		|> filter(fn: (r) => r._measurement == "vaa_volume_v3" and r.version == "v5")
+		|> filter(fn: (r) => r._field == "volume" or r._field == "symbol")
+		|> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+		|> keep(columns:["_start","_stop","_time","emitter_chain","destination_chain","symbol","volume"])
+		|> filter(fn: (r) => r.volume > 0)
+		|> filter(fn: (r) => r.symbol == "BTC") //filter by symbol
+		|> filter(fn: (r) => r.emitter_chain == "1") //filter by source_chain
+		|> filter(fn: (r) => r.destination_chain == "2") //filter by target_chain
+		|> rename(columns: {volume: "_value"})
+		|> set(key: "_field", value: "volume")
+		|> group(columns:["symbol","emitter_chain","destination_chain","_field"])
+		|> aggregateWindow(every: 1h, fn: sumAndCount, createEmpty: true)
+		|> map(fn: (r) => ({
+				r with 
+				volume: if exists r._value then float(v:r._value) / 100000000.0 else float(v:0),
+				to: r._time,
+				_time: date.sub(d: 1h, from: r._time),
+		}))
+		|> drop(columns:["_value","_start","_stop","_field"])	
+	`,
+		},
+		{
+			name: "Daily timespan with multiple token symbols and multiple source/target chains",
+			input: TokenSymbolActivityQuery{
+				From:         time.Date(2023, 8, 1, 0, 0, 0, 0, time.UTC),
+				To:           time.Date(2023, 8, 2, 0, 0, 0, 0, time.UTC),
+				TokenSymbols: []string{"BTC", "ETH"},
+				SourceChains: []sdk.ChainID{1, 2},
+				TargetChains: []sdk.ChainID{3, 4},
+				Timespan:     Day,
+			},
+			expectedQuery: `
+	import "date"
+
+	sumAndCount = (tables=<-, column) => {
+		return tables
+				|> reduce(
+					identity: {
+						_value: uint(v:0),
+						txs: uint(v:0)
+					},
+					fn: (r, accumulator) => ({
+						_value: accumulator._value + r._value,
+						txs: accumulator.txs + uint(v:1)
+					})
+				)
+	}
+	
+	from(bucket: "wormscan-testenv")
+		|> range(start: 2023-08-01T00:00:00Z, stop: 2023-08-02T00:00:00Z)
+		|> filter(fn: (r) => r._measurement == "vaa_volume_v3" and r.version == "v5")
+		|> filter(fn: (r) => r._field == "volume" or r._field == "symbol")
+		|> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+		|> keep(columns:["_start","_stop","_time","emitter_chain","destination_chain","symbol","volume"])
+		|> filter(fn: (r) => r.volume > 0)
+		|> filter(fn: (r) => r.symbol == "BTC" or r.symbol == "ETH") //filter by symbol
+		|> filter(fn: (r) => r.emitter_chain == "1" or r.emitter_chain == "2") //filter by source_chain
+		|> filter(fn: (r) => r.destination_chain == "3" or r.destination_chain == "4") //filter by target_chain
+		|> rename(columns: {volume: "_value"})
+		|> set(key: "_field", value: "volume")
+		|> group(columns:["symbol","emitter_chain","destination_chain","_field"])
+		|> aggregateWindow(every: 1d, fn: sumAndCount, createEmpty: true)
+		|> map(fn: (r) => ({
+				r with 
+				volume: if exists r._value then float(v:r._value) / 100000000.0 else float(v:0),
+				to: r._time,
+				_time: date.sub(d: 1d, from: r._time),
+		}))
+		|> drop(columns:["_value","_start","_stop","_field"])	
+	`,
+		},
+		{
+			name: "Monthly timespan with no token symbols and no chains",
+			input: TokenSymbolActivityQuery{
+				From:     time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC),
+				To:       time.Date(2023, 6, 1, 0, 0, 0, 0, time.UTC),
+				Timespan: Month,
+			},
+			expectedQuery: `
+	import "date"
+
+	sumAndCount = (tables=<-, column) => {
+		return tables
+				|> reduce(
+					identity: {
+						_value: uint(v:0),
+						txs: uint(v:0)
+					},
+					fn: (r, accumulator) => ({
+						_value: accumulator._value + r._value,
+						txs: accumulator.txs + uint(v:1)
+					})
+				)
+	}
+	
+	from(bucket: "wormscan-testenv")
+		|> range(start: 2023-01-01T00:00:00Z, stop: 2023-06-01T00:00:00Z)
+		|> filter(fn: (r) => r._measurement == "vaa_volume_v3" and r.version == "v5")
+		|> filter(fn: (r) => r._field == "volume" or r._field == "symbol")
+		|> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+		|> keep(columns:["_start","_stop","_time","emitter_chain","destination_chain","symbol","volume"])
+		|> filter(fn: (r) => r.volume > 0)
+		 //filter by symbol
+		 //filter by source_chain
+		 //filter by target_chain
+		|> rename(columns: {volume: "_value"})
+		|> set(key: "_field", value: "volume")
+		|> group(columns:["symbol","emitter_chain","destination_chain","_field"])
+		|> aggregateWindow(every: 1mo, fn: sumAndCount, createEmpty: true)
+		|> map(fn: (r) => ({
+				r with 
+				volume: if exists r._value then float(v:r._value) / 100000000.0 else float(v:0),
+				to: r._time,
+				_time: date.sub(d: 1mo, from: r._time),
+		}))
+		|> drop(columns:["_value","_start","_stop","_field"])	
+	`,
+		},
+	}
+
+	for _, tc := range tcs {
+		t.Run(tc.name, func(t *testing.T) {
+			query := repository.buildTokenSymbolActivityQuery(tc.input)
+			assert.Equal(t, strings.TrimSpace(tc.expectedQuery), strings.TrimSpace(query))
 		})
 	}
 }

@@ -45,17 +45,9 @@ from(bucket: "%s")
   |> sum()
 `
 
-const queryTemplateTxCount24h = `
+const queryTemplateVolume = `
 from(bucket: "%s")
-  |> range(start: -24h)
-  |> filter(fn: (r) => r._measurement == "vaa_count")
-  |> group(columns: ["_measurement"])
-  |> count()
-`
-
-const queryTemplateVolume24h = `
-from(bucket: "%s")
-  |> range(start: -24h)
+  |> range(start: -%s)
   |> filter(fn: (r) => r._measurement == "vaa_volume_v2")
   |> filter(fn:(r) => r._field == "volume")
   |> group()
@@ -147,6 +139,12 @@ type Repository struct {
 	supportedChainIDs       map[sdk.ChainID]string
 	logger                  *zap.Logger
 }
+
+type offset string
+
+const _24h offset = "24h"
+const _7d offset = "7d"
+const _30d offset = "30d"
 
 func NewRepository(
 	tvl *tvl.Tvl,
@@ -383,6 +381,39 @@ func (r *Repository) buildChainActivityQuery(q *ChainActivityQuery) string {
 	} else {
 		field = "count"
 	}
+
+	if q.TimeSpan == ChainActivityTs1Year || q.TimeSpan == ChainActivityTsAllTime {
+
+		if field == "notional" {
+			field = "volume"
+		}
+
+		var start string
+		measurement := "chain_activity_1d"
+		switch q.TimeSpan {
+		case ChainActivityTs1Year:
+			start = time.Now().AddDate(-1, 0, 0).Format(time.RFC3339)
+		case ChainActivityTsAllTime:
+			start = "1970-01-01T00:00:00Z"
+		default:
+			start = "1970-01-01T00:00:00Z"
+		}
+
+		hotfixQuery := `
+			import "date"
+
+			from(bucket: "%s")
+				|> range(start: %s)
+				|> filter(fn: (r) => r._measurement == "%s")
+				|> filter(fn: (r) => r._field == "%s")
+				|> drop(columns:["_time","to","_measurement","app_id"])
+				|> group(columns:["emitter_chain","destination_chain"])
+				|> sum()
+`
+		return fmt.Sprintf(hotfixQuery, r.bucketInfiniteRetention, start, measurement, field)
+
+	}
+
 	var measurement string
 	switch q.TimeSpan {
 	case ChainActivityTs7Days:
@@ -391,10 +422,6 @@ func (r *Repository) buildChainActivityQuery(q *ChainActivityQuery) string {
 		measurement = "chain_activity_30_days_3h_v2"
 	case ChainActivityTs90Days:
 		measurement = "chain_activity_90_days_3h_v2"
-	case ChainActivityTs1Year:
-		measurement = "chain_activity_1_year_3h_v2"
-	case ChainActivityTsAllTime:
-		measurement = "chain_activity_all_time_3h_v2"
 	default:
 		measurement = "chain_activity_7_days_3h_v2"
 	}
@@ -415,7 +442,7 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 	// We use a `sync.WaitGroup` to block until all goroutines are done.
 	var wg sync.WaitGroup
 
-	var messages24h, tvl, totalTxCount, totalTxVolume, txCount24h, volume24h, totalPythMessage string
+	var messages24h, tvl, totalTxCount, totalTxVolume, volume24h, volume7d, volume30d, totalPythMessage string
 
 	wg.Add(1)
 	go func() {
@@ -472,9 +499,9 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 	go func() {
 		defer wg.Done()
 		var err error
-		txCount24h, err = r.getTxCount24h(ctx)
+		volume24h, err = r.getVolume(ctx, _24h)
 		if err != nil {
-			r.logger.Error("failed to get 24h transactions", zap.Error(err))
+			r.logger.Error("failed to get 24h volume", zap.Error(err))
 		}
 	}()
 
@@ -482,9 +509,19 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 	go func() {
 		defer wg.Done()
 		var err error
-		volume24h, err = r.getVolume24h(ctx)
+		volume7d, err = r.getVolume(ctx, _7d)
 		if err != nil {
-			r.logger.Error("failed to get 24h volume", zap.Error(err))
+			r.logger.Error("failed to get 7d volume", zap.Error(err))
+		}
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		var err error
+		volume30d, err = r.getVolume(ctx, _30d)
+		if err != nil {
+			r.logger.Error("failed to get 30d volume", zap.Error(err))
 		}
 	}()
 
@@ -502,8 +539,9 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 		TotalTxCount:  totalTxCount,
 		TotalTxVolume: totalTxVolume,
 		Tvl:           tvl,
-		TxCount24h:    txCount24h,
 		Volume24h:     volume24h,
+		Volume7d:      volume7d,
+		Volume30d:     volume30d,
 	}
 	return &scorecards, nil
 }
@@ -608,57 +646,29 @@ func (r *Repository) getMessages24h(ctx context.Context) (string, error) {
 	return fmt.Sprint(row.Value), nil
 }
 
-func (r *Repository) getTxCount24h(ctx context.Context) (string, error) {
+func (r *Repository) getVolume(ctx context.Context, from offset) (string, error) {
 
-	// query 24h transactions
-	query := fmt.Sprintf(queryTemplateTxCount24h, r.bucket30DaysRetention)
+	// query volume
+	query := fmt.Sprintf(queryTemplateVolume, r.bucketInfiniteRetention, from)
 	result, err := r.queryAPI.Query(ctx, query)
 	if err != nil {
-		r.logger.Error("failed to query 24h transactions", zap.Error(err))
+		r.logger.Error("failed to query volume", zap.Any("from", from), zap.Error(err))
 		return "", err
 	}
 	if result.Err() != nil {
-		r.logger.Error("24h transactions query result has errors", zap.Error(err))
+		r.logger.Error("volume query result has errors", zap.Error(err), zap.Any("from", from))
 		return "", result.Err()
 	}
 	if !result.Next() {
-		return "", errors.New("expected at least one record in 24h transactions query result")
+		return "", fmt.Errorf("expected at least one record in %s volume query result", from)
 	}
 
 	// deserialize the row returned
 	row := struct {
 		Value uint64 `mapstructure:"_value"`
 	}{}
-	if err := mapstructure.Decode(result.Record().Values(), &row); err != nil {
-		return "", fmt.Errorf("failed to decode 24h transaction count query response: %w", err)
-	}
-
-	return fmt.Sprint(row.Value), nil
-}
-
-func (r *Repository) getVolume24h(ctx context.Context) (string, error) {
-
-	// query 24h volume
-	query := fmt.Sprintf(queryTemplateVolume24h, r.bucketInfiniteRetention)
-	result, err := r.queryAPI.Query(ctx, query)
-	if err != nil {
-		r.logger.Error("failed to query 24h volume", zap.Error(err))
-		return "", err
-	}
-	if result.Err() != nil {
-		r.logger.Error("24h volume query result has errors", zap.Error(err))
-		return "", result.Err()
-	}
-	if !result.Next() {
-		return "", errors.New("expected at least one record in 24h volume query result")
-	}
-
-	// deserialize the row returned
-	row := struct {
-		Value uint64 `mapstructure:"_value"`
-	}{}
-	if err := mapstructure.Decode(result.Record().Values(), &row); err != nil {
-		return "", fmt.Errorf("failed to decode 24h volume count query response: %w", err)
+	if err = mapstructure.Decode(result.Record().Values(), &row); err != nil {
+		return "", fmt.Errorf("failed to decode %s volume count query response: %w", from, err)
 	}
 
 	// convert the volume to a string and return
@@ -1146,6 +1156,165 @@ func (r *Repository) FindChainActivityTops(ctx *fasthttp.RequestCtx, q ChainActi
 	return response, nil
 }
 
+func (r *Repository) FindTokensVolume(ctx context.Context) ([]TokenVolume, error) {
+	query := `
+		import "date"
+
+		from(bucket: "%s")
+			|> range(start: -1d)
+			|> filter(fn: (r) => r._measurement == "tokens_symbol_volume_all_time")
+			|> group(columns:["symbol"])
+			|> last()
+			|> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+			|> group()
+			|> sort(columns:["volume"],desc:true)
+			|> limit(n:100)
+			|> map(fn: (r) => ({r with volume: float(v:r.volume) / 100000000.0 }))
+	`
+	query = fmt.Sprintf(query, r.bucket24HoursRetention)
+	result, err := r.queryAPI.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+	var response []TokenVolume
+	for result.Next() {
+		var row TokenVolume
+		if err = mapstructure.Decode(result.Record().Values(), &row); err != nil {
+			return nil, err
+		}
+		response = append(response, row)
+	}
+	return response, nil
+}
+
+func (r *Repository) FindTokenSymbolActivity(ctx context.Context, payload TokenSymbolActivityQuery) ([]TokenSymbolActivityResult, error) {
+	query := r.buildTokenSymbolActivityQuery(payload)
+
+	result, err := r.queryAPI.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+	var response []TokenSymbolActivityResult
+	for result.Next() {
+		var row TokenSymbolActivityResult
+		if err = mapstructure.Decode(result.Record().Values(), &row); err != nil {
+			return nil, err
+		}
+
+		emitterChainID, err := strconv.Atoi(row.EmitterChainStr)
+		if err != nil {
+			r.logger.Error("failed to convert emitter chain id to int", zap.Error(err))
+		}
+		destChainID, err := strconv.Atoi(row.DestinationChainStr)
+		if err != nil {
+			r.logger.Error("failed to convert destination chain id to int", zap.Error(err))
+		}
+		row.EmitterChain = sdk.ChainID(emitterChainID)
+		row.DestinationChain = sdk.ChainID(destChainID)
+		response = append(response, row)
+	}
+
+	return response, nil
+}
+
+func (r *Repository) buildTokenSymbolActivityQuery(q TokenSymbolActivityQuery) string {
+
+	var start, stop string
+
+	switch q.Timespan {
+	case Hour:
+		stop = q.To.Truncate(1 * time.Hour).UTC().Format(time.RFC3339)
+		start = q.From.Truncate(1 * time.Hour).UTC().Format(time.RFC3339)
+	case Day:
+		start = q.From.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
+		stop = q.To.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
+	case Month:
+		start = time.Date(q.From.Year(), q.From.Month(), 1, 0, 0, 0, 0, q.From.Location()).UTC().Format(time.RFC3339)
+		stop = time.Date(q.To.Year(), q.To.Month(), 1, 0, 0, 0, 0, q.To.Location()).UTC().Format(time.RFC3339)
+	default:
+		start = time.Date(q.From.Year(), 1, 1, 0, 0, 0, 0, q.From.Location()).UTC().Format(time.RFC3339)
+		stop = time.Date(q.To.Year(), 1, 1, 0, 0, 0, 0, q.To.Location()).UTC().Format(time.RFC3339)
+	}
+
+	filterTargetChain := ""
+	if len(q.TargetChains) > 0 {
+		val := fmt.Sprintf("r.destination_chain == \"%d\"", q.TargetChains[0])
+		buff := ""
+		for _, tc := range q.TargetChains[1:] {
+			buff += fmt.Sprintf(" or r.destination_chain == \"%d\"", tc)
+		}
+		filterTargetChain = fmt.Sprintf("|> filter(fn: (r) => %s%s)", val, buff)
+	}
+
+	filterSourceChain := ""
+	if len(q.SourceChains) > 0 {
+		val := fmt.Sprintf("r.emitter_chain == \"%d\"", q.SourceChains[0])
+		buff := ""
+		for _, tc := range q.SourceChains[1:] {
+			buff += fmt.Sprintf(" or r.emitter_chain == \"%d\"", tc)
+		}
+		filterSourceChain = fmt.Sprintf("|> filter(fn: (r) => %s%s)", val, buff)
+	}
+
+	filterTokenSymbol := ""
+	if len(q.TokenSymbols) > 0 {
+		val := fmt.Sprintf("r.symbol == \"%s\"", q.TokenSymbols[0])
+		buff := ""
+		for _, tc := range q.TokenSymbols[1:] {
+			buff += fmt.Sprintf(" or r.symbol == \"%s\"", tc)
+		}
+		filterTokenSymbol = fmt.Sprintf("|> filter(fn: (r) => %s%s)", val, buff)
+	}
+
+	query := `
+	import "date"
+
+	sumAndCount = (tables=<-, column) => {
+		return tables
+				|> reduce(
+					identity: {
+						_value: uint(v:0),
+						txs: uint(v:0)
+					},
+					fn: (r, accumulator) => ({
+						_value: accumulator._value + r._value,
+						txs: accumulator.txs + uint(v:1)
+					})
+				)
+	}
+	
+	from(bucket: "%s")
+		|> range(start: %s, stop: %s)
+		|> filter(fn: (r) => r._measurement == "vaa_volume_v3" and r.version == "v5")
+		|> filter(fn: (r) => r._field == "volume" or r._field == "symbol")
+		|> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+		|> keep(columns:["_start","_stop","_time","emitter_chain","destination_chain","symbol","volume"])
+		|> filter(fn: (r) => r.volume > 0)
+		%s //filter by symbol
+		%s //filter by source_chain
+		%s //filter by target_chain
+		|> rename(columns: {volume: "_value"})
+		|> set(key: "_field", value: "volume")
+		|> group(columns:["symbol","emitter_chain","destination_chain","_field"])
+		|> aggregateWindow(every: %s, fn: sumAndCount, createEmpty: true)
+		|> map(fn: (r) => ({
+				r with 
+				volume: if exists r._value then float(v:r._value) / 100000000.0 else float(v:0),
+				to: r._time,
+				_time: date.sub(d: %s, from: r._time),
+		}))
+		|> drop(columns:["_value","_start","_stop","_field"])	
+	`
+
+	return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterTokenSymbol, filterSourceChain, filterTargetChain, q.Timespan, q.Timespan)
+}
+
 func (r *Repository) buildChainActivityQueryTops(q ChainActivityTopsQuery) string {
 
 	var start, stop string
@@ -1249,12 +1418,14 @@ func (r *Repository) buildQueryChainActivityTopsByEmitter(q ChainActivityTopsQue
 				vols = data
 						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
 				counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "count"})
 
@@ -1285,12 +1456,14 @@ func (r *Repository) buildQueryChainActivityTopsByEmitter(q ChainActivityTopsQue
 
 				vols = data
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
 				counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "count"})
 
@@ -1322,12 +1495,14 @@ func (r *Repository) buildQueryChainActivityHourly(start, stop, filterSourceChai
 					vols = data		
 						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
 					counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "count"})
 
@@ -1359,12 +1534,14 @@ func (r *Repository) buildQueryChainActivityDaily(start, stop, filterSourceChain
 					vols = data		
 						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
 					counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "count"})
 
@@ -1399,12 +1576,14 @@ func (r *Repository) buildQueryChainActivityMonthly(start, stop, filterSourceCha
 				vols = data
 						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
 				counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "count"})
 
@@ -1439,12 +1618,14 @@ func (r *Repository) buildQueryChainActivityYearly(start, stop, filterSourceChai
 				vols = data
 						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
 				counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "count"})
 
@@ -1463,14 +1644,19 @@ func (r *Repository) buildTotalsAppActivityQuery(q ApplicationActivityQuery) str
 
 	var measurement string
 	var bucket string
+	var from, to time.Time
 
 	switch q.Timespan {
 	case "1h":
 		measurement = "|> filter(fn: (r) => r._measurement == \"protocols_stats_totals_1h\")"
 		bucket = r.bucket30DaysRetention
+		from = q.From.Truncate(1 * time.Hour)
+		to = q.To.Truncate(1 * time.Hour)
 	default: // default is 1d
 		measurement = "|> filter(fn: (r) => r._measurement == \"protocols_stats_totals_1d\" and r.version == \"v1\")"
 		bucket = r.bucketInfiniteRetention
+		from = q.From.Truncate(24 * time.Hour)
+		to = q.To.Truncate(24 * time.Hour)
 	}
 
 	filterByAppId := ""
@@ -1478,9 +1664,12 @@ func (r *Repository) buildTotalsAppActivityQuery(q ApplicationActivityQuery) str
 		filterByAppId = fmt.Sprintf("|> filter(fn: (r) => r.app_id == \"TOTAL_%s\")", strings.ToUpper(q.AppId))
 	}
 
+	if q.Timespan == Month {
+		return r.buildTotalsAppActivityQueryMonthly(q, measurement, bucket, filterByAppId)
+	}
+
 	query := `
 			import "date"
-			import "join"
 
 			allData = from(bucket: "%s")
 						|> range(start: %s,stop: %s)
@@ -1490,45 +1679,54 @@ func (r *Repository) buildTotalsAppActivityQuery(q ApplicationActivityQuery) str
 			
 			totalMsgs = allData
 						|> filter(fn: (r) => r._field == "total_messages")
-						|> group(columns:["_time","app_id"])
+						|> aggregateWindow(every: %s, fn: sum,createEmpty:true)
+						|> map(fn: (r) => ({
+								r with
+								_value: if not exists r._value then uint(v:0) else uint(v:r._value)
+     						}))
+						|> group(columns:["_time","app_id","_field"])
 						|> sum()
-						|> rename(columns: {_value: "total_messages"})
 						
 			tvt = allData
 						|> filter(fn: (r) => r._field == "total_value_transferred")
-						|> group(columns:["_time","app_id"])
+						|> aggregateWindow(every: %s, fn: sum, createEmpty:true)
+						|> map(fn: (r) => ({
+								r with
+								_value: if not exists r._value then uint(v:0) else r._value
+     						}))
+						|> group(columns:["_time","app_id","_field"])
 						|> sum()
-						|> rename(columns: {_value: "total_value_transferred"})
 
-			join.inner(
-			    left: totalMsgs,
-			    right: tvt,
-			    on: (l, r) => l.app_id == r.app_id and l._time == r._time,
-			    as: (l, r) => ({
-					"_time":l._time,
-					"to":date.add(d: %s, to: l._time),
-					"app_id": l.app_id,
-					"total_messages":l.total_messages,
-					"total_value_transferred":r.total_value_transferred
-					}),
-			)
+			union(tables: [totalMsgs, tvt])
+				|> pivot(rowKey:["_time","app_id"], columnKey: ["_field"], valueColumn: "_value")
+				|> map(fn: (r) => ({
+						r with
+						"total_value_transferred": float(v:r.total_value_transferred) / 100000000.0,
+						"to": r._time,
+						"_time": date.sub(d: %s, from: r._time)
+     			}))
 			`
 
-	return fmt.Sprintf(query, bucket, q.From.Format(time.RFC3339), q.To.Format(time.RFC3339), measurement, filterByAppId, q.Timespan)
+	return fmt.Sprintf(query, bucket, from.Format(time.RFC3339), to.Format(time.RFC3339), measurement, filterByAppId, q.Timespan, q.Timespan, q.Timespan)
 }
 
 func (r *Repository) buildAppActivityQuery(q ApplicationActivityQuery) string {
 
 	var measurement string
 	var bucket string
+	var from, to time.Time
 
 	switch q.Timespan {
 	case "1h":
 		measurement = "protocols_stats_1h"
 		bucket = r.bucket30DaysRetention
+		from = q.From.Truncate(1 * time.Hour)
+		to = q.To.Truncate(1 * time.Hour)
 	default: // default is 1d
 		measurement = "protocols_stats_1d"
 		bucket = r.bucketInfiniteRetention
+		from = q.From.Truncate(24 * time.Hour)
+		to = q.To.Truncate(24 * time.Hour)
 	}
 
 	filterByAppId := ""
@@ -1540,43 +1738,147 @@ func (r *Repository) buildAppActivityQuery(q ApplicationActivityQuery) string {
 		}
 	}
 
+	if q.Timespan == Month {
+		return r.buildAppActivityQueryMonthly(q, measurement, bucket, filterByAppId)
+	}
+
+	query := `
+			import "date"
+
+				allData = from(bucket: "%s")
+							|> range(start: %s,stop: %s)
+							|> filter(fn: (r) => r._measurement == "%s")
+							|> filter(fn: (r) => not exists r.protocol )
+							%s
+							|> drop(columns:["emitter_chain","destination_chain","_measurement"])
+
+				totalMsgs = allData
+							|> filter(fn: (r) => r._field == "total_messages")
+							|> aggregateWindow(every: %s, fn: sum, createEmpty:true)
+							|> map(fn: (r) => ({
+										r with
+										_value: if not exists r._value then uint(v:0) else r._value
+								}))
+							|> group(columns:["_time","_field","app_id_1","app_id_2","app_id_3"])
+							|> sum()
+						
+				tvt = allData
+						|> filter(fn: (r) => r._field == "total_value_transferred")
+						|> aggregateWindow(every: %s, fn: sum, createEmpty:true)
+						|> map(fn: (r) => ({
+								r with
+								_value: if not exists r._value then uint(v:0) else r._value
+     						}))
+						|> group(columns:["_time","_field","app_id_1","app_id_2","app_id_3"])
+						|> sum()
+						
+				union(tables: [totalMsgs, tvt])
+				|> pivot(rowKey:["_time","app_id_1","app_id_2","app_id_3"], columnKey: ["_field"], valueColumn: "_value")
+				|> map(fn: (r) => ({
+						r with
+						"total_value_transferred": float(v:r.total_value_transferred) / 100000000.0,
+						"to": r._time,
+						"_time": date.sub(d: %s, from: r._time)
+				}))`
+
+	return fmt.Sprintf(query, bucket, from.Format(time.RFC3339), to.Format(time.RFC3339), measurement, filterByAppId, q.Timespan, q.Timespan, q.Timespan)
+}
+
+func (r *Repository) buildAppActivityQueryMonthly(q ApplicationActivityQuery, measurement string, bucket string, filterByAppId string) string {
 	query := `
 			import "date"
 			import "join"
 
-			allData =	from(bucket: "%s")
+			allData = from(bucket: "%s")
 						|> range(start: %s,stop: %s)
 						|> filter(fn: (r) => r._measurement == "%s")
 						|> filter(fn: (r) => not exists r.protocol )
 						%s
-						|> drop(columns:["emitter_chain","destination_chain"])
+						|> drop(columns:["emitter_chain","destination_chain","_measurement"])
 
 			totalMsgs = allData
 						|> filter(fn: (r) => r._field == "total_messages")
-						|> group(columns:["_time","app_id_1","app_id_2","app_id_3"])
-						|> sum()
+						|> aggregateWindow(every: 1mo, fn: sum)
 						|> rename(columns: {_value: "total_messages"})
-						
-			tvt = allData
-						|> filter(fn: (r) => r._field == "total_value_transferred")
-						|> group(columns:["_time","app_id_1","app_id_2","app_id_3"])
-						|> sum()
-						|> rename(columns: {_value: "total_value_transferred"})
+						|> map(fn: (r) => ({
+								r with
+								_time: date.sub(d: 1mo, from: r._time),
+								total_messages: if not exists r.total_messages then uint(v:0) else r.total_messages
+     						}))
+						|> drop(columns:["_start","_stop"])
+						|> group()
 			
+			
+			tvt = allData
+					|> filter(fn: (r) => r._field == "total_value_transferred")
+					|> aggregateWindow(every: 1mo, fn: sum)
+					|> rename(columns: {_value: "total_value_transferred"})		
+					|> map(fn: (r) => ({
+						r with
+						_time: date.sub(d: 1mo, from: r._time),
+						total_value_transferred: if not exists r.total_value_transferred then uint(v:0) else r.total_value_transferred
+					}))
+					|> drop(columns:["_start","_stop"])
+					|> group()
+						
 			join.inner(
 			    left: totalMsgs,
 			    right: tvt,
 			    on: (l, r) => l.app_id_1 == r.app_id_1 and l.app_id_2 == r.app_id_2 and l.app_id_3 == r.app_id_3 and l._time == r._time,
 			    as: (l, r) => ({
 					"_time":l._time,
-					"to":date.add(d: %s, to: l._time),
+					"to":date.add(d: 1mo, to: l._time),
 					"app_id_1": l.app_id_1,
 					"app_id_2": l.app_id_2,
 					"app_id_3": l.app_id_3,
 					"total_messages":l.total_messages,
-					"total_value_transferred":r.total_value_transferred
+					"total_value_transferred": float(v:r.total_value_transferred) / 100000000.0
 					})
-			)`
+			)
+		`
 
-	return fmt.Sprintf(query, bucket, q.From.Format(time.RFC3339), q.To.Format(time.RFC3339), measurement, filterByAppId, q.Timespan)
+	from := time.Date(q.From.Year(), q.From.Month(), 1, 0, 0, 0, 0, q.From.Location())
+	to := time.Date(q.To.Year(), q.To.Month(), 1, 0, 0, 0, 0, q.To.Location())
+	return fmt.Sprintf(query, bucket, from.Format(time.RFC3339), to.Format(time.RFC3339), measurement, filterByAppId)
+}
+
+func (r *Repository) buildTotalsAppActivityQueryMonthly(q ApplicationActivityQuery, filterMeasurement string, bucket string, filterByAppID string) string {
+	query := `
+			import "date"
+			import "join"
+
+			allData = from(bucket: "%s")
+						|> range(start: %s,stop: %s)
+						%s
+						%s
+						|> drop(columns:["emitter_chain","destination_chain","version","_measurement"])
+			
+			totalMsgs = allData
+						|> filter(fn: (r) => r._field == "total_messages")
+						|> aggregateWindow(every: 1mo, fn: sum)
+						|> rename(columns: {_value: "total_messages"})
+						|> group()
+						
+			tvt = allData
+						|> filter(fn: (r) => r._field == "total_value_transferred")
+						|> aggregateWindow(every: 1mo, fn: sum)
+						|> rename(columns: {_value: "total_value_transferred"})
+						|> group()
+
+			join.inner(
+			    left: totalMsgs,
+			    right: tvt,
+			    on: (l, r) => l.app_id == r.app_id and l._time == r._time,
+			    as: (l, r) => ({
+					"to":l._time,
+					"_time": date.sub(d: 1mo, from: l._time),
+					"app_id": l.app_id,
+					"total_messages":l.total_messages,
+					"total_value_transferred": float(v:r.total_value_transferred) / 100000000.0
+					}),
+			)
+	`
+	from := time.Date(q.From.Year(), q.From.Month(), 1, 0, 0, 0, 0, q.From.Location())
+	to := time.Date(q.To.Year(), q.To.Month(), 1, 0, 0, 0, 0, q.To.Location())
+	return fmt.Sprintf(query, bucket, from.Format(time.RFC3339), to.Format(time.RFC3339), filterMeasurement, filterByAppID)
 }

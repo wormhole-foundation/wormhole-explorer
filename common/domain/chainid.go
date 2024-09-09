@@ -31,6 +31,8 @@ var (
 		// NFT Bridge
 		"0000000000000000000000000000000000000000000000000000000000000005": "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130",
 	}
+
+	gasTokenList = GasTokenList()
 )
 
 var allChainIDs = make(map[sdk.ChainID]bool)
@@ -103,7 +105,8 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 		sdk.ChainIDScroll,
 		sdk.ChainIDXLayer,
 		sdk.ChainIDMantle,
-		sdk.ChainIDBlast:
+		sdk.ChainIDBlast,
+		sdk.ChainIDSnaxchain:
 
 		return "0x" + hex.EncodeToString(addressBytes[12:]), nil
 
@@ -201,7 +204,8 @@ func NormalizeTxHashByChainId(chainID sdk.ChainID, txHash string) string {
 		sdk.ChainIDHolesky,
 		sdk.ChainIDScroll,
 		sdk.ChainIDBlast,
-		sdk.ChainIDXLayer:
+		sdk.ChainIDXLayer,
+		sdk.ChainIDSnaxchain:
 		lowerTxHash := strings.ToLower(txHash)
 		return utils.Remove0x(lowerTxHash)
 	default:
@@ -276,6 +280,8 @@ func EncodeTrxHashByChainID(chainID sdk.ChainID, txHash []byte) (string, error) 
 		return hex.EncodeToString(txHash), nil
 	case sdk.ChainIDXLayer:
 		return hex.EncodeToString(txHash), nil
+	case sdk.ChainIDSnaxchain:
+		return hex.EncodeToString(txHash), nil
 	case sdk.ChainIDSepolia,
 		sdk.ChainIDArbitrumSepolia,
 		sdk.ChainIDBaseSepolia,
@@ -329,7 +335,8 @@ func DecodeNativeAddressToHex(chainID sdk.ChainID, address string) (string, erro
 		sdk.ChainIDScroll,
 		sdk.ChainIDXLayer,
 		sdk.ChainIDMantle,
-		sdk.ChainIDBlast:
+		sdk.ChainIDBlast,
+		sdk.ChainIDSnaxchain:
 
 		return address, nil
 
@@ -398,4 +405,13 @@ func encodeBech32(hrp string, data []byte) (string, error) {
 	}
 
 	return bech32.Encode(hrp, aligned)
+}
+
+func GetGasTokenMetadata(chainID sdk.ChainID) *TokenMetadata {
+	for i := 0; i < len(gasTokenList); i++ {
+		if gasTokenList[i].TokenChain == chainID {
+			return &gasTokenList[i]
+		}
+	}
+	return nil
 }

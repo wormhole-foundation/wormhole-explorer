@@ -1,25 +1,25 @@
 import { arrayify, hexZeroPad } from "ethers/lib/utils";
 import { STANDARD_RELAYERS } from "../../constants";
+import { HandleEvmConfig } from "../../../domain/actions";
 import { configuration } from "../../config";
 import { findProtocol } from "../contractsMapper";
+import { mapTxnStatus } from "./helpers/utils";
 import { parseVaa } from "@certusone/wormhole-sdk";
+import { ethers } from "ethers";
 import winston from "../../log";
 import {
   EvmTransactionFoundAttributes,
   TransactionFoundEvent,
   EvmTransactionLog,
   EvmTransaction,
-  TxStatus,
 } from "../../../domain/entities";
-
-const TX_STATUS_CONFIRMED = "0x1";
-const TX_STATUS_FAILED = "0x0";
 
 let logger: winston.Logger;
 logger = winston.child({ module: "evmRedeemedTransactionFoundMapper" });
 
 export const evmRedeemedTransactionFoundMapper = (
-  transaction: EvmTransaction
+  transaction: EvmTransaction,
+  cfg?: HandleEvmConfig
 ): TransactionFoundEvent<EvmTransactionFoundAttributes> | undefined => {
   const first10Characters = transaction.input.slice(0, 10);
   const protocol = findProtocol(
@@ -30,8 +30,8 @@ export const evmRedeemedTransactionFoundMapper = (
   );
   const { type: protocolType, method: protocolMethod } = protocol;
 
-  const vaaInformation = mappedVaaInformation(transaction.logs, transaction.input);
-  const status = mappedStatus(transaction.status);
+  const vaaInformation = mappedVaaInformation(transaction.logs, transaction.input, cfg!);
+  const status = mapTxnStatus(transaction.status);
 
   if (!vaaInformation) {
     logger.warn(
@@ -85,23 +85,13 @@ export const evmRedeemedTransactionFoundMapper = (
   };
 };
 
-const mappedStatus = (txStatus: string | undefined): string => {
-  switch (txStatus) {
-    case TX_STATUS_CONFIRMED:
-      return TxStatus.Confirmed;
-    case TX_STATUS_FAILED:
-      return TxStatus.Failed;
-    default:
-      return TxStatus.Unkonwn;
-  }
-};
-
 /**
  * Mapped vaa information from logs.data or input using the topics to map the correct mapper
  */
 const mappedVaaInformation = (
   logs: EvmTransactionLog[],
-  input: string
+  input: string,
+  cfg: HandleEvmConfig
 ): VaaInformation | undefined => {
   const filterLogs = logs.filter((log) => {
     return REDEEM_TOPICS[log.topics[0]];
@@ -111,7 +101,7 @@ const mappedVaaInformation = (
 
   for (const log of filterLogs) {
     const mapper = REDEEM_TOPICS[log.topics[0]];
-    const vaaInformation = mapper(log, input);
+    const vaaInformation = mapper(log, input, cfg);
 
     if (
       vaaInformation &&
@@ -156,10 +146,26 @@ const mapVaaFromDataBuilder: (dataOffset: number) => LogToVaaMapper = (dataOffse
   };
 };
 
-const mapVaaFromStandardRelayerDelivery: LogToVaaMapper = (log: EvmTransactionLog) => {
+// We need to skip redelivery transactions because we send incorrect information to applications
+// Redelivery transactions contain a delivery VAA information with a new transaction hash, which is not correct for the original delivery
+// TODO: When a redelivery is detected, we need find the new VAA created and send the correct information to applications (issue 1582)
+const mapVaaFromStandardRelayerDelivery: LogToVaaMapper = (
+  log: EvmTransactionLog,
+  input: string,
+  cfg: HandleEvmConfig
+) => {
+  const abi = cfg.abis?.find((abi) => abi.topic === log.topics[0]);
+  if (abi) {
+    const iface = new ethers.utils.Interface([`function ${abi.abi}`]);
+    const decodedDeliveryFunction = iface.decodeFunctionData(abi.abi, input);
+    if (decodedDeliveryFunction.deliveryOverrides !== "0x") {
+      logger.warn(`Redelivery detected: ${input}, skipping VAA extraction`);
+      return undefined;
+    }
+  }
+
   const emitterChain = Number(log.topics[2]);
   const sourceRelayer = STANDARD_RELAYERS[configuration.environment][emitterChain];
-
   if (!sourceRelayer) return undefined;
 
   return {
@@ -191,7 +197,11 @@ type VaaInformation = {
   sequence?: number;
 };
 
-type LogToVaaMapper = (log: EvmTransactionLog, input: string) => VaaInformation | undefined;
+type LogToVaaMapper = (
+  log: EvmTransactionLog,
+  input: string,
+  cfg: HandleEvmConfig
+) => VaaInformation | undefined;
 
 const REDEEM_TOPICS: Record<string, LogToVaaMapper> = {
   "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169": mapVaaFromTopics, // Token Bridge

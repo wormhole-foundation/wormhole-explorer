@@ -1,10 +1,10 @@
+import { HandleEvmConfig } from "./types";
 import { StatRepository } from "../../repositories";
 import {
   EvmTransactionFoundAttributes,
   TransactionFoundEvent,
   EvmTransaction,
 } from "../../entities";
-import { HandleEvmConfig } from "./types";
 
 /**
  * Handling means mapping and forward to a given target.
@@ -12,7 +12,7 @@ import { HandleEvmConfig } from "./types";
  */
 export class HandleEvmTransactions<T> {
   cfg: HandleEvmConfig;
-  mapper: (log: EvmTransaction) => T;
+  mapper: (log: EvmTransaction, cfg?: HandleEvmConfig) => T;
   target: (parsed: T[]) => Promise<void>;
   statsRepo: StatRepository;
 
@@ -30,7 +30,7 @@ export class HandleEvmTransactions<T> {
 
   public async handle(transactions: EvmTransaction[]): Promise<T[]> {
     const mappedItems = transactions.map((transaction) => {
-      return this.mapper(transaction);
+      return this.mapper(transaction, this.cfg);
     }) as TransactionFoundEvent<EvmTransactionFoundAttributes>[];
 
     const filterItems = mappedItems.filter((transaction) => {
@@ -56,11 +56,12 @@ export class HandleEvmTransactions<T> {
 
   private normalizeCfg(cfg: HandleEvmConfig): HandleEvmConfig {
     return {
+      environment: cfg.environment,
       metricName: cfg.metricName,
       commitment: cfg.commitment,
       chain: cfg.chain,
       chainId: cfg.chainId,
-      abi: cfg.abi,
+      abis: cfg.abis,
       id: cfg.id,
     };
   }

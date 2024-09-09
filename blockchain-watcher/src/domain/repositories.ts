@@ -5,8 +5,10 @@ import { Fallible, SolanaFailure } from "./errors";
 import { ConfirmedSignatureInfo } from "./entities/solana";
 import { AlgorandTransaction } from "./entities/algorand";
 import { TransactionFilter } from "./actions/aptos/PollAptos";
+import { CosmosTransaction } from "./entities/cosmos";
+import { NearTransaction } from "./entities/near";
 import { RunPollingJob } from "./actions/RunPollingJob";
-import { SeiRedeem } from "./entities/sei";
+import { Filter } from "./actions/cosmos/types";
 import {
   TransactionFilter as SuiTransactionFilter,
   SuiEventFilter,
@@ -84,18 +86,22 @@ export interface AptosRepository {
 }
 
 export interface WormchainRepository {
-  getBlockHeight(chainId: number): Promise<bigint | undefined>;
+  getBlockHeight(chain: string): Promise<bigint | undefined>;
   getBlockLogs(
-    chainId: number,
+    chain: string,
     blockNumber: bigint,
     attributesTypes: string[]
   ): Promise<WormchainBlockLogs>;
   getRedeems(ibcTransaction: IbcTransaction): Promise<CosmosRedeem[]>;
 }
 
-export interface SeiRepository {
-  getRedeems(chainId: number, address: string, blockBatchSize: number): Promise<SeiRedeem[]>;
-  getBlockTimestamp(blockNumber: bigint): Promise<number | undefined>;
+export interface CosmosRepository {
+  getTransactions(
+    filter: Filter,
+    blockBatchSize: number,
+    chain: string
+  ): Promise<CosmosTransaction[]>;
+  getBlockTimestamp(blockNumber: bigint, chain: string): Promise<number | undefined>;
 }
 
 export interface AlgorandRepository {
@@ -105,6 +111,11 @@ export interface AlgorandRepository {
     toBlock: bigint
   ): Promise<AlgorandTransaction[]>;
   getBlockHeight(): Promise<bigint | undefined>;
+}
+
+export interface NearRepository {
+  getTransactions(contract: string, fromBlock: bigint, toBlock: bigint): Promise<NearTransaction[]>;
+  getBlockHeight(commitment: string): Promise<bigint | undefined>;
 }
 
 export interface MetadataRepository<Metadata> {

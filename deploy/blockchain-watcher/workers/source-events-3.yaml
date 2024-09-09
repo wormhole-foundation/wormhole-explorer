@@ -1,4 +1,4 @@
----          
+---         
 apiVersion: v1
 kind: Service
 metadata:
@@ -20,6 +20,8 @@ kind: PersistentVolumeClaim
 metadata:
   name: blockchain-watcher-source-events-3-pvc
   namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-source-events-3
 spec:
   accessModes:
     - ReadWriteOnce
@@ -33,6 +35,8 @@ kind: ConfigMap
 metadata:
   name: {{ .NAME }}-source-events-3-jobs
   namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-source-events-3
 data:
   testnet-jobs.json: |-
     [
@@ -95,7 +99,13 @@ data:
             "target": "sns",
             "mapper": "aptosLogMessagePublishedMapper",
             "config": {
-              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "abis": [
+                {
+                  "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                  "topic": "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2",
+                  "type": "Portal Token Bridge"
+                }
+              ],
               "metricName": "process_source_event",
               "metricLabels": {
                 "job": "poll-log-message-published-aptos",
@@ -140,6 +150,44 @@ data:
               }
             }
           }
+        ]
+      },
+      {
+        "id": "poll-log-message-published-snaxchain",
+        "chain": "snaxchain",
+        "source": {
+            "action": "PollEvm",
+            "config": {
+                "blockBatchSize": 100,
+                "commitment": "latest",
+                "interval": 15000,
+                "filters": [
+                  {
+                    "addresses": ["0xBB73cB66C26740F31d1FabDC6b7A46a038A300dd"],
+                    "type": "Portal Token Bridge",
+                    "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+                  }
+                ],
+                "chain": "snaxchain",
+                "chainId": 43
+            }
+        },
+        "handlers": [
+            {
+                "action": "HandleEvmLogs",
+                "target": "sns",
+                "mapper": "evmLogMessagePublishedMapper",
+                "config": {
+              "abis": [
+                {
+                  "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                  "topic": "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2",
+                  "type": "Portal Token Bridge"
+                }
+              ],
+                    "metricName": "process_source_event"
+                }
+            }
         ]
       }
     ]
@@ -209,7 +257,13 @@ data:
             "target": "sns",
             "mapper": "aptosLogMessagePublishedMapper",
             "config": {
-              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "abis": [
+                {
+                  "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                  "topic": "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2",
+                  "type": "Portal Token Bridge"
+                }
+              ],
               "metricName": "process_source_event",
               "metricLabels": {
                 "job": "poll-log-message-published-aptos",
@@ -255,6 +309,161 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-log-message-published-terra",
+        "chain": "terra",
+        "source": {
+          "action": "PollCosmos",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "immediate",
+            "interval": 60000,
+            "filter": {
+              "addresses": [
+                "terra1dq03ugtd40zu9hcgdzrsq6z2z4hwhc9tqk2uy5"
+              ]
+            },
+            "chain": "terra",
+            "chainId": 3
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleCosmosTransactions",
+            "target": "sns",
+            "mapper": "cosmosLogMessagePublishedMapper",
+            "config": {
+              "filter": {
+                "addresses": [
+                  "terra1dq03ugtd40zu9hcgdzrsq6z2z4hwhc9tqk2uy5"
+                ]
+              },
+              "metricName": "process_source_event",
+              "metricLabels": {
+                "job": "poll-log-message-published-terra",
+                "chain": "terra",
+                "commitment": "immediate"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-published-terra2",
+        "chain": "terra2",
+        "source": {
+          "action": "PollCosmos",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "immediate",
+            "interval": 60000,
+            "filter": {
+              "addresses": [
+                "terra12mrnzvhx3rpej6843uge2yyfppfyd3u9c3uq223q8sl48huz9juqffcnhp"
+              ]
+            },
+            "chain": "terra2",
+            "chainId": 18
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleCosmosTransactions",
+            "target": "sns",
+            "mapper": "cosmosLogMessagePublishedMapper",
+            "config": {
+              "filter": {
+                "addresses": [
+                  "terra12mrnzvhx3rpej6843uge2yyfppfyd3u9c3uq223q8sl48huz9juqffcnhp"
+                ]
+              },
+              "metricName": "process_source_event",
+              "metricLabels": {
+                "job": "poll-log-message-published-terra2",
+                "chain": "terra2",
+                "commitment": "immediate"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-published-xpla",
+        "chain": "xpla",
+        "source": {
+          "action": "PollCosmos",
+          "config": {
+            "blockBatchSize": 50,
+            "commitment": "immediate",
+            "interval": 60000,
+            "filter": {
+              "addresses": [
+                "xpla1jn8qmdda5m6f6fqu9qv46rt7ajhklg40ukpqchkejcvy8x7w26cqxamv3w"
+              ]
+            },
+            "chain": "xpla",
+            "chainId": 28
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleCosmosTransactions",
+            "target": "sns",
+            "mapper": "cosmosLogMessagePublishedMapper",
+            "config": {
+              "filter": {
+                "addresses": [
+                  "xpla1jn8qmdda5m6f6fqu9qv46rt7ajhklg40ukpqchkejcvy8x7w26cqxamv3w"
+                ]
+              },
+              "metricName": "process_source_event",
+              "metricLabels": {
+                "job": "poll-log-message-published-xpla",
+                "chain": "xpla",
+                "commitment": "immediate"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-published-snaxchain",
+        "chain": "snaxchain",
+        "source": {
+            "action": "PollEvm",
+            "config": {
+                "blockBatchSize": 100,
+                "commitment": "latest",
+                "interval": 5000,
+                "filters": [
+                  {
+                    "addresses": ["0xc1BA3CC4bFE724A08FbbFbF64F8db196738665f4"],
+                    "type": "Portal Token Bridge",
+                    "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+                  }
+                ],
+                "chain": "snaxchain",
+                "chainId": 43
+            }
+        },
+        "handlers": [
+            {
+                "action": "HandleEvmLogs",
+                "target": "sns",
+                "mapper": "evmLogMessagePublishedMapper",
+                "config": {
+                    "abis": [
+                      {
+                        "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                        "topic": "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2",
+                        "type": "Portal Token Bridge"
+                      }
+                    ],
+                    "metricName": "process_source_event"
+                }
+            }
+        ]
       }
     ]
 ---
@@ -263,11 +472,18 @@ kind: Deployment
 metadata:
   name: {{ .NAME }}-source-events-3
   namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-source-events-3
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: {{ .NAME }}-source-events-3
+  strategy: # Rolling update strategy for restarting the pods
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
   template:
     metadata:
       labels:
@@ -278,6 +494,7 @@ spec:
     spec:
       containers:
         - name: {{ .NAME }}
+          image: {{ .IMAGE_NAME }} # Docker image
           env:
             - name: NODE_ENV
               value: {{ .NODE_ENV }}
@@ -307,7 +524,10 @@ spec:
             - name: ALGORAND_RPCS
               value: '{{ .ALGORAND_RPCS }}'
             {{ end }}
-          image: {{ .IMAGE_NAME }}
+            {{ if .SNAXCHAIN_RPCS }}
+            - name: SNAXCHAIN_RPCS
+              value: '{{ .SNAXCHAIN_RPCS }}'
+            {{ end }}
           resources:
             limits:
               cpu: {{ .RESOURCES_LIMITS_CPU }}

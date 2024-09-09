@@ -4,8 +4,10 @@ export type LogFoundEvent<T> = {
   chainId: number;
   txHash: string;
   blockHeight: bigint;
+  /* value is in seconds */
   blockTime: number;
   attributes: T;
+  tags?: Record<string, string>;
 };
 
 export type LogMessagePublished = {
@@ -14,6 +16,24 @@ export type LogMessagePublished = {
   nonce: number;
   payload: string;
   consistencyLevel: number;
+  chain?: string;
+};
+
+export type CircleMessageSent = {
+  sourceDomain: string;
+  destinationDomain: string;
+  nonce: bigint;
+  sender: string;
+  recipient: string;
+  destinationCaller: string;
+
+  mintRecipient: string;
+  burnToken: string;
+  protocol: string;
+  amount: bigint;
+  messageSender: string;
+
+  txHash: string;
 };
 
 export type TransferRedeemed = {
@@ -44,6 +64,7 @@ export type TransactionFoundEvent<
   blockHeight: bigint;
   blockTime: number;
   attributes: T;
+  tags?: Record<string, unknown>;
 };
 
 export type TransactionFound = {
@@ -64,6 +85,7 @@ export type TransactionFoundAttributes = {
   to?: string;
   status?: string;
   protocol: string;
+  chain?: string;
 };
 
 export type EvmTransactionFoundAttributes = TransactionFoundAttributes & {

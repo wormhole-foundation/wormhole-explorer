@@ -15,10 +15,16 @@ let statsRepo = {
 const handler = new HandleEvmLogs(
   {
     filters: [{ addresses: [address], topics: [topic] }],
-    abi: "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+    abis: [
+      {
+        abi: "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+        topic: "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2",
+      },
+    ],
     metricName: "process_source_ethereum_event",
     commitment: "latest",
     chainId: 2,
+    environment: "testnet",
     chain: "ethereum",
     id: "poll-log-message-published-ethereum",
   },

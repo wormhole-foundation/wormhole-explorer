@@ -12,25 +12,32 @@
       "rpcs": [
         "https://api.securerpc.com/v1",
         "https://rpc.mevblocker.io/noreverts",
-        "https://endpoints.omniatech.io/v1/eth/mainnet/public",
         "https://ethereum.publicnode.com"
       ]
+    },
+    "terra": {
+      "network": "mainnet",
+      "chainId": 3,
+      "rpcs": ["https://terra-classic-rpc.publicnode.com:443"]
     },
     "bsc": {
       "network": "mainnet",
       "chainId": 4,
       "rpcs": ["https://bscrpc.com"]
     },
+    "terra2": {
+      "network": "mainnet",
+      "chainId": 18,
+      "rpcs": [
+        "https://terra-rpc.polkachu.com",
+        "https://rpc-terra-01.stakeflow.io",
+        "https://terra-rpc.publicnode.com:443"
+      ]
+    },
     "polygon": {
       "network": "mainnet",
       "chainId": 5,
-      "rpcs": [
-        "https://rpc-mainnet.matic.quiknode.pro",
-        "https://polygon-rpc.com",
-        "https://rpc-mainnet.maticvigil.com",
-        "https://endpoints.omniatech.io/v1/matic/mainnet/public",
-        "https://polygon-bor.publicnode.com"
-      ]
+      "rpcs": ["https://rpc-mainnet.matic.quiknode.pro", "https://polygon-rpc.com"]
     },
     "avalanche": {
       "network": "mainnet",
@@ -86,6 +93,11 @@
       "chainId": 14,
       "rpcs": ["https://forno.celo.org", "https://1rpc.io/celo"]
     },
+    "near": {
+      "network": "mainnet",
+      "chainId": 15,
+      "rpcs": ["https://rpc.mainnet.near.org"]
+    },
     "moonbeam": {
       "network": "mainnet",
       "chainId": 16,
@@ -123,11 +135,7 @@
     "arbitrum": {
       "network": "mainnet",
       "chainId": 23,
-      "rpcs": [
-        "https://endpoints.omniatech.io/v1/arbitrum/one/public",
-        "https://arbitrum.blockpi.network/v1/rpc/public",
-        "https://arb1.arbitrum.io/rpc"
-      ]
+      "rpcs": ["https://arb1.arbitrum.io/rpc"]
     },
     "optimism": {
       "network": "mainnet",
@@ -138,14 +146,19 @@
         "https://optimism.publicnode.com"
       ]
     },
+    "xpla": {
+      "network": "mainnet",
+      "chainId": 28,
+      "rpcs": ["https://xpla-rpc.lavenderfive.com:443"]
+    },
     "base": {
       "network": "mainnet",
       "chainId": 30,
       "rpcs": [
-        "https://base-pokt.nodies.app",
-        "https://base.publicnode.com",
         "https://mainnet.base.org",
-        "https://rpc.notadegen.com/base"
+        "https://rpc.notadegen.com/base",
+        "https://base-pokt.nodies.app",
+        "https://base.publicnode.com"
       ]
     },
     "sei": {
@@ -170,16 +183,17 @@
     "blast": {
       "network": "mainnet",
       "chainId": 36,
-      "rpcs": [
-        "https://rpc.blast.io",
-        "https://blast.din.dev/rpc",
-        "https://blastl2-mainnet.public.blastapi.io"
-      ]
+      "rpcs": ["https://rpc.blast.io", "https://blast.din.dev/rpc"]
     },
     "xlayer": {
       "network": "mainnet",
       "chainId": 37,
       "rpcs": ["https://xlayerrpc.okx.com", "https://rpc.xlayer.tech"]
+    },
+    "snaxchain": {
+      "network": "mainnet",
+      "chainId": 43,
+      "rpcs": ["https://mainnet.snaxchain.io/"]
     },
     "wormchain": {
       "network": "mainnet",

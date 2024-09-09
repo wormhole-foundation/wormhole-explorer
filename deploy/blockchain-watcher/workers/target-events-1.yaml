@@ -18,8 +18,10 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: blockchain-watcher-eth-2-pvc
+  name: blockchain-watcher-target-events-1-pvc
   namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-target-events-1
 spec:
   accessModes:
     - ReadWriteOnce
@@ -33,6 +35,8 @@ kind: ConfigMap
 metadata:
   name: {{ .NAME }}-target-events-1-jobs
   namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-target-events-1
 data:
   testnet-jobs.json: |-
     [
@@ -45,7 +49,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 35000,
             "filters": [
               {
                 "addresses": [],
@@ -88,6 +92,13 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
+              "abis": [
+                {
+                  "abi": "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
+                  "topic": "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
+                  "type": "Standard Relayer"
+                }
+              ],
               "metricName": "process_vaa_event"
             }
           }
@@ -102,7 +113,7 @@ data:
           "config": {
             "blockBatchSize": 1000,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 35000,
             "filters": [
               {
                 "addresses": [],
@@ -136,7 +147,7 @@ data:
               }
             ],
             "chain": "arbitrum-sepolia",
-            "chainId": 10004
+            "chainId": 10003
           }
         },
         "handlers": [
@@ -145,6 +156,13 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
+              "abis": [
+                {
+                  "abi": "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
+                  "topic": "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
+                  "type": "Standard Relayer"
+                }
+              ],
               "metricName": "process_vaa_event"
             }
           }
@@ -159,7 +177,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 35000,
             "filters": [
               {
                 "addresses": [],
@@ -184,7 +202,6 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
-              "abi": "",
               "metricName": "process_vaa_event"
             }
           }
@@ -199,7 +216,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "finalized",
-            "interval": 15000,
+            "interval": 35000,
             "filters": [
               {
                 "addresses": ["0x61E44E506Ca5659E6c0bba9b678586fA2d729756", "0x1fb8B6743E8d4F8047cd9C216192D4cD897947a2"],
@@ -248,6 +265,13 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
+              "abis": [
+                {
+                  "abi": "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
+                  "topic": "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
+                  "type": "Standard Relayer"
+                }
+              ],
               "metricName": "process_vaa_event"
             }
           }
@@ -262,7 +286,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 35000,
             "filters": [
               {
                 "addresses": [],
@@ -305,6 +329,13 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
+              "abis": [
+                {
+                  "abi": "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
+                  "topic": "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
+                  "type": "Standard Relayer"
+                }
+              ],
               "metricName": "process_vaa_event"
             }
           }
@@ -319,7 +350,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 60000,
             "filters": [
               {
                 "addresses": [],
@@ -358,7 +389,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 35000,
             "filters": [
               {
                 "addresses": [],
@@ -389,6 +420,13 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
+              "abis": [
+                {
+                  "abi": "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
+                  "topic": "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
+                  "type": "Standard Relayer"
+                }
+              ],
               "metricName": "process_vaa_event"
             }
           }
@@ -403,7 +441,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 35000,
             "filters": [
               {
                 "addresses": [],
@@ -446,6 +484,13 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
+              "abis": [
+                {
+                  "abi": "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
+                  "topic": "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
+                  "type": "Standard Relayer"
+                }
+              ],
               "metricName": "process_vaa_event"
             }
           }
@@ -460,7 +505,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 35000,
             "filters": [
               {
                 "addresses": [],
@@ -572,7 +617,13 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
-              "abi": "",
+              "abis": [
+                {
+                  "abi": "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
+                  "topic": "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
+                  "type": "Standard Relayer"
+                }
+              ],
               "metricName": "process_vaa_event"
             }
           }
@@ -630,7 +681,13 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
-              "abi": "",
+              "abis": [
+                {
+                  "abi": "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
+                  "topic": "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
+                  "type": "Standard Relayer"
+                }
+              ],
               "metricName": "process_vaa_event"
             }
           }
@@ -682,7 +739,13 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
-              "abi": "",
+              "abis": [
+                {
+                  "abi": "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
+                  "topic": "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
+                  "type": "Standard Relayer"
+                }
+              ],
               "metricName": "process_vaa_event"
             }
           }
@@ -734,7 +797,13 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
-              "abi": "",
+              "abis": [
+                {
+                  "abi": "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
+                  "topic": "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
+                  "type": "Standard Relayer"
+                }
+              ],
               "metricName": "process_vaa_event"
             }
           }
@@ -792,7 +861,13 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
-              "abi": "",
+              "abis": [
+                {
+                  "abi": "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
+                  "topic": "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
+                  "type": "Standard Relayer"
+                }
+              ],
               "metricName": "process_vaa_event"
             }
           }
@@ -838,7 +913,13 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
-              "abi": "",
+              "abis": [
+                {
+                  "abi": "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
+                  "topic": "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
+                  "type": "Standard Relayer"
+                }
+              ],
               "metricName": "process_vaa_event"
             }
           }
@@ -896,7 +977,13 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
-              "abi": "",
+              "abis": [
+                {
+                  "abi": "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
+                  "topic": "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
+                  "type": "Standard Relayer"
+                }
+              ],
               "metricName": "process_vaa_event"
             }
           }
@@ -936,7 +1023,13 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
-              "abi": "",
+              "abis": [
+                {
+                  "abi": "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
+                  "topic": "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
+                  "type": "Standard Relayer"
+                }
+              ],
               "metricName": "process_vaa_event"
             }
           }
@@ -970,7 +1063,6 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
-              "abi": "",
               "metricName": "process_vaa_event"
             }
           }
@@ -983,11 +1075,18 @@ kind: Deployment
 metadata:
   name: {{ .NAME }}-target-events-1
   namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-target-events-1
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: {{ .NAME }}-target-events-1
+  strategy: # Rolling update strategy for restarting the pods
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
   template:
     metadata:
       labels:
@@ -998,6 +1097,7 @@ spec:
     spec:
       containers:
         - name: {{ .NAME }}
+          image: {{ .IMAGE_NAME }}  # Docker image
           env:
             - name: NODE_ENV
               value: {{ .NODE_ENV }}
@@ -1075,7 +1175,6 @@ spec:
             - name: XLAYER_RPCS
               value: '{{ .XLAYER_RPCS }}'
             {{ end }}
-          image: {{ .IMAGE_NAME }}
           resources:
             limits:
               cpu: {{ .RESOURCES_LIMITS_CPU }}
@@ -1094,7 +1193,7 @@ spec:
       volumes:
         - name: metadata-volume
           persistentVolumeClaim:
-            claimName: blockchain-watcher-eth-2-pvc
+            claimName: blockchain-watcher-target-events-1-pvc
         - name: jobs-volume
           configMap:
             name: {{ .NAME }}-target-events-1-jobs

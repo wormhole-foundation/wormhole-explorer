@@ -20,6 +20,8 @@ kind: PersistentVolumeClaim
 metadata:
   name: blockchain-watcher-target-events-2-pvc
   namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-target-events-2
 spec:
   accessModes:
     - ReadWriteOnce
@@ -33,6 +35,8 @@ kind: ConfigMap
 metadata:
   name: {{ .NAME }}-target-events-2-jobs
   namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-target-events-2
 data:
   testnet-jobs.json: |-
     [
@@ -45,7 +49,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 35000,
             "filters": [
               {
                 "addresses": [],
@@ -84,7 +88,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 35000,
             "filters": [
               {
                 "addresses": [],
@@ -123,7 +127,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 35000,
             "filters": [
               {
                 "addresses": ["0xbc976D4b9D57E57c3cA52e1Fd136C45FF7955A96"],
@@ -160,6 +164,13 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
+              "abis": [
+                {
+                  "abi": "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
+                  "topic": "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
+                  "type": "Standard Relayer"
+                }
+              ],
               "metricName": "process_vaa_event"
             }
           }
@@ -174,8 +185,14 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 35000,
             "filters": [
+              {
+                "addresses": ["0x05ca6037eC51F8b712eD2E6Fa72219FEaE74E153"],
+                "type": "Portal Token Bridge by contract and topic",
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              },
               {
                 "addresses": [],
                 "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
@@ -205,6 +222,13 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
+              "abis": [
+                {
+                  "abi": "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
+                  "topic": "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
+                  "type": "Standard Relayer"
+                }
+              ],
               "metricName": "process_vaa_event"
             }
           }
@@ -219,7 +243,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 35000,
             "filters": [
               {
                 "addresses": [],
@@ -252,7 +276,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 35000,
             "filters": [
               {
                 "addresses": [],
@@ -283,9 +307,9 @@ data:
           "action": "PollEvm",
           "records": "GetEvmTransactions",
           "config": {
-            "blockBatchSize": 100,
-            "commitment": "latest",
-            "interval": 25000,
+            "blockBatchSize": 10,
+            "commitment": "finalized",
+            "interval": 60000,
             "filters": [
               {
                 "addresses": [],
@@ -296,6 +320,39 @@ data:
             ],
             "chain": "karura",
             "chainId": 11
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-redeemed-transactions-snaxchain",
+        "chain": "snaxchain",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 35000,
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              }
+            ],
+            "chain": "snaxchain",
+            "chainId": 43
           }
         },
         "handlers": [
@@ -358,7 +415,13 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
-              "abi": "",
+              "abis": [
+                {
+                  "abi": "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
+                  "topic": "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
+                  "type": "Standard Relayer"
+                }
+              ],
               "metricName": "process_vaa_event"
             }
           }
@@ -398,7 +461,6 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
-              "abi": "",
               "metricName": "process_vaa_event"
             }
           }
@@ -444,7 +506,13 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
-              "abi": "",
+              "abis": [
+                {
+                  "abi": "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
+                  "topic": "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
+                  "type": "Standard Relayer"
+                }
+              ],
               "metricName": "process_vaa_event"
             }
           }
@@ -490,7 +558,13 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
-              "abi": "",
+              "abis": [
+                {
+                  "abi": "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
+                  "topic": "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
+                  "type": "Standard Relayer"
+                }
+              ],
               "metricName": "process_vaa_event"
             }
           }
@@ -530,7 +604,13 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
-              "abi": "",
+              "abis": [
+                {
+                  "abi": "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
+                  "topic": "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
+                  "type": "Standard Relayer"
+                }
+              ],
               "metricName": "process_vaa_event"
             }
           }
@@ -576,9 +656,9 @@ data:
           "action": "PollEvm",
           "records": "GetEvmTransactions",
           "config": {
-            "blockBatchSize": 100,
-            "commitment": "latest",
-            "interval": 25000,
+            "blockBatchSize": 10,
+            "commitment": "finalized",
+            "interval": 60000,
             "filters": [
               {
                 "addresses": [],
@@ -601,6 +681,64 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-redeemed-transactions-near",
+        "chain": "near",
+        "source": {
+          "action": "PollNear",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "final",
+            "interval": 35000,
+            "contracts": ["contract.portalbridge.near"],
+            "chain": "near",
+            "chainId": 15
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleNearTransactions",
+            "target": "sns",
+            "mapper": "nearRedeemedTransactionFoundMapper",
+            "config": {
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-redeemed-transactions-snaxchain",
+        "chain": "snaxchain",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              }
+            ],
+            "chain": "snaxchain",
+            "chainId": 43
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
       }
     ]
 ---
@@ -609,11 +747,18 @@ kind: Deployment
 metadata:
   name: {{ .NAME }}-target-events-2
   namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-target-events-2
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: {{ .NAME }}-target-events-2
+  strategy: # Rolling update strategy for restarting the pods
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
   template:
     metadata:
       labels:
@@ -624,6 +769,7 @@ spec:
     spec:
       containers:
         - name: {{ .NAME }}
+          image: {{ .IMAGE_NAME }}  # Docker image
           env:
             - name: NODE_ENV
               value: {{ .NODE_ENV }}
@@ -685,7 +831,18 @@ spec:
             - name: MANTLE_RPCS
               value: '{{ .MANTLE_RPCS }}'
             {{ end }}
-          image: {{ .IMAGE_NAME }}
+            {{ if .OASIS_RPCS }}
+            - name: OASIS_RPCS
+              value: '{{ .OASIS_RPCS }}'
+            {{ end }}
+            {{ if .NEAR_RPCS }}
+            - name: NEAR_RPCS
+              value: '{{ .NEAR_RPCS }}'
+            {{ end }}
+            {{ if .SNAXCHAIN_RPCS }}
+            - name: SNAXCHAIN_RPCS
+              value: '{{ .SNAXCHAIN_RPCS }}'
+            {{ end }}
           resources:
             limits:
               cpu: {{ .RESOURCES_LIMITS_CPU }}

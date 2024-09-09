@@ -14,6 +14,12 @@
     "topicArn": "SNS_TOPIC_ARN",
     "region": "SNS_REGION"
   },
+  "influx": {
+    "bucket": "INFLUXDB_BUCKET",
+    "org": "INFLUXDB_ORG",
+    "url": "INFLUXDB_URL",
+    "token": "INFLUXDB_TOKEN"
+  },
   "chains": {
     "solana": {
       "network": "SOLANA_NETWORK",
@@ -93,6 +99,13 @@
       "network": "CELO_NETWORK",
       "rpcs": {
         "__name": "CELO_RPCS",
+        "__format": "json"
+      }
+    },
+    "near": {
+      "network": "NEAR_NETWORK",
+      "rpcs": {
+        "__name": "NEAR_RPCS",
         "__format": "json"
       }
     },
@@ -194,6 +207,13 @@
         "__format": "json"
       }
     },
+    "snaxchain": {
+      "network": "SNAXCHAIN_NETWORK",
+      "rpcs": {
+        "__name": "SNAXCHAIN_RPCS",
+        "__format": "json"
+      }
+    },
     "polygon-sepolia": {
       "network": "POLYGON_SEPOLIA_NETWORK",
       "rpcs": {
@@ -240,6 +260,20 @@
       "network": "SEI_NETWORK",
       "rpcs": {
         "__name": "SEI_RPCS",
+        "__format": "json"
+      }
+    },
+    "terra": {
+      "network": "TERRA_NETWORK",
+      "rpcs": {
+        "__name": "TERRA_RPCS",
+        "__format": "json"
+      }
+    },
+    "terra2": {
+      "network": "TERRA2_NETWORK",
+      "rpcs": {
+        "__name": "TERRA2_RPCS",
         "__format": "json"
       }
     },

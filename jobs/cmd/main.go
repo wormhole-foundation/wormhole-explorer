@@ -8,14 +8,18 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbconsts"
 	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/protocols"
 	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/protocols/repository"
+	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/stats"
 
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache"
 	"github.com/wormhole-foundation/wormhole-explorer/common/configuration"
 
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
+	wormscanNotionalCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	txtrackerProcessVaa "github.com/wormhole-foundation/wormhole-explorer/common/client/txtracker"
 	common "github.com/wormhole-foundation/wormhole-explorer/common/coingecko"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
@@ -93,12 +97,21 @@ func main() {
 	case jobs.JobIDMigrationNativeTxHash:
 		job := initMigrateNativeTxHashJob(ctx, logger)
 		err = job.Run(ctx)
+	case jobs.JobIDNTTTopAddressStats:
+		job := initNTTTopAddressStatsJob(ctx, logger)
+		err = job.Run(ctx)
+	case jobs.JobIDNTTTopHolderStats:
+		job := initNTTTopHolderStatsJob(ctx, logger)
+		err = job.Run(ctx)
+	case jobs.JobIDNTTMedianStats:
+		job := initNTTMedianStatsJob(ctx, logger)
+		err = job.Run(ctx)
 	default:
-		logger.Fatal("Invalid job id", zap.String("job_id", cfg.JobID))
+		logger.Error("Invalid job id", zap.String("job_id", cfg.JobID))
 	}
 
 	if err != nil {
-		logger.Error("failed job execution", zap.String("job_id", cfg.JobID), zap.Error(err))
+		logger.Fatal("failed job execution", zap.String("job_id", cfg.JobID), zap.Error(err))
 	} else {
 		logger.Info("finish job execution successfully", zap.String("job_id", cfg.JobID))
 	}
@@ -158,7 +171,7 @@ func initHistoricalPricesJob(ctx context.Context, cfg *config.HistoricalPricesCo
 	return notionalJob
 }
 
-func initMigrateSourceTxJob(ctx context.Context, cfg *config.MigrateSourceTxConfiguration, chainID sdk.ChainID, logger *zap.Logger) *migration.MigrateSourceChainTx {
+func initMigrateSourceTxJob(ctx context.Context, cfg *config.MigrateSourceTxConfiguration, _ sdk.ChainID, logger *zap.Logger) *migration.MigrateSourceChainTx {
 	//setup DB connection
 	db, err := dbutil.Connect(ctx, logger, cfg.MongoURI, cfg.MongoDatabase, false)
 	if err != nil {
@@ -251,6 +264,75 @@ func initMigrateNativeTxHashJob(ctx context.Context, logger *zap.Logger) *migrat
 		logger.Fatal("Failed to connect MongoDB", zap.Error(err))
 	}
 	return migration.NewMigrationNativeTxHash(db.Database, cfgJob.PageSize, logger)
+}
+
+func initNTTTopAddressStatsJob(ctx context.Context, logger *zap.Logger) *stats.NTTTopAddressJob {
+	cfgJob, errCfg := configuration.LoadFromEnv[config.NTTTopAddressStatsConfiguration](ctx)
+	if errCfg != nil {
+		log.Fatal("error creating config", errCfg)
+	}
+
+	// init influx client.
+	influxClient := influxdb2.NewClient(cfgJob.InfluxUrl, cfgJob.InfluxToken)
+
+	// init redis client.
+	redisClient := redis.NewClient(&redis.Options{Addr: cfgJob.CacheUrl})
+
+	// init cache client.
+	cache, err := cache.NewCacheClient(redisClient, true, cfgJob.CachePrefix, logger)
+	if err != nil {
+		log.Fatal("error creating cache client", err)
+	}
+
+	return stats.NewNTTTopAddressJob(influxClient, cfgJob.InfluxOrganization, cfgJob.InfluxBucketInfinite, cache, logger)
+}
+
+func initNTTTopHolderStatsJob(ctx context.Context, logger *zap.Logger) *stats.NTTTopHolderJob {
+	cfgJob, errCfg := configuration.LoadFromEnv[config.NTTTopHolderStatsConfiguration](ctx)
+	if errCfg != nil {
+		log.Fatal("error creating config", errCfg)
+	}
+
+	// init redis client.
+	redisClient := redis.NewClient(&redis.Options{Addr: cfgJob.CacheUrl})
+
+	// init cache client.
+	cache, err := cache.NewCacheClient(redisClient, true, cfgJob.CachePrefix, logger)
+	if err != nil {
+		log.Fatal("error creating cache client", err)
+	}
+
+	tokenProvider := domain.NewTokenProvider(cfgJob.P2pNetwork)
+
+	// get notional cache client and init load to local cache
+	notionalCache, err := wormscanNotionalCache.NewNotionalCache(ctx, redisClient, cfgJob.CachePrefix, cfgJob.CacheNotionalChannel, logger)
+	if err != nil {
+		log.Fatal("failed to create notional cache client", err)
+	}
+	notionalCache.Init(ctx)
+
+	return stats.NewNTTTopHolderJob(resty.New(), cfgJob.ArkhamUrl, cfgJob.ArkhamApiKey, cfgJob.SolanaUrl, cache, tokenProvider, notionalCache, logger)
+}
+
+func initNTTMedianStatsJob(ctx context.Context, logger *zap.Logger) *stats.NTTMedian {
+	cfgJob, errCfg := configuration.LoadFromEnv[config.NTTMedianStatsConfiguration](ctx)
+	if errCfg != nil {
+		log.Fatal("error creating config", errCfg)
+	}
+
+	// init influx client.
+	influxClient := influxdb2.NewClient(cfgJob.InfluxUrl, cfgJob.InfluxToken)
+
+	// init redis client.
+	redisClient := redis.NewClient(&redis.Options{Addr: cfgJob.CacheUrl})
+
+	// init cache client.
+	cache, err := cache.NewCacheClient(redisClient, true, cfgJob.CachePrefix, logger)
+	if err != nil {
+		log.Fatal("error creating cache client", err)
+	}
+
+	return stats.NewNTTMedian(influxClient, cfgJob.InfluxOrganization, cfgJob.InfluxBucketInfinite, cache, logger)
 }
 
 func handleExit() {

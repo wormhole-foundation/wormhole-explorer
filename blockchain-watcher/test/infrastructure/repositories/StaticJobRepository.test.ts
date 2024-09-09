@@ -10,10 +10,11 @@ import {
   EvmBlockRepository,
   MetadataRepository,
   AlgorandRepository,
+  CosmosRepository,
   AptosRepository,
   StatRepository,
-  SeiRepository,
   SuiRepository,
+  NearRepository,
 } from "../../../src/domain/repositories";
 
 const dirPath = "./metadata-repo/jobs";
@@ -25,8 +26,9 @@ const solanaSlotRepo = {} as any as SolanaSlotRepository;
 const suiRepo = {} as any as SuiRepository;
 const aptosRepo = {} as any as AptosRepository;
 const wormchainRepo = {} as any as WormchainRepository;
-const seiRepo = {} as any as SeiRepository;
+const cosmosRepo = {} as any as CosmosRepository;
 const algorandRepo = {} as any as AlgorandRepository;
+const nearRepo = {} as any as NearRepository;
 
 let repo: StaticJobRepository;
 
@@ -43,8 +45,9 @@ describe("StaticJobRepository", () => {
       suiRepo,
       aptosRepo,
       wormchainRepo,
-      seiRepo,
+      cosmosRepo,
       algorandRepo,
+      nearRepo,
     });
   });
 
@@ -115,7 +118,12 @@ const givenJobsPresent = () => {
           target: "sns",
           mapper: "evmRedeemedTransactionFoundMapper",
           config: {
-            abi: "",
+            abis: [
+              {
+                abi: "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                topic: "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2",
+              },
+            ],
             metricName: "process_vaa_event",
           },
         },

@@ -1,24 +1,29 @@
 import { RateLimitedWormchainJsonRPCBlockRepository } from "./wormchain/RateLimitedWormchainJsonRPCBlockRepository";
 import { RateLimitedAlgorandJsonRPCBlockRepository } from "./algorand/RateLimitedAlgorandJsonRPCBlockRepository";
+import { RateLimitedCosmosJsonRPCBlockRepository } from "./cosmos/RateLimitedCosmosJsonRPCBlockRepository";
 import { RateLimitedAptosJsonRPCBlockRepository } from "./aptos/RateLimitedAptosJsonRPCBlockRepository";
+import { RateLimitedNearJsonRPCBlockRepository } from "./near/RateLimitedNearJsonRPCBlockRepository";
 import { RateLimitedEvmJsonRPCBlockRepository } from "./evm/RateLimitedEvmJsonRPCBlockRepository";
-import { RateLimitedSeiJsonRPCBlockRepository } from "./sei/RateLimitedSeiJsonRPCBlockRepository";
 import { RateLimitedSuiJsonRPCBlockRepository } from "./sui/RateLimitedSuiJsonRPCBlockRepository";
 import { WormchainJsonRPCBlockRepository } from "./wormchain/WormchainJsonRPCBlockRepository";
 import { AlgorandJsonRPCBlockRepository } from "./algorand/AlgorandJsonRPCBlockRepository";
+import { CosmosJsonRPCBlockRepository } from "./cosmos/CosmosJsonRPCBlockRepository";
 import { extendedProviderPoolSupplier } from "../rpc/http/ProviderPoolDecorator";
 import { AptosJsonRPCBlockRepository } from "./aptos/AptosJsonRPCBlockRepository";
 import { SNSClient, SNSClientConfig } from "@aws-sdk/client-sns";
-import { SeiJsonRPCBlockRepository } from "./sei/SeiJsonRPCBlockRepository";
+import { NearJsonRPCBlockRepository } from "./near/NearJsonRPCBlockRepository";
 import { InstrumentedHttpProvider } from "../rpc/http/InstrumentedHttpProvider";
-import { Config } from "../config";
+import { ChainRPCConfig, Config } from "../config";
+import { InfluxEventRepository } from "./target/InfluxEventRepository";
+import { InfluxDB } from "@influxdata/influxdb-client";
 import {
   WormchainRepository,
   AlgorandRepository,
+  CosmosRepository,
   AptosRepository,
+  NearRepository,
   JobRepository,
   SuiRepository,
-  SeiRepository,
 } from "../../domain/repositories";
 import {
   MoonbeamEvmJsonRPCBlockRepository,
@@ -26,7 +31,6 @@ import {
   RateLimitedSolanaSlotRepository,
   PolygonJsonRPCBlockRepository,
   BscEvmJsonRPCBlockRepository,
-  EvmJsonRPCBlockRepositoryCfg,
   EvmJsonRPCBlockRepository,
   SuiJsonRPCBlockRepository,
   Web3SolanaSlotRepository,
@@ -34,7 +38,6 @@ import {
   StaticJobRepository,
   PromStatRepository,
   SnsEventRepository,
-  ProviderPoolMap,
 } from ".";
 import {
   InstrumentedConnection,
@@ -46,10 +49,11 @@ import {
 const WORMCHAIN_CHAIN = "wormchain";
 const ALGORAND_CHAIN = "algorand";
 const SOLANA_CHAIN = "solana";
+const COSMOS_CHAIN = "cosmos";
 const APTOS_CHAIN = "aptos";
+const NEAR_CHAIN = "near";
 const EVM_CHAIN = "evm";
 const SUI_CHAIN = "sui";
-const SEI_CHAIN = "sei";
 const EVM_CHAINS = new Map([
   ["ethereum", "evmRepo"],
   ["ethereum-sepolia", "evmRepo"],
@@ -75,6 +79,7 @@ const EVM_CHAINS = new Map([
   ["blast", "evmRepo"],
   ["mantle", "evmRepo"],
   ["xlayer", "evmRepo"],
+  ["snaxchain", "evmRepo"],
 ]);
 
 const POOL_STRATEGY = "healthy";
@@ -93,19 +98,36 @@ export class RepositoriesBuilder {
     this.snsClient = this.createSnsClient();
     this.repositories.set("sns", new SnsEventRepository(this.snsClient, this.cfg.sns));
 
+    this.cfg.influx &&
+      this.repositories.set(
+        "infux",
+        new InfluxEventRepository(
+          new InfluxDB({
+            url: this.cfg.influx.url,
+            token: this.cfg.influx.token,
+          }),
+          this.cfg.influx
+        )
+      );
+
     this.cfg.metadata?.dir &&
       this.repositories.set("metadata", new FileMetadataRepository(this.cfg.metadata.dir));
 
     this.repositories.set("metrics", new PromStatRepository());
 
+    const pools = this.createAllProvidersPool();
+
     this.cfg.enabledPlatforms.forEach((chain) => {
-      this.buildWormchainRepository(chain);
+      // Set up all providers because we use various chains
+      this.buildWormchainRepository(chain, pools);
+      this.buildCosmosRepository(chain, pools);
+      this.buildEvmRepository(chain, pools);
+      // Set up the specific providers for the chain
       this.buildAlgorandRepository(chain);
       this.buildSolanaRepository(chain);
       this.buildAptosRepository(chain);
-      this.buildEvmRepository(chain);
       this.buildSuiRepository(chain);
-      this.buildSeiRepository(chain);
+      this.buildNearRepository(chain);
     });
 
     this.repositories.set(
@@ -119,12 +141,14 @@ export class RepositoriesBuilder {
           metadataRepo: this.getMetadataRepository(),
           statsRepo: this.getStatsRepository(),
           snsRepo: this.getSnsEventRepository(),
+          influxRepo: this.getInfluxEventRepository(),
           solanaSlotRepo: this.getSolanaSlotRepository(),
           suiRepo: this.getSuiRepository(),
           aptosRepo: this.getAptosRepository(),
           wormchainRepo: this.getWormchainRepository(),
-          seiRepo: this.getSeiRepository(),
+          cosmosRepo: this.getCosmosRepository(),
           algorandRepo: this.getAlgorandRepository(),
+          nearRepo: this.getNearRepository(),
         }
       )
     );
@@ -137,8 +161,22 @@ export class RepositoriesBuilder {
     return this.getRepo(instanceRepoName);
   }
 
-  public getSnsEventRepository(): SnsEventRepository {
-    return this.getRepo("sns");
+  public getSnsEventRepository(): SnsEventRepository | undefined {
+    try {
+      const sns = this.getRepo("sns");
+      return sns;
+    } catch (e) {
+      return;
+    }
+  }
+
+  public getInfluxEventRepository(): InfluxEventRepository | undefined {
+    try {
+      const influx = this.getRepo("infux");
+      return influx;
+    } catch (e) {
+      return;
+    }
   }
 
   public getMetadataRepository(): FileMetadataRepository {
@@ -169,12 +207,16 @@ export class RepositoriesBuilder {
     return this.getRepo("wormchain-repo");
   }
 
-  public getSeiRepository(): SeiRepository {
-    return this.getRepo("sei-repo");
+  public getCosmosRepository(): CosmosRepository {
+    return this.getRepo("cosmos-repo");
   }
 
   public getAlgorandRepository(): AlgorandRepository {
     return this.getRepo("algorand-repo");
+  }
+
+  public getNearRepository(): NearRepository {
+    return this.getRepo("near-repo");
   }
 
   public close(): void {
@@ -195,34 +237,44 @@ export class RepositoriesBuilder {
       const cfg = this.cfg.chains[chain];
       const solanaSlotRepository = new RateLimitedSolanaSlotRepository(
         new Web3SolanaSlotRepository(solanaProviderPool),
-        cfg.rateLimit
+        SOLANA_CHAIN,
+        {
+          period: cfg.rateLimit?.period ?? 10_000,
+          limit: cfg.rateLimit?.limit ?? 1_000,
+          interval: cfg.timeout ?? 1_000,
+          attempts: cfg.retries ?? 10,
+        }
       );
       this.repositories.set("solana-slotRepo", solanaSlotRepository);
     }
   }
 
-  private buildEvmRepository(chain: string): void {
+  private buildEvmRepository(chain: string, pools: ProviderPoolMap): void {
     if (chain == EVM_CHAIN) {
-      const pools = this.createEvmProviderPools();
-      const repoCfg: EvmJsonRPCBlockRepositoryCfg = {
+      const repoCfg: JsonRPCBlockRepositoryCfg = {
         chains: this.cfg.chains,
         environment: this.cfg.environment,
       };
 
       const moonbeamRepository = new RateLimitedEvmJsonRPCBlockRepository(
-        new MoonbeamEvmJsonRPCBlockRepository(repoCfg, pools)
+        new MoonbeamEvmJsonRPCBlockRepository(repoCfg, pools),
+        "moonbeam"
       );
       const arbitrumRepository = new RateLimitedEvmJsonRPCBlockRepository(
-        new ArbitrumEvmJsonRPCBlockRepository(repoCfg, pools, this.getMetadataRepository())
+        new ArbitrumEvmJsonRPCBlockRepository(repoCfg, pools, this.getMetadataRepository()),
+        "arbitrum"
       );
       const polygonRepository = new RateLimitedEvmJsonRPCBlockRepository(
-        new PolygonJsonRPCBlockRepository(repoCfg, pools)
+        new PolygonJsonRPCBlockRepository(repoCfg, pools),
+        "polygon"
       );
       const bscRepository = new RateLimitedEvmJsonRPCBlockRepository(
-        new BscEvmJsonRPCBlockRepository(repoCfg, pools)
+        new BscEvmJsonRPCBlockRepository(repoCfg, pools),
+        "bsc"
       );
       const evmRepository = new RateLimitedEvmJsonRPCBlockRepository(
-        new EvmJsonRPCBlockRepository(repoCfg, pools)
+        new EvmJsonRPCBlockRepository(repoCfg, pools),
+        "evm"
       );
 
       this.repositories.set("moonbeam-evmRepo", moonbeamRepository);
@@ -242,7 +294,8 @@ export class RepositoriesBuilder {
       );
 
       const suiRepository = new RateLimitedSuiJsonRPCBlockRepository(
-        new SuiJsonRPCBlockRepository(suiProviderPool)
+        new SuiJsonRPCBlockRepository(suiProviderPool),
+        SUI_CHAIN
       );
 
       this.repositories.set("sui-repo", suiRepository);
@@ -254,43 +307,40 @@ export class RepositoriesBuilder {
       const pools = this.createDefaultProviderPools(chain);
 
       const aptosRepository = new RateLimitedAptosJsonRPCBlockRepository(
-        new AptosJsonRPCBlockRepository(pools)
+        new AptosJsonRPCBlockRepository(pools),
+        APTOS_CHAIN
       );
 
       this.repositories.set("aptos-repo", aptosRepository);
     }
   }
 
-  private buildSeiRepository(chain: string): void {
-    if (chain == SEI_CHAIN) {
-      const pools = this.createDefaultProviderPools(chain);
+  private buildCosmosRepository(chain: string, pools: ProviderPoolMap): void {
+    if (chain == COSMOS_CHAIN) {
+      const repoCfg: JsonRPCBlockRepositoryCfg = {
+        chains: this.cfg.chains,
+        environment: this.cfg.environment,
+      };
 
-      const seiRepository = new RateLimitedSeiJsonRPCBlockRepository(
-        new SeiJsonRPCBlockRepository(pools)
+      const CosmosRepository = new RateLimitedCosmosJsonRPCBlockRepository(
+        new CosmosJsonRPCBlockRepository(repoCfg, pools),
+        COSMOS_CHAIN
       );
 
-      this.repositories.set("sei-repo", seiRepository);
+      this.repositories.set("cosmos-repo", CosmosRepository);
     }
   }
 
-  private buildWormchainRepository(chain: string): void {
+  private buildWormchainRepository(chain: string, pools: ProviderPoolMap): void {
     if (chain == WORMCHAIN_CHAIN) {
-      const injectivePools = this.createDefaultProviderPools("injective");
-      const wormchainPools = this.createDefaultProviderPools("wormchain");
-      const osmosisPools = this.createDefaultProviderPools("osmosis");
-      const kujiraPools = this.createDefaultProviderPools("kujira");
-      const evmosPools = this.createDefaultProviderPools("evmos");
-
-      const cosmosPools: Map<number, ProviderPool<InstrumentedHttpProvider>> = new Map([
-        [19, injectivePools],
-        [20, osmosisPools],
-        [3104, wormchainPools],
-        [4001, evmosPools],
-        [4002, kujiraPools],
-      ]);
+      const repoCfg: JsonRPCBlockRepositoryCfg = {
+        chains: this.cfg.chains,
+        environment: this.cfg.environment,
+      };
 
       const wormchainRepository = new RateLimitedWormchainJsonRPCBlockRepository(
-        new WormchainJsonRPCBlockRepository(cosmosPools)
+        new WormchainJsonRPCBlockRepository(repoCfg, pools),
+        WORMCHAIN_CHAIN
       );
 
       this.repositories.set("wormchain-repo", wormchainRepository);
@@ -305,11 +355,25 @@ export class RepositoriesBuilder {
       const algoIndexerPools = this.createDefaultProviderPools(chain, algoIndexerRpcs);
       const algoV2Pools = this.createDefaultProviderPools(chain, algoRpcs);
 
-      const seiRepository = new RateLimitedAlgorandJsonRPCBlockRepository(
-        new AlgorandJsonRPCBlockRepository(algoV2Pools, algoIndexerPools)
+      const algorandRepository = new RateLimitedAlgorandJsonRPCBlockRepository(
+        new AlgorandJsonRPCBlockRepository(algoV2Pools, algoIndexerPools),
+        ALGORAND_CHAIN
       );
 
-      this.repositories.set("algorand-repo", seiRepository);
+      this.repositories.set("algorand-repo", algorandRepository);
+    }
+  }
+
+  private buildNearRepository(chain: string): void {
+    if (chain == NEAR_CHAIN) {
+      const pools = this.createDefaultProviderPools(chain);
+
+      const aptosRepository = new RateLimitedNearJsonRPCBlockRepository(
+        new NearJsonRPCBlockRepository(pools),
+        NEAR_CHAIN
+      );
+
+      this.repositories.set("near-repo", aptosRepository);
     }
   }
 
@@ -334,7 +398,7 @@ export class RepositoriesBuilder {
     return new SNSClient(snsCfg);
   }
 
-  private createEvmProviderPools(): ProviderPoolMap {
+  private createAllProvidersPool(): ProviderPoolMap {
     let pools: ProviderPoolMap = {};
     for (const chain in this.cfg.chains) {
       const cfg = this.cfg.chains[chain];
@@ -371,3 +435,10 @@ export class RepositoriesBuilder {
     });
   }
 }
+
+export type JsonRPCBlockRepositoryCfg = {
+  chains: Record<string, ChainRPCConfig>;
+  environment: string;
+};
+
+export type ProviderPoolMap = Record<string, ProviderPool<InstrumentedHttpProvider>>;
