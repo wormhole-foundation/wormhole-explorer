@@ -24,11 +24,11 @@ func NewAlertClient(cfg *config.Configuration) (alert.AlertClient, error) {
 	return alert.NewAlertService(alertConfig, flyAlert.LoadAlerts)
 }
 
-func NewMetrics(cfg *config.Configuration, dbLayer string) metrics.Metrics {
+func NewMetrics(cfg *config.Configuration) metrics.Metrics {
 	if !cfg.MetricsEnabled {
 		return metrics.NewDummyMetrics()
 	}
-	return metrics.NewPrometheusMetrics(cfg.Environment, dbLayer)
+	return metrics.NewPrometheusMetrics(cfg.Environment, cfg.DbLayer)
 }
 
 func CheckGuardian(guardian *health.GuardianCheck) healthcheck.Check {

@@ -11,6 +11,7 @@ type Metrics interface {
 	IncVaaUnfiltered(chainID uint16)
 	IncVaaParsed(chainID uint16)
 	IncVaaParsedInserted(chainID uint16)
+	IncVaaParsedInsertFailed(chainID uint16, dbLayer string)
 
 	IncVaaPayloadParserRequestCount(chainID uint16)
 	IncVaaPayloadParserErrorCount(chainID uint16)

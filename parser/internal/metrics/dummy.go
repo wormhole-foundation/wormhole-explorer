@@ -26,6 +26,9 @@ func (d *DummyMetrics) IncVaaParsed(chainID uint16) {}
 // IncVaaParsedInserted increments the number of parsed VAA inserted into database.
 func (d *DummyMetrics) IncVaaParsedInserted(chainID uint16) {}
 
+// IncVaaParsedInsertFailed increments the number of parsed VAA insert failed.
+func (d *DummyMetrics) IncVaaParsedInsertFailed(chainID uint16, dbLayer string) {}
+
 // IncVaaPayloadParserRequestCount increments the number of vaa payload parser request.
 func (d *DummyMetrics) IncVaaPayloadParserRequestCount(chainID uint16) {}
 
