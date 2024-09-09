@@ -195,7 +195,7 @@ func (r *PostgresRepository) UpdateGovernorStatus(
 // FindActiveAttestationVaaByVaaID finds active attestation vaa by vaa id.
 func (r *PostgresRepository) FindActiveAttestationVaaByVaaID(ctx context.Context, vaaID string) (*AttestationVaa, error) {
 	query := `SELECT id, vaa_id, version, emitter_chain_id, emitter_address, sequence, guardian_set_index, raw, 
-	timestamp, active, is_duplicated, created_at, updated_at 
+	timestamp, active, is_duplicated, consistency_level, created_at, updated_at 
 	FROM wormholescan.wh_attestation_vaas WHERE vaa_id = $1 AND active = true`
 	var rows []*AttestationVaa
 	err := r.db.Select(ctx, &rows, query, vaaID)
@@ -219,7 +219,7 @@ func (r *PostgresRepository) FindActiveAttestationVaaByVaaID(ctx context.Context
 // FindAttestationVaaByVaaId finds attestation vaa by vaa id.
 func (r *PostgresRepository) FindAttestationVaaByVaaId(ctx context.Context, vaaID string) ([]AttestationVaa, error) {
 	query := `SELECT id, vaa_id, version, emitter_chain_id, emitter_address, sequence, guardian_set_index, raw, 
-	timestamp, active, is_duplicated, created_at, updated_at FROM wormholescan.wh_attestation_vaas WHERE vaa_id = $1`
+	timestamp, active, is_duplicated, consistency_level, created_at, updated_at FROM wormholescan.wh_attestation_vaas WHERE vaa_id = $1`
 	var rows []AttestationVaa
 	err := r.db.Select(ctx, &rows, query, vaaID)
 	if err != nil {
