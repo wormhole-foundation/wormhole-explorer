@@ -9,7 +9,7 @@ type Metrics interface {
 	IncDuplicatedVaaProcessed(chainID sdk.ChainID)
 	IncDuplicatedVaaFailed(chainID sdk.ChainID)
 	IncDuplicatedVaaExpired(chainID sdk.ChainID)
-	IncDuplicatedVaaCanNotFixed(chainID sdk.ChainID)
+	IncDuplicatedVaaCanNotFixed(chainID sdk.ChainID, dbLayer string)
 	IncGovernorStatusConsumedQueue()
 	IncGovernorStatusProcessed(node string, address string)
 	IncGovernorStatusFailed(node string, address string)

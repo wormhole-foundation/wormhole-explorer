@@ -8,6 +8,7 @@ import (
 
 // PrometheusMetrics is a Prometheus implementation of Metric interface.
 type PrometheusMetrics struct {
+	dbLayer             string
 	duplicatedVaaCount  *prometheus.CounterVec
 	governorStatusCount *prometheus.CounterVec
 	governorConfigCount *prometheus.CounterVec
@@ -15,7 +16,7 @@ type PrometheusMetrics struct {
 }
 
 // NewPrometheusMetrics returns a new instance of PrometheusMetrics.
-func NewPrometheusMetrics(environment string) *PrometheusMetrics {
+func NewPrometheusMetrics(environment string, dbLayer string) *PrometheusMetrics {
 	return &PrometheusMetrics{
 		duplicatedVaaCount: promauto.NewCounterVec(
 			prometheus.CounterOpts{
@@ -25,7 +26,7 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 					"environment": environment,
 					"service":     serviceName,
 				},
-			}, []string{"chain", "type"}),
+			}, []string{"chain", "type", "dblayer"}),
 		governorStatusCount: promauto.NewCounterVec(
 			prometheus.CounterOpts{
 				Name: "wormscan_fly_event_processor_governor_status_count",
@@ -58,31 +59,31 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 
 // IncDuplicatedVaaConsumedQueue increments the total number of duplicated VAA consumed queue.
 func (m *PrometheusMetrics) IncDuplicatedVaaConsumedQueue() {
-	m.duplicatedVaaCount.WithLabelValues("all", "consumed_queue").Inc()
+	m.duplicatedVaaCount.WithLabelValues("all", "consumed_queue", m.dbLayer).Inc()
 }
 
 // IncDuplicatedVaaProcessed increments the total number of duplicated VAA processed.
 func (m *PrometheusMetrics) IncDuplicatedVaaProcessed(chainID sdk.ChainID) {
 	chain := chainID.String()
-	m.duplicatedVaaCount.WithLabelValues(chain, "processed").Inc()
+	m.duplicatedVaaCount.WithLabelValues(chain, "processed", m.dbLayer).Inc()
 }
 
 // IncDuplicatedVaaFailed increments the total number of duplicated VAA failed.
 func (m *PrometheusMetrics) IncDuplicatedVaaFailed(chainID sdk.ChainID) {
 	chain := chainID.String()
-	m.duplicatedVaaCount.WithLabelValues(chain, "failed").Inc()
+	m.duplicatedVaaCount.WithLabelValues(chain, "failed", m.dbLayer).Inc()
 }
 
 // IncDuplicatedVaaExpired increments the total number of duplicated VAA expired.
 func (m *PrometheusMetrics) IncDuplicatedVaaExpired(chainID sdk.ChainID) {
 	chain := chainID.String()
-	m.duplicatedVaaCount.WithLabelValues(chain, "expired").Inc()
+	m.duplicatedVaaCount.WithLabelValues(chain, "expired", m.dbLayer).Inc()
 }
 
 // IncDuplicatedVaaCanNotFixed increments the total number of duplicated VAA can not fixed.
-func (m *PrometheusMetrics) IncDuplicatedVaaCanNotFixed(chainID sdk.ChainID) {
+func (m *PrometheusMetrics) IncDuplicatedVaaCanNotFixed(chainID sdk.ChainID, dbLayer string) {
 	chain := chainID.String()
-	m.duplicatedVaaCount.WithLabelValues(chain, "can_not_fixed").Inc()
+	m.duplicatedVaaCount.WithLabelValues(chain, "can_not_fixed", dbLayer).Inc()
 }
 
 // IncGovernorStatusConsumedQueue increments the total number of governor status consumed queue.

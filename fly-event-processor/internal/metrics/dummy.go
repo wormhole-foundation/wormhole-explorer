@@ -23,7 +23,7 @@ func (d *DummyMetrics) IncDuplicatedVaaFailed(chainID sdk.ChainID) {}
 func (d *DummyMetrics) IncDuplicatedVaaExpired(chainID sdk.ChainID) {}
 
 // IncDuplicatedVaaCanNotFixed dummy implementation.
-func (d *DummyMetrics) IncDuplicatedVaaCanNotFixed(chainID sdk.ChainID) {}
+func (d *DummyMetrics) IncDuplicatedVaaCanNotFixed(chainID sdk.ChainID, dbLayer string) {}
 
 // IncGovernorStatusConsumedQueue dummy implementation.
 func (d *DummyMetrics) IncGovernorStatusConsumedQueue() {}

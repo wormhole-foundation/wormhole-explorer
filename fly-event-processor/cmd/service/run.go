@@ -316,7 +316,7 @@ func newMetrics(cfg *config.ServiceConfiguration) metrics.Metrics {
 	if !cfg.MetricsEnabled {
 		return metrics.NewDummyMetrics()
 	}
-	return metrics.NewPrometheusMetrics(cfg.Environment)
+	return metrics.NewPrometheusMetrics(cfg.Environment, cfg.DbLayer)
 }
 
 func newGuardianProviderPool(cfg *config.ServiceConfiguration) (*pool.Pool, error) {
