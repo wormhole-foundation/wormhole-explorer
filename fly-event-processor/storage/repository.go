@@ -4,6 +4,8 @@ import (
 	"context"
 
 	commonRepo "github.com/wormhole-foundation/wormhole-explorer/common/repository"
+	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/config"
+	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/internal/metrics"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 	"gopkg.in/mgo.v2/bson"
@@ -13,6 +15,7 @@ import (
 // Remove Repository after switch to use only postgres.
 type Repository struct {
 	logger           *zap.Logger
+	metrics          metrics.Metrics
 	vaas             *mongo.Collection
 	duplicateVaas    *mongo.Collection
 	nodeGovernorVaas *mongo.Collection
@@ -20,9 +23,10 @@ type Repository struct {
 }
 
 // New creates a new repository.
-func NewRepository(logger *zap.Logger, db *mongo.Database) *Repository {
+func NewRepository(logger *zap.Logger, db *mongo.Database, metrics metrics.Metrics) *Repository {
 	r := Repository{
 		logger:           logger,
+		metrics:          metrics,
 		vaas:             db.Collection(commonRepo.Vaas),
 		duplicateVaas:    db.Collection(commonRepo.DuplicateVaas),
 		nodeGovernorVaas: db.Collection(commonRepo.NodeGovernorVaas),
@@ -184,6 +188,26 @@ func (r *Repository) FindGovernorVaaByVaaIDs(ctx context.Context, vaaID []string
 }
 
 func (r *Repository) UpdateGovernorStatus(
+	ctx context.Context,
+	nodeName string,
+	nodeAddress string,
+	nodeGovernorVaaDocToInsert []NodeGovernorVaa,
+	nodeGovernorVaaDocToDelete []string,
+	governorVaasToInsert []GovernorVaa,
+	governorVaaIdsToDelete []string) error {
+	err := r.updateGovernorStatus(ctx,
+		nodeGovernorVaaDocToInsert,
+		nodeGovernorVaaDocToDelete,
+		governorVaasToInsert,
+		governorVaaIdsToDelete)
+	if err != nil {
+		r.metrics.IncGovernorStatusUpdateFailed(
+			nodeName, nodeAddress, config.DbLayerMongo)
+	}
+	return err
+}
+
+func (r *Repository) updateGovernorStatus(
 	ctx context.Context,
 	nodeGovernorVaaDocToInsert []NodeGovernorVaa,
 	nodeGovernorVaaDocToDelete []string,

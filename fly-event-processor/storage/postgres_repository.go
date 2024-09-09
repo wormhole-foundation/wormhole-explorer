@@ -6,20 +6,24 @@ import (
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/db"
+	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/config"
+	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/internal/metrics"
 	"go.uber.org/zap"
 )
 
 // PostgresRepository is a repository for postgres.
 type PostgresRepository struct {
-	db     *db.DB
-	logger *zap.Logger
+	db      *db.DB
+	metrics metrics.Metrics
+	logger  *zap.Logger
 }
 
 // NewPostgresRepository creates a new repository.
-func NewPostgresRepository(db *db.DB, logger *zap.Logger) *PostgresRepository {
+func NewPostgresRepository(db *db.DB, logger *zap.Logger, metrics metrics.Metrics) *PostgresRepository {
 	return &PostgresRepository{
-		db:     db,
-		logger: logger,
+		db:      db,
+		metrics: metrics,
+		logger:  logger,
 	}
 }
 
@@ -127,6 +131,26 @@ func (r *PostgresRepository) FindGovernorVaaByVaaIDs(ctx context.Context, vaaID 
 }
 
 func (r *PostgresRepository) UpdateGovernorStatus(
+	ctx context.Context,
+	nodeName string,
+	nodeAddress string,
+	nodeGovernorVaaDocToInsert []NodeGovernorVaa,
+	nodeGovernorVaaDocToDelete []string,
+	governorVaasToInsert []GovernorVaa,
+	governorVaaIdsToDelete []string) error {
+	err := r.updateGovernorStatus(ctx,
+		nodeGovernorVaaDocToInsert,
+		nodeGovernorVaaDocToDelete,
+		governorVaasToInsert,
+		governorVaaIdsToDelete)
+	if err != nil {
+		r.metrics.IncGovernorStatusUpdateFailed(
+			nodeName, nodeAddress, config.DbLayerPostgres)
+	}
+	return err
+}
+
+func (r *PostgresRepository) updateGovernorStatus(
 	ctx context.Context,
 	nodeGovernorVaaDocToInsert []NodeGovernorVaa,
 	nodeGovernorVaaDocToDelete []string,

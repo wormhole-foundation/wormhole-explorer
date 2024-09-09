@@ -61,7 +61,7 @@ func Run() {
 	}
 
 	// initialize db and repositories
-	s, err := newStorageLayer(rootCtx, cfg, logger)
+	s, err := newStorageLayer(rootCtx, cfg, metrics, logger)
 	if err != nil {
 		logger.Fatal("Error initializing db and repositories: ", zap.Error(err))
 	}
@@ -150,6 +150,7 @@ type storageLayer struct {
 
 func newStorageLayer(ctx context.Context,
 	cfg *config.ServiceConfiguration,
+	metrics metrics.Metrics,
 	logger *zap.Logger) (*storageLayer, error) {
 
 	var mongoDb *dbutil.Session
@@ -163,24 +164,24 @@ func newStorageLayer(ctx context.Context,
 		if err != nil {
 			return nil, err
 		}
-		mongoRepository = storage.NewRepository(logger, mongoDb.Database)
+		mongoRepository = storage.NewRepository(logger, mongoDb.Database, metrics)
 	case config.DbLayerPostgres:
 		postgresDb, err = newPostgresDatabase(ctx, cfg, logger)
 		if err != nil {
 			return nil, err
 		}
-		postgresRepository = storage.NewPostgresRepository(postgresDb, logger)
+		postgresRepository = storage.NewPostgresRepository(postgresDb, logger, metrics)
 	case config.DbLayerDual:
 		mongoDb, err = dbutil.Connect(ctx, logger, cfg.MongoURI, cfg.MongoDatabase, false)
 		if err != nil {
 			return nil, err
 		}
-		mongoRepository = storage.NewRepository(logger, mongoDb.Database)
+		mongoRepository = storage.NewRepository(logger, mongoDb.Database, metrics)
 		postgresDb, err = newPostgresDatabase(ctx, cfg, logger)
 		if err != nil {
 			return nil, err
 		}
-		postgresRepository = storage.NewPostgresRepository(postgresDb, logger)
+		postgresRepository = storage.NewPostgresRepository(postgresDb, logger, metrics)
 	default:
 		return nil, fmt.Errorf("invalid db layer: %s", cfg.DbLayer)
 	}

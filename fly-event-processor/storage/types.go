@@ -20,7 +20,7 @@ type GovernorStatusRepository interface {
 	FindNodeGovernorVaaByVaaID(ctx context.Context, vaaID string) ([]NodeGovernorVaa, error)
 	FindNodeGovernorVaaByVaaIDs(ctx context.Context, vaaID []string) ([]NodeGovernorVaa, error)
 	FindGovernorVaaByVaaIDs(ctx context.Context, vaaID []string) ([]GovernorVaa, error)
-	UpdateGovernorStatus(ctx context.Context, nodeGovernorVaaDocToInsert []NodeGovernorVaa,
+	UpdateGovernorStatus(ctx context.Context, nodeName string, nodeAddress string, nodeGovernorVaaDocToInsert []NodeGovernorVaa,
 		nodeGovernorVaaDocToDelete []string, governorVaasToInsert []GovernorVaa,
 		governorVaaIdsToDelete []string) error
 }

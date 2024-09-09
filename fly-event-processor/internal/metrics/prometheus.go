@@ -35,7 +35,7 @@ func NewPrometheusMetrics(environment string, dbLayer string) *PrometheusMetrics
 					"environment": environment,
 					"service":     serviceName,
 				},
-			}, []string{"node", "address", "type"}),
+			}, []string{"node", "address", "type", "dblayer"}),
 		governorConfigCount: promauto.NewCounterVec(
 			prometheus.CounterOpts{
 				Name: "wormscan_fly_event_processor_governor_config_count",
@@ -88,22 +88,27 @@ func (m *PrometheusMetrics) IncDuplicatedVaaCanNotFixed(chainID sdk.ChainID, dbL
 
 // IncGovernorStatusConsumedQueue increments the total number of governor status consumed queue.
 func (m *PrometheusMetrics) IncGovernorStatusConsumedQueue() {
-	m.governorStatusCount.WithLabelValues("all", "", "consumed_queue").Inc()
+	m.governorStatusCount.WithLabelValues("all", "", "consumed_queue", m.dbLayer).Inc()
 }
 
 // IncGovernorStatusProcessed increments the total number of governor status processed.
 func (m *PrometheusMetrics) IncGovernorStatusProcessed(node string, address string) {
-	m.governorStatusCount.WithLabelValues(node, address, "processed").Inc()
+	m.governorStatusCount.WithLabelValues(node, address, "processed", m.dbLayer).Inc()
 }
 
 // IncGovernorStatusFailed increments the total number of governor status failed.
 func (m *PrometheusMetrics) IncGovernorStatusFailed(node string, address string) {
-	m.governorStatusCount.WithLabelValues(node, address, "failed").Inc()
+	m.governorStatusCount.WithLabelValues(node, address, "failed", m.dbLayer).Inc()
+}
+
+// IncGovernorStatusUpdateFailed increments the total number of governor status update failed.
+func (m *PrometheusMetrics) IncGovernorStatusUpdateFailed(node string, address string, dbLayer string) {
+	m.governorStatusCount.WithLabelValues(node, address, "update_failed", dbLayer).Inc()
 }
 
 // IncGovernorStatusExpired increments the total number of governor status expired.
 func (m *PrometheusMetrics) IncGovernorStatusExpired(node string, address string) {
-	m.governorStatusCount.WithLabelValues(node, address, "expired").Inc()
+	m.governorStatusCount.WithLabelValues(node, address, "expired", m.dbLayer).Inc()
 }
 
 // IncGovernorConfigConsumedQueue increments the total number of governor config consumed queue.
