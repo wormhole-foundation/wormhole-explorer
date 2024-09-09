@@ -28,19 +28,29 @@ export const findProtocol = (
 
       if (!protocol) {
         // If not found by address, try to find by method
-        protocol = contract.protocols.find((protocol) =>
+        const protocolsByMethod = contract.protocols.filter((protocol) =>
           protocol.methods.some((method) => method.methodId === comparativeMethod)
         );
+
+        // If not found by method or found more than one, return unknown
+        if (!protocolsByMethod || protocolsByMethod.length > 1) {
+          return {
+            method: UNKNOWN,
+            type: UNKNOWN,
+          };
+        }
+
+        protocol = protocolsByMethod[0];
       }
 
       // Find the method in the identified protocol
-      const method = protocol?.methods.find(
+      const method = protocol.methods.find(
         (method) => method.methodId === String(comparativeMethod)
       );
 
       return {
         method: method?.method ?? UNKNOWN,
-        type: protocol?.type ?? UNKNOWN,
+        type: protocol.type ?? UNKNOWN,
       };
     }
   }

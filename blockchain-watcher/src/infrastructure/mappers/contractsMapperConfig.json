@@ -65,6 +65,20 @@
               "method": "completeWrappedInstruction"
             }
           ]
+        },
+        {
+          "addresses": ["HtkeCDdYY4i9ncAxXKjYTx8Uu3WM8JbtiLRYjtHwaVXb"],
+          "type": "Fast Transfer",
+          "methods": [
+            {
+              "methodId": "b0261e11e64ece9d",
+              "method": "executeFastOrderCctp"
+            },
+            {
+              "methodId": "",
+              "method": "executeSlowOrderCctp"
+            }
+          ]
         }
       ]
     },

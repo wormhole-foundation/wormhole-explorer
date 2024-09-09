@@ -73,5 +73,11 @@ export type HandleSolanaTxConfig = {
   // TODO: perhaps create mapper object in the config with the params instead
   // of having them in the handler config
   programId?: string;
-  programs?: Record<string, string[]>;
+  programs?: Record<
+    string,
+    {
+      vaaAccountIndex: number;
+      instructions: string[];
+    }[]
+  >;
 };

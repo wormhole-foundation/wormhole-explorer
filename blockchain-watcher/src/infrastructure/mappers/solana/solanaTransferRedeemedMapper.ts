@@ -20,8 +20,8 @@ export const solanaTransferRedeemedMapper = async (
   { programs, commitment }: SolanaTransferRedeemedMapperOpts
 ): Promise<TransactionFoundEvent<InstructionFound>[]> => {
   for (const programId in programs) {
-    const instructionsData = programs[programId];
-    const results = await processProgram(transaction, programId, instructionsData, commitment);
+    const programParams = programs[programId];
+    const results = await processProgram(transaction, programId, programParams, commitment);
     if (results.length) {
       return results;
     }
@@ -33,7 +33,7 @@ export const solanaTransferRedeemedMapper = async (
 const processProgram = async (
   transaction: solana.Transaction,
   programId: string,
-  { instructions: instructionsData, vaaAccountIndex }: ProgramParams,
+  programParams: ProgramParams[],
   commitment?: Commitment
 ) => {
   const chain = transaction.chain;
@@ -65,13 +65,15 @@ const processProgram = async (
     .filter((i) => i.programIdIndex === programIdIndex);
 
   const results: TransactionFoundEvent<InstructionFound>[] = [];
+
   for (const instruction of whInstructions) {
     const hexData = Buffer.from(instruction.data).toString("hex");
-    if (!instructionsData || !instructionsData.includes(hexData)) {
+    const programParam = programParams.find((program) => program.instructions.includes(hexData));
+    if (!programParam || !programParam.instructions || !programParam.vaaAccountIndex) {
       continue;
     }
 
-    const accountAddress = accountKeys[instruction.accountKeyIndexes[vaaAccountIndex]];
+    const accountAddress = accountKeys[instruction.accountKeyIndexes[programParam.vaaAccountIndex]];
     const { message } = await getPostedMessage(connection, accountAddress, commitment);
     const { sequence, emitterAddress, emitterChain } = message || {};
     const txHash = transaction.transaction.signatures[0];
@@ -119,6 +121,6 @@ export interface ProgramParams {
 }
 
 export type SolanaTransferRedeemedMapperOpts = {
-  programs: Record<string, ProgramParams>;
+  programs: Record<string, ProgramParams[]>;
   commitment?: Commitment;
 };
