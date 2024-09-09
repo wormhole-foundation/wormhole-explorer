@@ -57,20 +57,19 @@ CREATE TABLE wormholescan.wh_operation_transactions (
     "created_at" timestamp not null,
     "updated_at" timestamp not null,
     "attestation_vaas_id" varchar not null,
-    "vaa_id" varchar not null,
+    "message_id" varchar not null,
     "status" varchar null,
     "from_address" varchar null,
     "to_address" varchar null,
     "block_number" decimal(20,0) null,
     "blockchain_method" varchar null,
-    "fee" varchar null,
-    "raw_fee" json null,
+    "fee_detail" jsonb null,
     "timestamp" timestamptz not null,
     "rpc_response" json null,
-    PRIMARY KEY (chain_id, tx_hash)
+    PRIMARY KEY (message_id, tx_hash)
 );
-CREATE INDEX "wh_operation_transactions_vaa_id_idx"
-    ON wormholescan.wh_operation_transactions ("vaa_id");
+CREATE INDEX "wh_operation_transactions_message_id_idx"
+    ON wormholescan.wh_operation_transactions ("message_id");
 CREATE INDEX "wh_operation_transactions_tx_hash_idx"
     ON wormholescan.wh_operation_transactions ("tx_hash");
 CREATE INDEX "wh_operation_transactions_from_address_idx"
@@ -83,7 +82,7 @@ CREATE INDEX "wh_operation_transactions_chain_id_type_idx"
 
 CREATE TABLE wormholescan.wh_operation_transactions_processed (
     "id" varchar not null,
-    "vaa_id" varchar not null,
+    "message_id" varchar not null,
     "processed" bool not null,
     "created_at" timestamptz not null,
     "updated_at" timestamptz not null,
@@ -211,7 +210,7 @@ CREATE TABLE  wormholescan.wh_governor_vaas (
 -- create table wormholescan.wh_operation_prices
 CREATE TABLE wormholescan.wh_operation_prices (
     "id" varchar not null,
-    "vaa_id" varchar not null,
+    "message_id" varchar not null,
     "token_chain_id" smallint not null,
     "token_address" varchar not null,
     "coingecko_id" varchar not null,
@@ -228,7 +227,7 @@ CREATE TABLE wormholescan.wh_operation_prices (
 -- create table wormholescan.wh_attestation_vaa_properties
 CREATE TABLE wormholescan.wh_attestation_vaa_properties (
     "id" varchar not null,
-    "vaa_id" varchar not null,
+    "message_id" varchar not null,
     "app_id" text[] null,
     "payload" json null,
     "raw_standard_fields" json null,
@@ -248,8 +247,8 @@ CREATE TABLE wormholescan.wh_attestation_vaa_properties (
      PRIMARY KEY (id)
 );
 
-CREATE INDEX "wh_attestation_vaa_properties_vaa_id_idx" 
-    ON wormholescan.wh_attestation_vaa_properties ("vaa_id");
+CREATE INDEX "wh_attestation_vaa_properties_message_id_idx"
+    ON wormholescan.wh_attestation_vaa_properties ("message_id");
 CREATE INDEX "wh_attestation_vaa_properties_app_id_idx" 
     ON wormholescan.wh_attestation_vaa_properties USING gin("app_id"); 
 CREATE INDEX "wh_attestation_vaa_properties_from_address_idx" 
