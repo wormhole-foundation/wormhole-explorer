@@ -21,26 +21,20 @@ export const findProtocol = (
 ): Protocol => {
   for (const contract of contractsMapperConfig.contracts) {
     if (contract.chain === chain) {
-      // Find the protocol by address
+      // Try to find the protocol by address first
       let protocol = contract.protocols.find((protocol) =>
         protocol.addresses.some((addr) => addr.toLowerCase() === address.toLowerCase())
       );
 
+      // If not found by address, find by method
       if (!protocol) {
-        // If not found by address, try to find by method
         const protocolsByMethod = contract.protocols.filter((protocol) =>
           protocol.methods.some((method) => method.methodId === comparativeMethod)
         );
 
-        // If not found by method or found more than one, return unknown
-        if (!protocolsByMethod || protocolsByMethod.length > 1) {
-          return {
-            method: UNKNOWN,
-            type: UNKNOWN,
-          };
+        if (protocolsByMethod?.length === 1) {
+          protocol = protocolsByMethod[0];
         }
-
-        protocol = protocolsByMethod[0];
       }
 
       // Find the method in the identified protocol
