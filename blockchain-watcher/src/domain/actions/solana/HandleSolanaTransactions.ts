@@ -76,8 +76,8 @@ export type HandleSolanaTxConfig = {
   programs?: Record<
     string,
     {
-      vaaAccountIndex: number;
-      instructions: string[];
+      vaaAccountIndex?: number;
+      instructions?: string[];
     }[]
   >;
 };

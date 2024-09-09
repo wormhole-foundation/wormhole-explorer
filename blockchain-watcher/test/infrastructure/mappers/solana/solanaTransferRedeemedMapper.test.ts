@@ -24,10 +24,12 @@ describe("solanaTransferRedeemedMapper", () => {
     });
 
     const programs = {
-      DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe: {
-        instructions: ["02", "03", "09", "0a"],
-        vaaAccountIndex: 2,
-      },
+      DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe: [
+        {
+          instructions: ["02", "03", "09", "0a"],
+          vaaAccountIndex: 2,
+        },
+      ],
     };
     const tx = {
       blockTime: 1701724272,
@@ -174,10 +176,12 @@ describe("solanaTransferRedeemedMapper", () => {
     });
 
     const programs = {
-      DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe: {
-        instructions: ["02", "03", "09", "0a"],
-        vaaAccountIndex: 2,
-      },
+      DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe: [
+        {
+          instructions: ["02", "03", "09", "0a"],
+          vaaAccountIndex: 2,
+        },
+      ],
     };
     const tx = {
       blockTime: 1701701948,

@@ -44,13 +44,13 @@ export const findProtocol = (
       }
 
       // Find the method in the identified protocol
-      const method = protocol.methods.find(
+      const method = protocol?.methods.find(
         (method) => method.methodId === String(comparativeMethod)
       );
 
       return {
         method: method?.method ?? UNKNOWN,
-        type: protocol.type ?? UNKNOWN,
+        type: protocol?.type ?? UNKNOWN,
       };
     }
   }
