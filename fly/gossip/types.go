@@ -7,9 +7,6 @@ import (
 
 type GossipChannels struct {
 
-	// Outbound gossip message queue
-	SendChannel chan []byte
-
 	// Inbound observations
 	ObsvChannel chan *common.MsgWithTimeStamp[gossipv1.SignedObservation]
 
