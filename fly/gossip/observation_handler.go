@@ -51,7 +51,7 @@ func (h *observationHandler) Start(ctx context.Context) {
 			case m := <-h.batchObsvC:
 				o := m.Msg
 				h.guardian.Ping(ctx)
-				h.metrics.IncBatchObservationTotal()
+				h.metrics.IncBatchObservationTotal(uint64(len(o.Observations)))
 				h.pushBatchObsFunc(ctx, o)
 			}
 		}

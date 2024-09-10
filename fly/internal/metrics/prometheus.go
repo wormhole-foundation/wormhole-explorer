@@ -16,6 +16,7 @@ type PrometheusMetrics struct {
 	observationReceivedCount      *prometheus.CounterVec
 	observationTotal              prometheus.Counter
 	batchObservationTotal         prometheus.Counter
+	batchSizeObservations         prometheus.Histogram
 	observationReceivedByGuardian *prometheus.CounterVec
 	heartbeatReceivedCount        *prometheus.CounterVec
 	governorConfigReceivedCount   *prometheus.CounterVec
@@ -66,6 +67,14 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 			Name:        "batch_observation_total",
 			Help:        "Total number of batch observation messages from Gossip network",
 			ConstLabels: constLabels,
+		})
+
+	batchSizeObservations := promauto.NewHistogram(
+		prometheus.HistogramOpts{
+			Name:        "batch_size_observations",
+			Help:        "Batch-observation sizes incoming from Gossip network",
+			ConstLabels: constLabels,
+			Buckets:     prometheus.LinearBuckets(1, 50, 30), // (0;1] ; (1-51] ; (51-101] ; (101-151] ...
 		})
 
 	observationReceivedByGuardian := promauto.NewCounterVec(
@@ -134,6 +143,7 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 		observationReceivedCount:      observationReceivedCount,
 		observationTotal:              observationTotal,
 		batchObservationTotal:         batchObservationTotal,
+		batchSizeObservations:         batchSizeObservations,
 		heartbeatReceivedCount:        heartbeatReceivedCount,
 		governorConfigReceivedCount:   governorConfigReceivedCount,
 		governorStatusReceivedCount:   governorStatusReceivedCount,
@@ -202,8 +212,9 @@ func (m *PrometheusMetrics) IncObservationTotal() {
 }
 
 // IncBatchObservationTotal increases the number of batch observation messages received from Gossip network.
-func (m *PrometheusMetrics) IncBatchObservationTotal() {
-	m.observationTotal.Inc()
+func (m *PrometheusMetrics) IncBatchObservationTotal(batchSize uint64) {
+	m.batchObservationTotal.Inc()
+	m.batchSizeObservations.Observe(float64(batchSize))
 }
 
 // IncObservationInvalidGuardian increases the number of invalid guardian in observation from Gossip network.

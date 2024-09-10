@@ -23,7 +23,7 @@ type Metrics interface {
 	IncObservationInserted(chain sdk.ChainID)
 	IncObservationWithoutTxHash(chain sdk.ChainID)
 	IncObservationTotal()
-	IncBatchObservationTotal()
+	IncBatchObservationTotal(batchSize uint64)
 	IncObservationInvalidGuardian(address string)
 	IncObservationBadSigner(address string)
 	IncObservationValid(address string)

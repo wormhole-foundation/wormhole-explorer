@@ -25,7 +25,7 @@ require (
 	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240823200831-78771ff5297e
 	go.mongodb.org/mongo-driver v1.14.0
 	go.uber.org/zap v1.27.0
-	google.golang.org/protobuf v1.33.0
+	google.golang.org/protobuf v1.34.2
 )
 
 require (
