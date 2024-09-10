@@ -79,3 +79,15 @@ func (r *DualRepository) UpsertOriginTx(ctx context.Context, originTx, nestedTx 
 	}
 	return r.postgresRepository.UpsertOriginTx(ctx, originTx, nestedTx)
 }
+
+func (r *DualRepository) GetIDByVaaID(ctx context.Context, vaaID string) (string, error) {
+	id, err := r.mongoRepository.GetIDByVaaID(ctx, vaaID)
+	if err == nil && id != "" {
+		return id, nil
+	}
+	id, err = r.postgresRepository.GetIDByVaaID(ctx, vaaID)
+	if err != nil {
+		return "", err
+	}
+	return id, nil
+}

@@ -65,7 +65,6 @@ func ProcessTargetTx(
 	txHash := domain.NormalizeTxHashByChainId(params.ChainID, params.TxHash)
 	now := time.Now()
 	update := &TargetTxUpdate{
-		ID:      params.ID,
 		VaaID:   params.VaaID,
 		TrackID: params.TrackID,
 		Destination: &DestinationTx{
@@ -89,6 +88,12 @@ func ProcessTargetTx(
 		return nil
 	}
 
+	/// find id for vaa id
+	update.ID, err = repository.GetIDByVaaID(ctx, params.VaaID)
+	if err != nil {
+		logger.Error("Error getting digest by vaa id", zap.Error(err), zap.String("vaaId", params.VaaID))
+		return err
+	}
 	err = repository.UpsertTargetTx(ctx, update)
 	if err != nil {
 		logger.Error("Error upserting target tx", zap.Error(err), zap.String("vaaId", params.VaaID))

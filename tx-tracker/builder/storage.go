@@ -41,31 +41,33 @@ func NewStorageLayer(ctx context.Context, params StorageLayerParams, logger *zap
 			return nil, err
 		}
 		storageLayer.mongoDB = mongoDb
-		storageLayer.repository = consumer.NewMongoRepository(logger, mongoDb.Database)
-		storageLayer.vaaRepository = vaa.NewMongoVaaRepository(mongoDb.Database, logger)
+		vaaRepository := vaa.NewMongoVaaRepository(mongoDb.Database, logger)
+		storageLayer.repository = consumer.NewMongoRepository(logger, mongoDb.Database, vaaRepository)
+		storageLayer.vaaRepository = vaaRepository
 	case config.DbLayerPostgresql:
 		postgresDb, err = newPostgresDatabase(ctx, params.DbLogEnabled, params.DbUrl, logger)
 		if err != nil {
 			return nil, err
 		}
+		vaaRepository := vaa.NewVaaRepositoryPostreSQL(postgresDb, logger)
 		storageLayer.postgresDB = postgresDb
-		storageLayer.repository = consumer.NewPostgreSQLRepository(postgresDb)
-		storageLayer.vaaRepository = vaa.NewVaaRepositoryPostreSQL(postgresDb, logger)
+		storageLayer.repository = consumer.NewPostgreSQLRepository(postgresDb, vaaRepository)
+		storageLayer.vaaRepository = vaaRepository
 	case config.DbLayerDual:
 		mongoDb, err = dbutil.Connect(ctx, logger, params.MongodbUri, params.MongodbDatabase, false)
 		if err != nil {
 			return nil, err
 		}
 		storageLayer.mongoDB = mongoDb
-		mongoRepository := consumer.NewMongoRepository(logger, mongoDb.Database)
 		mongoVaaRepository := vaa.NewMongoVaaRepository(mongoDb.Database, logger)
+		mongoRepository := consumer.NewMongoRepository(logger, mongoDb.Database, mongoVaaRepository)
 		postgresDb, err = newPostgresDatabase(ctx, params.DbLogEnabled, params.DbUrl, logger)
 		if err != nil {
 			return nil, err
 		}
 		storageLayer.postgresDB = postgresDb
-		postgresRepository := consumer.NewPostgreSQLRepository(postgresDb)
 		postgresVaaRepository := vaa.NewVaaRepositoryPostreSQL(postgresDb, logger)
+		postgresRepository := consumer.NewPostgreSQLRepository(postgresDb, postgresVaaRepository)
 		// create dual vaa repository
 		storageLayer.vaaRepository = vaa.NewDualVaaRepository(mongoVaaRepository, postgresVaaRepository)
 		// create dual repository

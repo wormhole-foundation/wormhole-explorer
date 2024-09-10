@@ -6,14 +6,17 @@ import (
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/db"
-	"github.com/wormhole-foundation/wormhole/sdk/vaa"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/repository/vaa"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
 type PostgreSQLRepository struct {
-	dbClient *db.DB
+	dbClient      *db.DB
+	vaaRepository *vaa.RepositoryPostreSQL
 }
 
-func NewPostgreSQLRepository(postreSQLClient *db.DB) *PostgreSQLRepository {
+func NewPostgreSQLRepository(postreSQLClient *db.DB, vaaRepository *vaa.RepositoryPostreSQL) *PostgreSQLRepository {
 	return &PostgreSQLRepository{
 		dbClient: postreSQLClient,
 	}
@@ -132,7 +135,7 @@ func (p *PostgreSQLRepository) UpsertTargetTx(ctx context.Context, params *Targe
 	var from, to, blockchainMethod, status, txHash *string
 	var blockNumber *uint64
 	var timestamp, updatedAt *time.Time
-	var chainID *vaa.ChainID
+	var chainID *sdk.ChainID
 	if params.Destination != nil {
 		from = &params.Destination.From
 		to = &params.Destination.To
@@ -243,4 +246,15 @@ func (p *PostgreSQLRepository) FindSourceTxById(ctx context.Context, id string) 
 			From:         sourceTx.FromAddr,
 		},
 	}, nil
+}
+
+// GetIDByVaaID returns the id for the given vaa id
+func (p *PostgreSQLRepository) GetIDByVaaID(ctx context.Context, vaaID string) (string, error) {
+
+	v, err := p.vaaRepository.GetVaa(ctx, vaaID)
+	if err != nil {
+		return "", err
+	}
+
+	return domain.GetDigestFromRaw(v.Vaa)
 }

@@ -16,7 +16,7 @@ type RepositoryMongoDB struct {
 }
 
 // NewMongoVaaRepository create a new VaaRepositoryMongoDB.
-func NewMongoVaaRepository(db *mongo.Database, logger *zap.Logger) VAARepository {
+func NewMongoVaaRepository(db *mongo.Database, logger *zap.Logger) *RepositoryMongoDB {
 	return &RepositoryMongoDB{db: db,
 		logger:             logger.With(zap.String("module", "VaaRepository")),
 		vaas:               db.Collection("vaas"),
