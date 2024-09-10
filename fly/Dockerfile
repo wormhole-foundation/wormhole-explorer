@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 docker.io/golang:1.20.7-bullseye@sha256:74b09b3b6fa5aa542df8ef974cb745eb477be72f6fcf821517fb410aff532b00 AS build
+FROM --platform=linux/amd64 docker.io/golang:1.21.9-bullseye@sha256:311468bffa9fa4747a334b94e6ce3681b564126d653675a6adc46698b2b88d35 AS build
 
 WORKDIR /app
 

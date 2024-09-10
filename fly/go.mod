@@ -1,6 +1,8 @@
 module github.com/wormhole-foundation/wormhole-explorer/fly
 
-go 1.20
+go 1.21.9
+
+toolchain go1.21.12
 
 require (
 	github.com/ansrivas/fiberprometheus/v2 v2.6.0
@@ -9,7 +11,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/credentials v1.11.0
 	github.com/aws/aws-sdk-go-v2/service/sns v1.20.2
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.20.2
-	github.com/certusone/wormhole/node v0.0.0-20240416174455-25e60611a867
+	github.com/certusone/wormhole/node v0.0.0-20240904180537-ff9c4b1d836e
 	github.com/dgraph-io/ristretto v0.1.1
 	github.com/eko/gocache/v3 v3.1.2
 	github.com/ethereum/go-ethereum v1.10.21
@@ -20,7 +22,7 @@ require (
 	github.com/sethvargo/go-envconfig v1.0.0
 	github.com/stretchr/testify v1.8.4
 	github.com/test-go/testify v1.1.4
-	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240416174455-25e60611a867
+	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240823200831-78771ff5297e
 	go.mongodb.org/mongo-driver v1.14.0
 	go.uber.org/zap v1.27.0
 	google.golang.org/protobuf v1.32.0
@@ -101,6 +103,7 @@ require (
 	github.com/tinylib/msgp v1.1.8 // indirect
 	github.com/tklauser/go-sysconf v0.3.10 // indirect
 	github.com/tklauser/numcpus v0.4.0 // indirect
+	github.com/wormhole-foundation/wormhole v2.24.11+incompatible // indirect
 	go.opentelemetry.io/otel v1.21.0 // indirect
 	go.opentelemetry.io/otel/metric v1.21.0 // indirect
 	go.opentelemetry.io/otel/trace v1.21.0 // indirect
