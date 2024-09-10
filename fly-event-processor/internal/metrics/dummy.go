@@ -34,8 +34,8 @@ func (d *DummyMetrics) IncGovernorStatusProcessed(node string, address string) {
 // IncGovernorStatusFailed dummy implementation.
 func (d *DummyMetrics) IncGovernorStatusFailed(node string, address string) {}
 
-// IncGovernorStatusUpdateFailed dummy implementation.
-func (d *DummyMetrics) IncGovernorStatusUpdateFailed(node string, address string, dbLayer string) {}
+// IncGovernorStatusUpdated dummy implementation.
+func (d *DummyMetrics) IncGovernorStatusUpdated(node string, address string, dbLayer string) {}
 
 // IncGovernorStatusExpired dummy implementation.
 func (d *DummyMetrics) IncGovernorStatusExpired(node string, address string) {}

@@ -101,8 +101,8 @@ func (m *PrometheusMetrics) IncGovernorStatusFailed(node string, address string)
 	m.governorStatusCount.WithLabelValues(node, address, "failed", m.dbLayer).Inc()
 }
 
-// IncGovernorStatusUpdateFailed increments the total number of governor status update failed.
-func (m *PrometheusMetrics) IncGovernorStatusUpdateFailed(node string, address string, dbLayer string) {
+// IncGovernorStatusUpdated increments the total number of governor status update failed.
+func (m *PrometheusMetrics) IncGovernorStatusUpdated(node string, address string, dbLayer string) {
 	m.governorStatusCount.WithLabelValues(node, address, "update_failed", dbLayer).Inc()
 }
 

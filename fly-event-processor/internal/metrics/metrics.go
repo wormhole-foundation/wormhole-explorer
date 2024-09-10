@@ -14,8 +14,7 @@ type Metrics interface {
 	IncGovernorStatusConsumedQueue()
 	IncGovernorStatusProcessed(node string, address string)
 	IncGovernorStatusFailed(node string, address string)
-	// TODO: remove metrics after db migration.
-	IncGovernorStatusUpdateFailed(node string, address string, dbLayer string)
+	IncGovernorStatusUpdated(node string, address string, dbLayer string)
 	IncGovernorStatusExpired(node string, address string)
 	IncGovernorConfigConsumedQueue()
 	IncGovernorConfigProcessed(node string, address string)

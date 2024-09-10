@@ -200,8 +200,8 @@ func (r *Repository) UpdateGovernorStatus(
 		nodeGovernorVaaDocToDelete,
 		governorVaasToInsert,
 		governorVaaIdsToDelete)
-	if err != nil {
-		r.metrics.IncGovernorStatusUpdateFailed(
+	if err == nil {
+		r.metrics.IncGovernorStatusUpdated(
 			nodeName, nodeAddress, config.DbLayerMongo)
 	}
 	return err

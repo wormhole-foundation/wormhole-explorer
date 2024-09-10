@@ -143,8 +143,8 @@ func (r *PostgresRepository) UpdateGovernorStatus(
 		nodeGovernorVaaDocToDelete,
 		governorVaasToInsert,
 		governorVaaIdsToDelete)
-	if err != nil {
-		r.metrics.IncGovernorStatusUpdateFailed(
+	if err == nil {
+		r.metrics.IncGovernorStatusUpdated(
 			nodeName, nodeAddress, config.DbLayerPostgres)
 	}
 	return err

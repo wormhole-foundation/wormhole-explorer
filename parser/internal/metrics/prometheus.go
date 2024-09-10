@@ -98,10 +98,16 @@ func (m *PrometheusMetrics) IncVaaParsedInserted(chainID uint16) {
 	m.vaaParseCount.WithLabelValues(chain, "inserted", m.dbLayer).Inc()
 }
 
-// IncVaaParsedInsertFailed increments the number of parsed VAA insert failed.
-func (m *PrometheusMetrics) IncVaaParsedInsertFailed(chainID uint16, dbLayer string) {
+// IncVaaAttestationPropertiesInserted increment the number of attestation properties inserted into database.
+func (m *PrometheusMetrics) IncVaaAttestationPropertiesInserted(chainID uint16) {
 	chain := vaa.ChainID(chainID).String()
-	m.vaaParseCount.WithLabelValues(chain, "insert_failed", dbLayer).Inc()
+	m.vaaParseCount.WithLabelValues(chain, "attestation_properties_inserted").Inc()
+}
+
+// IncParseVaaInserted increments the number of parsed VAA inserted into database.
+func (m *PrometheusMetrics) IncParseVaaInserted(chainID uint16) {
+	chain := vaa.ChainID(chainID).String()
+	m.vaaParseCount.WithLabelValues(chain, "parsed_vaa_inserted").Inc()
 }
 
 // IncVaaPayloadParserRequestCount increments the number of vaa payload parser request.

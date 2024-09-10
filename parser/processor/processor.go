@@ -165,8 +165,8 @@ func (p *Processor) upserteVaaParse(ctx context.Context, vaa *sdk.VAA,
 		}
 
 		err := p.mongoRepository.UpsertParsedVaa(ctx, vaaParsed)
-		if err != nil {
-			p.metrics.IncVaaParsedInsertFailed(uint16(vaa.EmitterChain), config.DbLayerMongo)
+		if err == nil {
+			p.metrics.IncParseVaaInserted(uint16(vaa.EmitterChain))
 		}
 		return err
 	case config.DbLayerPostgres:
@@ -177,8 +177,8 @@ func (p *Processor) upserteVaaParse(ctx context.Context, vaa *sdk.VAA,
 		}
 
 		err = p.postgresRepository.UpsertAttestationVaaProperties(ctx, attestationVaaProperties)
-		if err != nil {
-			p.metrics.IncVaaParsedInsertFailed(uint16(vaa.EmitterChain), config.DbLayerPostgres)
+		if err == nil {
+			p.metrics.IncVaaAttestationPropertiesInserted(uint16(vaa.EmitterChain))
 		}
 		return err
 	case config.DbLayerDual:
@@ -201,9 +201,9 @@ func (p *Processor) upserteVaaParse(ctx context.Context, vaa *sdk.VAA,
 			p.logger.Error("Error inserting vaa in mongo repository",
 				zap.String("id", utils.NormalizeHex(vaa.HexDigest())),
 				zap.Error(err))
-			p.metrics.IncVaaParsedInsertFailed(uint16(vaa.EmitterChain), config.DbLayerMongo)
 			return err
 		}
+		p.metrics.IncParseVaaInserted(uint16(vaa.EmitterChain))
 
 		// upsert postgres
 		attestationVaaProperties, err := buildAttestationVaaProperties(
@@ -213,8 +213,8 @@ func (p *Processor) upserteVaaParse(ctx context.Context, vaa *sdk.VAA,
 		}
 
 		err = p.postgresRepository.UpsertAttestationVaaProperties(ctx, attestationVaaProperties)
-		if err != nil {
-			p.metrics.IncVaaParsedInsertFailed(uint16(vaa.EmitterChain), config.DbLayerPostgres)
+		if err == nil {
+			p.metrics.IncVaaAttestationPropertiesInserted(uint16(vaa.EmitterChain))
 		}
 		return err
 	default:

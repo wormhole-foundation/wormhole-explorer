@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/wormhole-foundation/wormhole-explorer/analytics/config"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/common/repository"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -75,7 +74,7 @@ func (r *MongoPricesRepository) Upsert(ctx context.Context, o OperationPrice) er
 	if err != nil {
 		return fmt.Errorf("failed to update transfer price collection: %w", err)
 	}
-	r.metrics.IncTransferPricesInserted(config.DbLayerMongo)
+	r.metrics.IncTransferPricesInserted(o.ChainID)
 	return nil
 }
 

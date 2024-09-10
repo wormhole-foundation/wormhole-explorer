@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/wormhole-foundation/wormhole-explorer/analytics/config"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/common/db"
 	"go.uber.org/zap"
@@ -57,7 +56,7 @@ func (r *PostgresPricesRepository) Upsert(ctx context.Context, op OperationPrice
 		now)
 
 	if err == nil {
-		r.metrics.IncTransferPricesInserted(config.DbLayerPostgres)
+		r.metrics.IncOperationPriceInserted(op.ChainID)
 	}
 
 	return err
