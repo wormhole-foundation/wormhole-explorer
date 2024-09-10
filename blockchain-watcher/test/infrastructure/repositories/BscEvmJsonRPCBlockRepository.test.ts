@@ -32,7 +32,7 @@ describe("BscEvmJsonRPCBlockRepository", () => {
     givenBlockHeightIs(originalBlock, "latest");
 
     // When
-    const result = await repo.getBlockHeight(bsc, "latest");
+    const result = await repo.getBlockHeight(1980809n, bsc, "latest");
 
     // Then
     expect(result).toBe(expectedBlock);

@@ -15,20 +15,24 @@ export class MoonbeamEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
     super(cfg, pools);
   }
 
-  async getBlockHeight(chain: string, finality: EvmTag): Promise<bigint> {
+  async getBlockHeight(
+    blockHeightCursor: bigint | undefined,
+    chain: string,
+    finality: EvmTag
+  ): Promise<bigint> {
     let isBlockFinalized = false;
     let sleepTime = 100;
     let attempts = 0;
 
     const chainCfg = this.getCurrentChain(chain);
-    const blockNumber: bigint = await super.getBlockHeight(chain, finality);
+    const blockNumber: bigint = await super.getBlockHeight(blockHeightCursor, chain, finality);
 
     while (!isBlockFinalized && attempts <= MAX_ATTEMPTS) {
       const provider = getChainProvider(chain, this.pool);
       try {
         await this.sleep(sleepTime);
 
-        const { hash } = await super.getBlock(chain, blockNumber);
+        const { hash } = await super.getBlock(blockHeightCursor, chain, blockNumber);
         const { result } = await provider.post<BlockIsFinalizedResult>(
           {
             jsonrpc: "2.0",

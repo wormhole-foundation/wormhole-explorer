@@ -34,7 +34,7 @@ describe("MoonbeamEvmJsonRPCBlockRepository", () => {
     givenFinalizedBlock(block);
 
     // When
-    const result = await repo.getBlockHeight(moonbeam, "latest");
+    const result = await repo.getBlockHeight(19808090n, moonbeam, "latest");
 
     // Then
     expect(result).toBe(block);

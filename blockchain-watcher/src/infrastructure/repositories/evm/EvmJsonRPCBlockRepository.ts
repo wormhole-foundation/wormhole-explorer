@@ -13,6 +13,8 @@ import {
   EvmTag,
 } from "../../../domain/entities";
 
+const MAX_DIFF_BLOCK_HEIGHT = 5_000;
+
 /**
  * EvmJsonRPCBlockRepository is a repository that uses a JSON RPC endpoint to fetch blocks.
  * On the reliability side, only knows how to timeout.
@@ -36,8 +38,12 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     this.logger.info(`Created for ${Object.keys(this.cfg.chains)}`);
   }
 
-  async getBlockHeight(chain: string, finality: EvmTag): Promise<bigint> {
-    const block: EvmBlock = await this.getBlock(chain, finality);
+  async getBlockHeight(
+    blockHeightCursor: bigint | undefined,
+    chain: string,
+    finality: EvmTag
+  ): Promise<bigint> {
+    const block: EvmBlock = await this.getBlock(blockHeightCursor, chain, finality);
     return block.number;
   }
 
@@ -215,6 +221,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
    * Loosely based on the wormhole-dashboard implementation (minus some specially crafted blocks when null result is obtained)
    */
   async getBlock(
+    blockHeightCursor: bigint | undefined,
     chain: string,
     blockNumberOrTag: EvmTag | bigint,
     isTransactionsPresent: boolean = false
@@ -244,9 +251,22 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
 
     const result = response?.result;
     if (result && result.hash && result.number && result.timestamp) {
+      const blockHeightResult = BigInt(result.number);
+      // Check if the block height result is ahead from the actual cursor
+      if (blockHeightCursor) {
+        const diffBlockHeight = blockHeightResult - blockHeightCursor;
+        if (diffBlockHeight >= MAX_DIFF_BLOCK_HEIGHT) {
+          provider.setProviderOffline();
+          this.logger.error(
+            `[${chain}][getBlock] Unable to process result of eth_getBlockByNumber is to ahead on ${provider.getUrl()}. [blockHeightCursor: ${blockHeightCursor} - response: ${blockHeightResult}]`
+          );
+          throw new Error("Unable to process result of eth_getBlockByNumber");
+        }
+      }
+
       // Convert to our domain compatible type
       return {
-        number: BigInt(result.number),
+        number: blockHeightResult,
         timestamp: Number(result.timestamp),
         hash: result.hash,
         transactions: result.transactions,

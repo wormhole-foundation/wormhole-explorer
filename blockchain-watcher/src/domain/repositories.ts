@@ -27,7 +27,11 @@ import {
 } from "./entities";
 
 export interface EvmBlockRepository {
-  getBlockHeight(chain: string, finality: string): Promise<bigint>;
+  getBlockHeight(
+    blockHeightCursor: bigint | undefined,
+    chain: string,
+    finality: string
+  ): Promise<bigint>;
   getBlocks(
     chain: string,
     blockNumbers: Set<bigint>,
@@ -39,6 +43,7 @@ export interface EvmBlockRepository {
     hashNumbers: Set<string>
   ): Promise<Record<string, ReceiptTransaction>>;
   getBlock(
+    blockHeightCursor: bigint | undefined,
     chain: string,
     blockNumberOrTag: EvmTag | bigint,
     isTransactionsPresent: boolean

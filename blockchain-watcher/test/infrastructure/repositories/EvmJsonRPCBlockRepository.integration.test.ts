@@ -38,7 +38,7 @@ describe("EvmJsonRPCBlockRepository", () => {
     givenARepo();
     givenBlockHeightIs(expectedHeight, "latest");
 
-    const result = await repo.getBlockHeight(eth, "latest");
+    const result = await repo.getBlockHeight(1980809n, eth, "latest");
 
     expect(result).toBe(expectedHeight);
   });

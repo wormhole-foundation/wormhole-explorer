@@ -44,7 +44,7 @@ describe("ArbitrumEvmJsonRPCBlockRepository", () => {
     givenBlockHeightIs(originalBlock, "finalized");
 
     // When
-    const result = await repo.getBlockHeight(arbitrum, "latest");
+    const result = await repo.getBlockHeight(252076229n, arbitrum, "latest");
 
     // Then
     expect(result).toBe(expectedBlock);
@@ -68,7 +68,7 @@ describe("ArbitrumEvmJsonRPCBlockRepository", () => {
 
     try {
       // When
-      await repo.getBlockHeight(arbitrum, "latest");
+      await repo.getBlockHeight(252076229n, arbitrum, "latest");
     } catch (e: Error | any) {
       // Then
       expect(e).toBeInstanceOf(Error);

@@ -7,8 +7,12 @@ export class BscEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository {
     super(cfg, pools);
   }
 
-  async getBlockHeight(chain: string, finality: EvmTag): Promise<bigint> {
-    const blockNumber: bigint = await super.getBlockHeight(chain, finality);
+  async getBlockHeight(
+    blockHeightCursor: bigint | undefined,
+    chain: string,
+    finality: EvmTag
+  ): Promise<bigint> {
+    const blockNumber: bigint = await super.getBlockHeight(blockHeightCursor, chain, finality);
     const lastBlock = Math.max(Number(blockNumber) - 15, 0);
     return BigInt(lastBlock);
   }

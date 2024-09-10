@@ -12,7 +12,11 @@ export class PolygonJsonRPCBlockRepository extends EvmJsonRPCBlockRepository {
     super(cfg, pools);
   }
 
-  async getBlockHeight(chain: string, finality: EvmTag): Promise<bigint> {
+  async getBlockHeight(
+    blockHeightCursor: bigint | undefined,
+    chain: string,
+    finality: EvmTag
+  ): Promise<bigint> {
     if (finality == FINALIZED) {
       try {
         const rootChain = new ethers.utils.Interface([
@@ -37,7 +41,7 @@ export class PolygonJsonRPCBlockRepository extends EvmJsonRPCBlockRepository {
       }
     }
 
-    return await super.getBlockHeight(chain, finality);
+    return await super.getBlockHeight(blockHeightCursor, chain, finality);
   }
 }
 

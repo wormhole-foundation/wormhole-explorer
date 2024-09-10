@@ -716,6 +716,10 @@ spec:
             - name: TERRA2_RPCS
               value: '{{ .TERRA2_RPCS }}'
             {{ end }}
+            {{ if .ACALA_RPCS }}
+            - name: ACALA_RPCS
+              value: '{{ .ACALA_RPCS }}'
+            {{ end }}
           resources:
             limits:
               cpu: {{ .RESOURCES_LIMITS_CPU }}

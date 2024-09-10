@@ -65,6 +65,7 @@ export class PollEvm extends RunPollingJob {
 
   protected async get(): Promise<EvmLog[] | EvmTransaction[]> {
     this.latestBlockHeight = await this.blockRepo.getBlockHeight(
+      this.blockHeightCursor,
       this.cfg.chain,
       this.cfg.getCommitment()
     );
