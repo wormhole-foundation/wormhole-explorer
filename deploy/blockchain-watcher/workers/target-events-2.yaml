@@ -723,6 +723,12 @@ data:
                 "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
                 "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
                 "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "Standard Relayer",
+                "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
               }
             ],
             "chain": "snaxchain",
