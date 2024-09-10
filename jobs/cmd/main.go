@@ -9,15 +9,12 @@ import (
 	"time"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/wormhole-foundation/wormhole-explorer/common/dbconsts"
-	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/protocols"
-	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/protocols/repository"
-	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/stats"
 	"github.com/wormhole-foundation/wormhole-explorer/common/db"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbconsts"
 	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/protocols"
 	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/protocols/repository"
 	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/recordcap"
+	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/stats"
 
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache"
@@ -101,6 +98,15 @@ func main() {
 		err = statsJob.Run(ctx)
 	case jobs.JobIDMigrationNativeTxHash:
 		job := initMigrateNativeTxHashJob(ctx, logger)
+		err = job.Run(ctx)
+	case jobs.JobIDNTTTopAddressStats:
+		job := initNTTTopAddressStatsJob(ctx, logger)
+		err = job.Run(ctx)
+	case jobs.JobIDNTTTopHolderStats:
+		job := initNTTTopHolderStatsJob(ctx, logger)
+		err = job.Run(ctx)
+	case jobs.JobIDNTTMedianStats:
+		job := initNTTMedianStatsJob(ctx, logger)
 		err = job.Run(ctx)
 	case jobs.JobIDPythRecordCap:
 		job := initPythRecordCap(ctx, logger)
@@ -265,7 +271,6 @@ func initMigrateNativeTxHashJob(ctx context.Context, logger *zap.Logger) *migrat
 	return migration.NewMigrationNativeTxHash(db.Database, cfgJob.PageSize, logger)
 }
 
-<<<<<<< HEAD
 func initNTTTopAddressStatsJob(ctx context.Context, logger *zap.Logger) *stats.NTTTopAddressJob {
 	cfgJob, errCfg := configuration.LoadFromEnv[config.NTTTopAddressStatsConfiguration](ctx)
 	if errCfg != nil {
@@ -333,7 +338,8 @@ func initNTTMedianStatsJob(ctx context.Context, logger *zap.Logger) *stats.NTTMe
 	}
 
 	return stats.NewNTTMedian(influxClient, cfgJob.InfluxOrganization, cfgJob.InfluxBucketInfinite, cache, logger)
-=======
+}
+
 func initPythRecordCap(ctx context.Context, logger *zap.Logger) *recordcap.PythJob {
 	cfgJob, err := configuration.LoadFromEnv[config.PythRecordCapConfiguration](ctx)
 	if err != nil {
@@ -360,7 +366,6 @@ func newPostgresDatabase(ctx context.Context,
 	}
 
 	return db.NewDB(ctx, cfg.DbURL, options)
->>>>>>> e88fdf39 (add job to remove old pyth in postgres (#1610))
 }
 
 func handleExit() {
