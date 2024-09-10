@@ -19,7 +19,13 @@ type observationHandler struct {
 	metrics          metrics.Metrics
 }
 
-func NewObservationHandler(obsvC chan *common.MsgWithTimeStamp[gossipv1.SignedObservation], batchObsvC chan *common.MsgWithTimeStamp[gossipv1.SignedObservationBatch], pushFunc processor.ObservationPushFunc, pushBatchObsFunc func(_ context.Context, batchMsg *gossipv1.SignedObservationBatch) error, guardian *health.GuardianCheck, metrics metrics.Metrics) *observationHandler {
+func NewObservationHandler(obsvC chan *common.MsgWithTimeStamp[gossipv1.SignedObservation],
+	batchObsvC chan *common.MsgWithTimeStamp[gossipv1.SignedObservationBatch],
+	pushFunc processor.ObservationPushFunc,
+	pushBatchObsFunc processor.BatchObservationPushFunc,
+	guardian *health.GuardianCheck,
+	metrics metrics.Metrics,
+) *observationHandler {
 	return &observationHandler{
 		obsvC:            obsvC,
 		pushObsFunc:      pushFunc,

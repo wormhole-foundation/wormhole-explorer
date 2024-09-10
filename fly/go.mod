@@ -326,4 +326,4 @@ replace github.com/cosmos/cosmos-sdk => github.com/wormhole-foundation/cosmos-sd
 
 replace github.com/wormhole-foundation/wormhole-explorer/common => ../common
 
-replace github.com/certusone/wormhole/node => ../../wormhole/node
+//replace github.com/certusone/wormhole/node => ../../wormhole/node
