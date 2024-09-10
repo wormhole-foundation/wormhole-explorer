@@ -49,7 +49,7 @@ func (d *DummyMetrics) IncVaaSendNotification(chain sdk.ChainID) {}
 func (d *DummyMetrics) IncObservationTotal() {}
 
 // IncBatchObservationTotal increases the number of batch observation messages received from Gossip network.
-func (d *DummyMetrics) IncBatchObservationTotal(batchSize uint64) {}
+func (d *DummyMetrics) IncBatchObservationTotal(batchSize uint) {}
 
 // IncObservationInvalidGuardian increases the number of invalid guardian in observation from Gossip network.
 func (m *DummyMetrics) IncObservationInvalidGuardian(address string) {}

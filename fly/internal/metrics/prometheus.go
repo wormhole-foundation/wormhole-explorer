@@ -16,7 +16,7 @@ type PrometheusMetrics struct {
 	observationReceivedCount      *prometheus.CounterVec
 	observationTotal              prometheus.Counter
 	batchObservationTotal         prometheus.Counter
-	batchSizeObservations         prometheus.Histogram
+	batchSizeObservations         prometheus.Gauge
 	observationReceivedByGuardian *prometheus.CounterVec
 	heartbeatReceivedCount        *prometheus.CounterVec
 	governorConfigReceivedCount   *prometheus.CounterVec
@@ -69,12 +69,11 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 			ConstLabels: constLabels,
 		})
 
-	batchSizeObservations := promauto.NewHistogram(
-		prometheus.HistogramOpts{
+	batchSizeObservations := promauto.NewGauge(
+		prometheus.GaugeOpts{
 			Name:        "batch_size_observations",
 			Help:        "Batch-observation sizes incoming from Gossip network",
 			ConstLabels: constLabels,
-			Buckets:     prometheus.LinearBuckets(1, 50, 30), // (0;1] ; (1-51] ; (51-101] ; (101-151] ...
 		})
 
 	observationReceivedByGuardian := promauto.NewCounterVec(
@@ -212,9 +211,9 @@ func (m *PrometheusMetrics) IncObservationTotal() {
 }
 
 // IncBatchObservationTotal increases the number of batch observation messages received from Gossip network.
-func (m *PrometheusMetrics) IncBatchObservationTotal(batchSize uint64) {
+func (m *PrometheusMetrics) IncBatchObservationTotal(batchSize uint) {
 	m.batchObservationTotal.Inc()
-	m.batchSizeObservations.Observe(float64(batchSize))
+	m.batchSizeObservations.Add(float64(batchSize))
 }
 
 // IncObservationInvalidGuardian increases the number of invalid guardian in observation from Gossip network.
