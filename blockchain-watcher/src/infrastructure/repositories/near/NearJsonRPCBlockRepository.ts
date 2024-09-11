@@ -72,7 +72,12 @@ export class NearJsonRPCBlockRepository implements NearRepository {
 
         const transactions = chunksTransactions
           .flatMap((transactions) => transactions)
-          .filter((tx) => tx.receiver_id === contract && !uniqueTransaction.has(tx.hash));
+          .filter(
+            (tx) =>
+              tx.receiver_id === contract &&
+              !uniqueTransaction.has(tx.hash) &&
+              tx.actions[0].FunctionCall // Validate if functionCall exists (contains the submit_vaa method)
+          );
 
         if (!transactions || transactions.length == 0) {
           continue; // Skip block process if not contain wormhole transactions
