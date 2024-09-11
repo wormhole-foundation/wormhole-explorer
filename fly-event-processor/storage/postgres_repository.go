@@ -6,20 +6,24 @@ import (
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/db"
+	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/config"
+	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/internal/metrics"
 	"go.uber.org/zap"
 )
 
 // PostgresRepository is a repository for postgres.
 type PostgresRepository struct {
-	db     *db.DB
-	logger *zap.Logger
+	db      *db.DB
+	metrics metrics.Metrics
+	logger  *zap.Logger
 }
 
 // NewPostgresRepository creates a new repository.
-func NewPostgresRepository(db *db.DB, logger *zap.Logger) *PostgresRepository {
+func NewPostgresRepository(db *db.DB, logger *zap.Logger, metrics metrics.Metrics) *PostgresRepository {
 	return &PostgresRepository{
-		db:     db,
-		logger: logger,
+		db:      db,
+		metrics: metrics,
+		logger:  logger,
 	}
 }
 
@@ -128,6 +132,26 @@ func (r *PostgresRepository) FindGovernorVaaByVaaIDs(ctx context.Context, vaaID 
 
 func (r *PostgresRepository) UpdateGovernorStatus(
 	ctx context.Context,
+	nodeName string,
+	nodeAddress string,
+	nodeGovernorVaaDocToInsert []NodeGovernorVaa,
+	nodeGovernorVaaDocToDelete []string,
+	governorVaasToInsert []GovernorVaa,
+	governorVaaIdsToDelete []string) error {
+	err := r.updateGovernorStatus(ctx,
+		nodeGovernorVaaDocToInsert,
+		nodeGovernorVaaDocToDelete,
+		governorVaasToInsert,
+		governorVaaIdsToDelete)
+	if err == nil {
+		r.metrics.IncGovernorStatusUpdated(
+			nodeName, nodeAddress, config.DbLayerPostgres)
+	}
+	return err
+}
+
+func (r *PostgresRepository) updateGovernorStatus(
+	ctx context.Context,
 	nodeGovernorVaaDocToInsert []NodeGovernorVaa,
 	nodeGovernorVaaDocToDelete []string,
 	governorVaasToInsert []GovernorVaa,
@@ -195,7 +219,7 @@ func (r *PostgresRepository) UpdateGovernorStatus(
 // FindActiveAttestationVaaByVaaID finds active attestation vaa by vaa id.
 func (r *PostgresRepository) FindActiveAttestationVaaByVaaID(ctx context.Context, vaaID string) (*AttestationVaa, error) {
 	query := `SELECT id, vaa_id, version, emitter_chain_id, emitter_address, sequence, guardian_set_index, raw, 
-	timestamp, active, is_duplicated, created_at, updated_at 
+	timestamp, active, is_duplicated, consistency_level, created_at, updated_at 
 	FROM wormholescan.wh_attestation_vaas WHERE vaa_id = $1 AND active = true`
 	var rows []*AttestationVaa
 	err := r.db.Select(ctx, &rows, query, vaaID)
@@ -219,7 +243,7 @@ func (r *PostgresRepository) FindActiveAttestationVaaByVaaID(ctx context.Context
 // FindAttestationVaaByVaaId finds attestation vaa by vaa id.
 func (r *PostgresRepository) FindAttestationVaaByVaaId(ctx context.Context, vaaID string) ([]AttestationVaa, error) {
 	query := `SELECT id, vaa_id, version, emitter_chain_id, emitter_address, sequence, guardian_set_index, raw, 
-	timestamp, active, is_duplicated, created_at, updated_at FROM wormholescan.wh_attestation_vaas WHERE vaa_id = $1`
+	timestamp, active, is_duplicated, consistency_level, created_at, updated_at FROM wormholescan.wh_attestation_vaas WHERE vaa_id = $1`
 	var rows []AttestationVaa
 	err := r.db.Select(ctx, &rows, query, vaaID)
 	if err != nil {

@@ -12,6 +12,10 @@ type Metrics interface {
 	IncVaaParsed(chainID uint16)
 	IncVaaParsedInserted(chainID uint16)
 
+	IncVaaAttestationPropertiesInserted(chainID uint16)
+	// TODO: remove IncParseVaaInserted metrics after db migration.
+	IncParseVaaInserted(chainID uint16)
+
 	IncVaaPayloadParserRequestCount(chainID uint16)
 	IncVaaPayloadParserErrorCount(chainID uint16)
 	IncVaaPayloadParserNotFoundCount(chainID uint16)

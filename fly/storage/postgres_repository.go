@@ -142,11 +142,11 @@ func (r *PostgresRepository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializ
 	queryTemplate := `
 	INSERT INTO %s 
 	(id, vaa_id, "version", emitter_chain_id, emitter_address, "sequence", guardian_set_index,
-	raw, "timestamp", active, is_duplicated, created_at) 
-	VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) 
+	raw, "timestamp", active, is_duplicated, consistency_level, created_at) 
+	VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) 
 	ON CONFLICT(id) DO UPDATE 
 	SET vaa_id = $2, version =$3, emitter_chain_id = $4, emitter_address = $5, "sequence" = $6, guardian_set_index = $7, 
-	raw = $8, "timestamp" = $9, updated_at = $13 
+	raw = $8, "timestamp" = $9, consistency_level = $12, updated_at = $14 
 	RETURNING updated_at;
 	`
 
@@ -167,6 +167,7 @@ func (r *PostgresRepository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializ
 		v.Timestamp,
 		true,
 		false,
+		v.ConsistencyLevel,
 		now,
 		now)
 
@@ -391,7 +392,7 @@ func (r *PostgresRepository) UpsertGovernorStatus(ctx context.Context, govS *gos
 func (r *PostgresRepository) FindVaasByVaaID(ctx context.Context, vaaID string) ([]*AttestationVaa, error) {
 	query := `
 	SELECT id, vaa_id, "version", emitter_chain_id, emitter_address, "sequence", guardian_set_index,
-	raw, "timestamp", active, is_duplicated, created_at, updated_at
+	raw, "timestamp", active, is_duplicated, consistency_level, created_at, updated_at
 	FROM wormholescan.wh_attestation_vaas 
 	WHERE vaa_id = $1;`
 
@@ -443,11 +444,11 @@ func (r *PostgresRepository) UpsertDuplicateVaa(ctx context.Context, v *sdk.VAA,
 	queryTemplate := `
 	INSERT INTO %s 
 	(id, vaa_id, "version", emitter_chain_id, emitter_address, "sequence", guardian_set_index,
-	raw, "timestamp", active, is_duplicated, created_at) 
-	VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) 
+	raw, "timestamp", active, is_duplicated, consistency_level, created_at) 
+	VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) 
 	ON CONFLICT(id) DO UPDATE 
 	SET vaa_id = $2, version =$3, emitter_chain_id = $4, emitter_address = $5, "sequence" = $6, guardian_set_index = $7, 
-	raw = $8, "timestamp" = $9, updated_at = $13 
+	raw = $8, "timestamp" = $9, consistency_level = $12, updated_at = $14 
 	RETURNING updated_at;
 	`
 
@@ -468,6 +469,7 @@ func (r *PostgresRepository) UpsertDuplicateVaa(ctx context.Context, v *sdk.VAA,
 		v.Timestamp,
 		false,
 		true,
+		v.ConsistencyLevel,
 		now,
 		now)
 

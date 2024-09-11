@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/common/repository"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -38,12 +39,14 @@ type TransferPrice struct {
 
 // MongoPricesRepository represents the repository for prices.
 type MongoPricesRepository struct {
+	metrics        metrics.Metrics
 	transferPrices *mongo.Collection
 	logger         *zap.Logger
 }
 
-func NewMongoPricesRepository(db *mongo.Database, logger *zap.Logger) *MongoPricesRepository {
+func NewMongoPricesRepository(db *mongo.Database, metrics metrics.Metrics, logger *zap.Logger) *MongoPricesRepository {
 	return &MongoPricesRepository{
+		metrics:        metrics,
 		transferPrices: db.Collection("transferPrices"),
 		logger:         logger,
 	}
@@ -71,6 +74,7 @@ func (r *MongoPricesRepository) Upsert(ctx context.Context, o OperationPrice) er
 	if err != nil {
 		return fmt.Errorf("failed to update transfer price collection: %w", err)
 	}
+	r.metrics.IncTransferPricesInserted(o.ChainID)
 	return nil
 }
 

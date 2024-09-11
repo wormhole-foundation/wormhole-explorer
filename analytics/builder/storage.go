@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/config"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/storage"
 	"github.com/wormhole-foundation/wormhole-explorer/common/db"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
@@ -21,7 +22,7 @@ type StorageLayer struct {
 }
 
 func NewStorageLayer(ctx context.Context, dbLayer string, mongodbURI string, mongodbDatabase string,
-	dbURL string, dbLogEnable bool, logger *zap.Logger) (*StorageLayer, error) {
+	dbURL string, dbLogEnable bool, metrics metrics.Metrics, logger *zap.Logger) (*StorageLayer, error) {
 	var storageLayer StorageLayer
 	var mongoDb *dbutil.Session
 	var postgresDb *db.DB
@@ -33,7 +34,7 @@ func NewStorageLayer(ctx context.Context, dbLayer string, mongodbURI string, mon
 			return nil, err
 		}
 		storageLayer.mongoDB = mongoDb
-		storageLayer.pricesRepository = storage.NewMongoPricesRepository(mongoDb.Database, logger)
+		storageLayer.pricesRepository = storage.NewMongoPricesRepository(mongoDb.Database, metrics, logger)
 		storageLayer.vaaRepository = storage.NewMongoVaaRepository(mongoDb.Database, logger)
 	case config.DbLayerPostgres:
 		postgresDb, err = newPostgresDatabase(ctx, dbURL, dbLogEnable, logger)
@@ -41,7 +42,7 @@ func NewStorageLayer(ctx context.Context, dbLayer string, mongodbURI string, mon
 			return nil, err
 		}
 		storageLayer.postgresDB = postgresDb
-		storageLayer.pricesRepository = storage.NewPostgresRepository(postgresDb, logger)
+		storageLayer.pricesRepository = storage.NewPostgresRepository(postgresDb, metrics, logger)
 		storageLayer.vaaRepository = storage.NewPostgresVaaRepository(postgresDb, logger)
 	case config.DbLayerDual:
 		mongoDb, err = dbutil.Connect(ctx, logger, mongodbURI, mongodbDatabase, false)
@@ -52,8 +53,8 @@ func NewStorageLayer(ctx context.Context, dbLayer string, mongodbURI string, mon
 		if err != nil {
 			return nil, err
 		}
-		mongoPricesRepository := storage.NewMongoPricesRepository(mongoDb.Database, logger)
-		postgresPricesRepository := storage.NewPostgresRepository(postgresDb, logger)
+		mongoPricesRepository := storage.NewMongoPricesRepository(mongoDb.Database, metrics, logger)
+		postgresPricesRepository := storage.NewPostgresRepository(postgresDb, metrics, logger)
 		mongoVaaRepository := storage.NewMongoVaaRepository(mongoDb.Database, logger)
 		postgresVaaRepository := storage.NewPostgresVaaRepository(postgresDb, logger)
 

@@ -9,10 +9,12 @@ type Metrics interface {
 	IncDuplicatedVaaProcessed(chainID sdk.ChainID)
 	IncDuplicatedVaaFailed(chainID sdk.ChainID)
 	IncDuplicatedVaaExpired(chainID sdk.ChainID)
-	IncDuplicatedVaaCanNotFixed(chainID sdk.ChainID)
+	// TODO: remove dbLayer after db migration.
+	IncDuplicatedVaaCanNotFixed(chainID sdk.ChainID, dbLayer string)
 	IncGovernorStatusConsumedQueue()
 	IncGovernorStatusProcessed(node string, address string)
 	IncGovernorStatusFailed(node string, address string)
+	IncGovernorStatusUpdated(node string, address string, dbLayer string)
 	IncGovernorStatusExpired(node string, address string)
 	IncGovernorConfigConsumedQueue()
 	IncGovernorConfigProcessed(node string, address string)
@@ -24,8 +26,3 @@ type Metrics interface {
 
 // IncDuplicatedVaaConsumedQueue increments the counter of consumed queue
 type IncConsumedQueue func()
-
-/*
-// ProcessorFunc is a function to process a governor message.
-type ProcessorFunc func(context.Context, *Params) error
-*/
