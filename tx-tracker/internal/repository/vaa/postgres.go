@@ -12,7 +12,7 @@ type RepositoryPostreSQL struct {
 	logger          *zap.Logger
 }
 
-func NewVaaRepositoryPostreSQL(postreSQLClient *db.DB, logger *zap.Logger) VAARepository {
+func NewVaaRepositoryPostreSQL(postreSQLClient *db.DB, logger *zap.Logger) *RepositoryPostreSQL {
 	return &RepositoryPostreSQL{
 		postreSQLClient: postreSQLClient,
 		logger:          logger,

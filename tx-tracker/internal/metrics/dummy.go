@@ -51,3 +51,15 @@ func (d *DummyMetrics) IncWormchainUnknown(srcChannel string, dstChannel string)
 
 // VaaProcessingDuration increments the duration of VAA processing.
 func (m *DummyMetrics) VaaProcessingDuration(chain string, start *time.Time) {}
+
+// IncOperationTxSourceInserted is a dummy implementation of IncOperationTxSourceInserted.
+func (m *DummyMetrics) IncOperationTxSourceInserted(chainID uint16) {}
+
+// IncGlobalTxSourceInserted is a dummy implementation of IncGlobalTxSourceInserted.
+func (m *DummyMetrics) IncGlobalTxSourceInserted(chainID uint16) {}
+
+// IncOperationTxTargetInserted is a dummy implementation of IncOperationTxTargetInserted.
+func (m *DummyMetrics) IncOperationTxTargetInserted(chainID uint16) {}
+
+// IncGlobalTxDestinationTxInserted is a dummy implementation of IncGlobalTxDestinationTxInserted.
+func (m *DummyMetrics) IncGlobalTxDestinationTxInserted(chainID uint16) {}
