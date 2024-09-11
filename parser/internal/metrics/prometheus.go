@@ -101,13 +101,13 @@ func (m *PrometheusMetrics) IncVaaParsedInserted(chainID uint16) {
 // IncVaaAttestationPropertiesInserted increment the number of attestation properties inserted into database.
 func (m *PrometheusMetrics) IncVaaAttestationPropertiesInserted(chainID uint16) {
 	chain := vaa.ChainID(chainID).String()
-	m.vaaParseCount.WithLabelValues(chain, "attestation_properties_inserted").Inc()
+	m.vaaParseCount.WithLabelValues(chain, "attestation_properties_inserted", m.dbLayer).Inc()
 }
 
 // IncParseVaaInserted increments the number of parsed VAA inserted into database.
 func (m *PrometheusMetrics) IncParseVaaInserted(chainID uint16) {
 	chain := vaa.ChainID(chainID).String()
-	m.vaaParseCount.WithLabelValues(chain, "parsed_vaa_inserted").Inc()
+	m.vaaParseCount.WithLabelValues(chain, "parsed_vaa_inserted", m.dbLayer).Inc()
 }
 
 // IncVaaPayloadParserRequestCount increments the number of vaa payload parser request.
