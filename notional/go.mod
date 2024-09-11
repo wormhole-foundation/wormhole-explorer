@@ -1,15 +1,13 @@
 module github.com/wormhole-foundation/wormhole-explorer/notional
 
-go 1.21
-
-toolchain go1.21.9
+go 1.21.9
 
 require (
 	github.com/ansrivas/fiberprometheus/v2 v2.6.0
 	github.com/gofiber/fiber/v2 v2.47.0
 	github.com/joho/godotenv v1.5.1
 	github.com/sethvargo/go-envconfig v1.0.0
-	github.com/shopspring/decimal v1.3.1
+	github.com/shopspring/decimal v1.4.0
 	github.com/spf13/cobra v1.7.0
 	github.com/wormhole-foundation/wormhole-explorer/common v0.0.0-00010101000000-000000000000
 	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240823200831-78771ff5297e

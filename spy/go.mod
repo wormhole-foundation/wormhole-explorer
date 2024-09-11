@@ -1,8 +1,6 @@
 module github.com/wormhole-foundation/wormhole-explorer/spy
 
-go 1.21
-
-toolchain go1.21.9
+go 1.21.9
 
 require (
 	github.com/certusone/wormhole/node v0.0.0-20240416174455-25e60611a867

@@ -6,7 +6,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
-	"github.com/wormhole-foundation/wormhole-explorer/parser/config"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/config"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
