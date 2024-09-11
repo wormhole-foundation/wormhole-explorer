@@ -28,7 +28,7 @@ func NewMetrics(cfg *config.Configuration) metrics.Metrics {
 	if !cfg.MetricsEnabled {
 		return metrics.NewDummyMetrics()
 	}
-	return metrics.NewPrometheusMetrics(cfg.Environment)
+	return metrics.NewPrometheusMetrics(cfg.Environment, cfg.DbLayer)
 }
 
 func CheckGuardian(guardian *health.GuardianCheck) healthcheck.Check {

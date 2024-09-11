@@ -164,7 +164,11 @@ func (p *Processor) upserteVaaParse(ctx context.Context, vaa *sdk.VAA,
 			UpdatedAt:                 &now,
 		}
 
-		return p.mongoRepository.UpsertParsedVaa(ctx, vaaParsed)
+		err := p.mongoRepository.UpsertParsedVaa(ctx, vaaParsed)
+		if err == nil {
+			p.metrics.IncParseVaaInserted(uint16(vaa.EmitterChain))
+		}
+		return err
 	case config.DbLayerPostgres:
 		attestationVaaProperties, err := buildAttestationVaaProperties(
 			vaa, standardizedProperties, vaaParseResponse, logger)
@@ -172,7 +176,11 @@ func (p *Processor) upserteVaaParse(ctx context.Context, vaa *sdk.VAA,
 			return err
 		}
 
-		return p.postgresRepository.UpsertAttestationVaaProperties(ctx, attestationVaaProperties)
+		err = p.postgresRepository.UpsertAttestationVaaProperties(ctx, attestationVaaProperties)
+		if err == nil {
+			p.metrics.IncVaaAttestationPropertiesInserted(uint16(vaa.EmitterChain))
+		}
+		return err
 	case config.DbLayerDual:
 		// upsert mongo
 		vaaParsed := parser.ParsedVaaUpdate{
@@ -195,6 +203,7 @@ func (p *Processor) upserteVaaParse(ctx context.Context, vaa *sdk.VAA,
 				zap.Error(err))
 			return err
 		}
+		p.metrics.IncParseVaaInserted(uint16(vaa.EmitterChain))
 
 		// upsert postgres
 		attestationVaaProperties, err := buildAttestationVaaProperties(
@@ -203,7 +212,11 @@ func (p *Processor) upserteVaaParse(ctx context.Context, vaa *sdk.VAA,
 			return err
 		}
 
-		return p.postgresRepository.UpsertAttestationVaaProperties(ctx, attestationVaaProperties)
+		err = p.postgresRepository.UpsertAttestationVaaProperties(ctx, attestationVaaProperties)
+		if err == nil {
+			p.metrics.IncVaaAttestationPropertiesInserted(uint16(vaa.EmitterChain))
+		}
+		return err
 	default:
 		return errors.New("invalid db mode")
 	}

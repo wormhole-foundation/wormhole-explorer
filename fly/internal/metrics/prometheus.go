@@ -6,6 +6,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/wormhole-foundation/wormhole-explorer/parser/config"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
@@ -29,10 +30,14 @@ type PrometheusMetrics struct {
 }
 
 // NewPrometheusMetrics returns a new instance of PrometheusMetrics.
-func NewPrometheusMetrics(environment string) *PrometheusMetrics {
+func NewPrometheusMetrics(environment string, dbLayer string) *PrometheusMetrics {
+	service := serviceName
+	if dbLayer == config.DbLayerPostgres {
+		service = fmt.Sprintf("%s-%s", serviceName, dbLayer)
+	}
 	constLabels := map[string]string{
 		"environment": environment,
-		"service":     serviceName,
+		"service":     service,
 	}
 	vaaReceivedCount := promauto.NewCounterVec(
 		prometheus.CounterOpts{

@@ -57,9 +57,12 @@ func Run() {
 	logger := logger.New("wormhole-explorer-analytics", logger.WithLevel(config.LogLevel))
 	logger.Info("starting analytics service...")
 
+	// create prometheus client
+	metrics := metrics.NewPrometheusMetrics(config.Environment)
+
 	// setup DB connection
 	logger.Info("connecting to database layer...")
-	storageLayer, err := builder.NewStorageLayer(rootCtx, config.DbLayer, config.MongodbURI, config.MongodbDatabase, config.DbURL, config.DbLogEnable, logger)
+	storageLayer, err := builder.NewStorageLayer(rootCtx, config.DbLayer, config.MongodbURI, config.MongodbDatabase, config.DbURL, config.DbLogEnable, metrics, logger)
 	if err != nil {
 		logger.Fatal("failed to create to storage layer", zap.Error(err))
 	}
@@ -82,9 +85,6 @@ func Run() {
 	if err != nil {
 		logger.Fatal("failed to create notional cache", zap.Error(err))
 	}
-
-	// create prometheus client
-	metrics := metrics.NewPrometheusMetrics(config.Environment)
 
 	// create a parserVAAAPIClient
 	parserVAAAPIClient, err := parser.NewParserVAAAPIClient(config.VaaPayloadParserTimeout,

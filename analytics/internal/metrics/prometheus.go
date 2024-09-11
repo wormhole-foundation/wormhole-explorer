@@ -6,14 +6,17 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
 type PrometheusMetrics struct {
-	measurementCount      *prometheus.CounterVec
-	notionalCount         *prometheus.CounterVec
-	tokenRequestsCount    *prometheus.CounterVec
-	processedMessage      *prometheus.CounterVec
-	vaaProcessingDuration *prometheus.HistogramVec
+	measurementCount        *prometheus.CounterVec
+	operationPricesInserted *prometheus.CounterVec
+	transferPricesInserted  *prometheus.CounterVec
+	notionalCount           *prometheus.CounterVec
+	tokenRequestsCount      *prometheus.CounterVec
+	processedMessage        *prometheus.CounterVec
+	vaaProcessingDuration   *prometheus.HistogramVec
 }
 
 // NewPrometheusMetrics returns a new instance of PrometheusMetrics.
@@ -30,7 +33,18 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 			Help:        "Total number of measurement",
 			ConstLabels: constLabels,
 		}, []string{"measurement", "status"})
-
+	operationPricesInserted := promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name:        "operation_prices_inserted",
+			Help:        "Total number of operation prices inserted",
+			ConstLabels: constLabels,
+		}, []string{"chain"})
+	transferPricesInserted := promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name:        "transfer_prices_inserted",
+			Help:        "Total number of transfer prices inserted",
+			ConstLabels: constLabels,
+		}, []string{"chain"})
 	notionalRequestsCount := promauto.NewCounterVec(
 		prometheus.CounterOpts{
 			Name:        "notional_requests_count_by_symbol",
@@ -67,11 +81,13 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 		[]string{"chain"},
 	)
 	return &PrometheusMetrics{
-		measurementCount:      measurementCount,
-		notionalCount:         notionalRequestsCount,
-		tokenRequestsCount:    tokenRequestsCount,
-		processedMessage:      processedMessage,
-		vaaProcessingDuration: vaaProcessingDuration,
+		measurementCount:        measurementCount,
+		operationPricesInserted: operationPricesInserted,
+		transferPricesInserted:  transferPricesInserted,
+		notionalCount:           notionalRequestsCount,
+		tokenRequestsCount:      tokenRequestsCount,
+		processedMessage:        processedMessage,
+		vaaProcessingDuration:   vaaProcessingDuration,
 	}
 }
 
@@ -81,6 +97,14 @@ func (p *PrometheusMetrics) IncFailedMeasurement(measurement string) {
 
 func (p *PrometheusMetrics) IncSuccessfulMeasurement(measurement string) {
 	p.measurementCount.WithLabelValues(measurement, "successful").Inc()
+}
+
+func (p *PrometheusMetrics) IncOperationPriceInserted(chainID sdk.ChainID) {
+	p.operationPricesInserted.WithLabelValues(chainID.String()).Inc()
+}
+
+func (p *PrometheusMetrics) IncTransferPricesInserted(chainID sdk.ChainID) {
+	p.transferPricesInserted.WithLabelValues(chainID.String()).Inc()
 }
 
 func (p *PrometheusMetrics) IncMissingNotional(symbol string) {
