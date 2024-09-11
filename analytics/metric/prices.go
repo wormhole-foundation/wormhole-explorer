@@ -71,6 +71,7 @@ func UpsertTransferPrices(
 	tp := storage.OperationPrice{
 		Digest:        utils.NormalizeHex(vaa.HexDigest()),
 		VaaID:         vaa.MessageID(),
+		ChainID:       vaa.EmitterChain,
 		Timestamp:     vaa.Timestamp,
 		TokenChainID:  uint16(transferredToken.TokenChain),
 		TokenAddress:  transferredToken.TokenAddress.String(),

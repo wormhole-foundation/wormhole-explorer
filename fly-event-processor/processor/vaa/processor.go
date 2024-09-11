@@ -6,6 +6,7 @@ import (
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/guardian"
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
+	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/config"
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/storage"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -140,6 +141,6 @@ func (p *Processor) Process(ctx context.Context, params *Params) error {
 	}
 
 	logger.Info("can't fix duplicate vaa")
-	p.metrics.IncDuplicatedVaaCanNotFixed(params.ChainID)
+	p.metrics.IncDuplicatedVaaCanNotFixed(params.ChainID, config.DbLayerPostgres)
 	return errors.New("can't fix duplicate vaa")
 }
