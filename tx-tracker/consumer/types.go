@@ -12,4 +12,5 @@ type Repository interface {
 	GetTxStatus(ctx context.Context, targetTxUpdate *TargetTxUpdate) (string, error)
 	FindSourceTxById(ctx context.Context, id string) (*SourceTxDoc, error)
 	UpsertOriginTx(ctx context.Context, originTx, nestedTx *UpsertOriginTxParams) error
+	GetIDByVaaID(ctx context.Context, vaaID string) (string, error)
 }
