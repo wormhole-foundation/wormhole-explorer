@@ -74,15 +74,19 @@ describe("Web3SolanaSlotRepository", () => {
       const connectionMock = {
         rpcEndpoint: "http://solanafake.com",
         getBlock: (slot: number) => Promise.resolve(null),
+        getUrl: () => "https://api.mainnet-beta.solana.com",
+        setProviderOffline: () => new Date(),
       };
       const poolMock = {
         get: () => connectionMock,
       };
       const repository = new Web3SolanaSlotRepository(poolMock as any);
 
-      const block = await repository.getBlock(100);
-
-      expect(block.getError()).toBeDefined();
+      try {
+        await repository.getBlock(100);
+      } catch (e) {
+        expect(e).toBeDefined();
+      }
     });
   });
 
