@@ -273,13 +273,12 @@ spec:
               value: {{ .SNS_REGION }}
             - name: NODE_OPTIONS
               value: {{ .NODE_OPTIONS }}
-            - name: SOLANA_RPCS
-              valueFrom:
-                secretKeyRef:
-                  name: blockchain-watcher
-                  key: solana-urls
             - name: JOBS_DIR
               value: /home/node/app/jobs
+            {{ if .SOLANA_RPCS }}
+            - name: SOLANA_RPCS
+              value: '{{ .SOLANA_RPCS }}'
+            {{ end }}
           resources:
             limits:
               cpu: {{ .SOLANA_RESOURCES_LIMITS_CPU }}
