@@ -14,7 +14,7 @@ require (
 	github.com/mr-tron/base58 v1.2.0
 	github.com/prometheus/client_golang v1.16.0
 	github.com/sethvargo/go-envconfig v1.0.0
-	github.com/shopspring/decimal v1.3.1
+	github.com/shopspring/decimal v1.4.0
 	github.com/spf13/cobra v1.7.0
 	github.com/wormhole-foundation/wormhole-explorer/common v0.0.0-00010101000000-000000000000
 	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240823200831-78771ff5297e
