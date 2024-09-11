@@ -6,21 +6,24 @@ import (
 	"strings"
 	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/common/db"
 	"go.uber.org/zap"
 )
 
 // PostgresPricesRepository is a storage repository.
 type PostgresPricesRepository struct {
-	db     *db.DB
-	logger *zap.Logger
+	db      *db.DB
+	metrics metrics.Metrics
+	logger  *zap.Logger
 }
 
 // NewPostgresRepository creates a new storage repository.
-func NewPostgresRepository(db *db.DB, logger *zap.Logger) *PostgresPricesRepository {
+func NewPostgresRepository(db *db.DB, metrics metrics.Metrics, logger *zap.Logger) *PostgresPricesRepository {
 	return &PostgresPricesRepository{
-		db:     db,
-		logger: logger,
+		db:      db,
+		metrics: metrics,
+		logger:  logger,
 	}
 }
 
@@ -51,6 +54,10 @@ func (r *PostgresPricesRepository) Upsert(ctx context.Context, op OperationPrice
 		op.Timestamp,
 		now,
 		now)
+
+	if err == nil {
+		r.metrics.IncOperationPriceInserted(op.ChainID)
+	}
 
 	return err
 }

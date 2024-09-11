@@ -7,6 +7,7 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/builder"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/cmd/token"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/metric"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/storage"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/parser"
@@ -48,8 +49,11 @@ func RunVaasPrices(cfg VaasPrices) {
 
 	logger.Info("starting wormhole-explorer-analytics ...")
 
+	// init dummy metrics
+	metrics := metrics.NewNoopMetrics()
+
 	// setup DB connection
-	storageLayer, err := builder.NewStorageLayer(ctx, cfg.DbLayer, cfg.MongoDb, cfg.MongoDb, cfg.DbURL, cfg.DbLogEnable, logger)
+	storageLayer, err := builder.NewStorageLayer(ctx, cfg.DbLayer, cfg.MongoDb, cfg.MongoDb, cfg.DbURL, cfg.DbLogEnable, metrics, logger)
 	if err != nil {
 		logger.Fatal("failed to create to storage layer", zap.Error(err))
 	}

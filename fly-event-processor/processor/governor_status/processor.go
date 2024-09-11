@@ -313,6 +313,8 @@ func (p *Processor) updateGovernorStatus(ctx context.Context,
 
 	return p.repository.UpdateGovernorStatus(
 		ctx,
+		node.Name,
+		node.Address,
 		nodeGovernorVaasToAddDoc,
 		nodeGovVaaIdsToDelete,
 		governorVaasToAddDoc,

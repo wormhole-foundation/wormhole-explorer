@@ -311,7 +311,7 @@ func newMetrics(cfg *config.ServiceConfiguration) metrics.Metrics {
 	if !cfg.MetricsEnabled {
 		return metrics.NewDummyMetrics()
 	}
-	return metrics.NewPrometheusMetrics(cfg.Environment)
+	return metrics.NewPrometheusMetrics(cfg.Environment, cfg.DbLayer)
 }
 
 func newAlertClient(cfg *config.ServiceConfiguration) (alert.AlertClient, error) {
