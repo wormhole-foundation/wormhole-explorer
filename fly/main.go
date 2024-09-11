@@ -186,6 +186,10 @@ func main() {
 		logger.Fatal("Failed to load node key", zap.Error(err))
 	}
 
+	components := p2p.DefaultComponents()
+	components.Port = cfg.P2pPort
+	components.WarnChannelOverflow = true
+
 	runParams, errRunParams := p2p.NewRunParams(
 		p2pNetworkConfig.P2pBootstrap,
 		p2pNetworkConfig.P2pNetworkID,
@@ -198,6 +202,7 @@ func main() {
 		p2p.WithObservationRequestListener(channels.ObsvReqChannel),
 		p2p.WithChainGovernorConfigListener(channels.GovConfigChannel),
 		p2p.WithChainGovernorStatusListener(channels.GovStatusChannel),
+		p2p.WithComponents(components),
 	)
 	if errRunParams != nil {
 		logger.Fatal("failed to create run params", zap.Error(errRunParams))
