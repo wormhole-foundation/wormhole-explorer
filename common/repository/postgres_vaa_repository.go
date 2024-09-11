@@ -23,7 +23,7 @@ func NewPostgresVaaRepository(db *db.DB, logger *zap.Logger) *PostgresVaaReposit
 func (r *PostgresVaaRepository) FindPage(ctx context.Context, queryFilters VaaQuery,
 	pagination Pagination) ([]*AttestationVaa, error) {
 
-	query := `SELECT id, vaa_id, version, emitter_chain_id, emitter_address, sequence, guardian_set_index, raw, timestamp, active, is_duplicated, created_at, updated_at 
+	query := `SELECT id, vaa_id, version, emitter_chain_id, emitter_address, sequence, guardian_set_index, raw, timestamp, active, is_duplicated, consistency_level, created_at, updated_at 
 	FROM wormhole.wh_attestation_vaas`
 
 	// build query by args

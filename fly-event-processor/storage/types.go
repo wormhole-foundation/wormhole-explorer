@@ -20,7 +20,7 @@ type GovernorStatusRepository interface {
 	FindNodeGovernorVaaByVaaID(ctx context.Context, vaaID string) ([]NodeGovernorVaa, error)
 	FindNodeGovernorVaaByVaaIDs(ctx context.Context, vaaID []string) ([]NodeGovernorVaa, error)
 	FindGovernorVaaByVaaIDs(ctx context.Context, vaaID []string) ([]GovernorVaa, error)
-	UpdateGovernorStatus(ctx context.Context, nodeGovernorVaaDocToInsert []NodeGovernorVaa,
+	UpdateGovernorStatus(ctx context.Context, nodeName string, nodeAddress string, nodeGovernorVaaDocToInsert []NodeGovernorVaa,
 		nodeGovernorVaaDocToDelete []string, governorVaasToInsert []GovernorVaa,
 		governorVaaIdsToDelete []string) error
 }
@@ -134,19 +134,20 @@ func (v *VaaDoc) ToDuplicateVaaDoc() (*DuplicateVaaDoc, error) {
 }
 
 type AttestationVaa struct {
-	ID             string      `db:"id"`
-	VaaID          string      `db:"vaa_id"`
-	Version        uint8       `db:"version"`
-	EmitterChain   sdk.ChainID `db:"emitter_chain_id"`
-	EmitterAddress string      `db:"emitter_address"`
-	Sequence       Uint64      `db:"sequence"`
-	GuardianSetIdx uint32      `db:"guardian_set_index"`
-	Raw            []byte      `db:"raw"`
-	Timestamp      time.Time   `db:"timestamp"`
-	Active         bool        `db:"active"`
-	IsDuplicated   bool        `db:"is_duplicated"`
-	CreatedAt      time.Time   `db:"created_at"`
-	UpdatedAt      *time.Time  `db:"updated_at"`
+	ID               string      `db:"id"`
+	VaaID            string      `db:"vaa_id"`
+	Version          uint8       `db:"version"`
+	EmitterChain     sdk.ChainID `db:"emitter_chain_id"`
+	EmitterAddress   string      `db:"emitter_address"`
+	Sequence         Uint64      `db:"sequence"`
+	GuardianSetIdx   uint32      `db:"guardian_set_index"`
+	Raw              []byte      `db:"raw"`
+	Timestamp        time.Time   `db:"timestamp"`
+	Active           bool        `db:"active"`
+	IsDuplicated     bool        `db:"is_duplicated"`
+	ConsistencyLevel *uint8      `db:"consistency_level"`
+	CreatedAt        time.Time   `db:"created_at"`
+	UpdatedAt        *time.Time  `db:"updated_at"`
 }
 
 type Uint64 uint64
