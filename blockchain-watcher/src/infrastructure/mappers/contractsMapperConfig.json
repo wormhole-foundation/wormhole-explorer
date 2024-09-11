@@ -1779,6 +1779,16 @@
               "method": "MethodUpdateWrapped"
             }
           ]
+        },
+        {
+          "addresses": [],
+          "type": "StandardRelayer",
+          "methods": [
+            {
+              "methodId": "0xa60eb4c8",
+              "method": "StandardRelayerDelivery"
+            }
+          ]
         }
       ]
     },
