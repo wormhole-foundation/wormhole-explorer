@@ -8,6 +8,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	vaaRepo "github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/repository/vaa"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
@@ -48,6 +49,7 @@ type TargetTxUpdate struct {
 
 // Repository exposes operations over the `globalTransactions` collection.
 type MongoRepository struct {
+	metrics            metrics.Metrics
 	logger             *zap.Logger
 	globalTransactions *mongo.Collection
 	vaaIdTxHash        *mongo.Collection
@@ -55,9 +57,10 @@ type MongoRepository struct {
 }
 
 // New creates a new repository.
-func NewMongoRepository(logger *zap.Logger, db *mongo.Database, vaaRepository *vaaRepo.RepositoryMongoDB) *MongoRepository {
-
+func NewMongoRepository(logger *zap.Logger, db *mongo.Database, vaaRepository *vaaRepo.RepositoryMongoDB,
+	metrics metrics.Metrics) *MongoRepository {
 	r := MongoRepository{
+		metrics:            metrics,
 		logger:             logger,
 		globalTransactions: db.Collection("globalTransactions"),
 		vaaIdTxHash:        db.Collection("vaaIdTxHash"),
@@ -142,6 +145,7 @@ func (r *MongoRepository) UpsertOriginTx(ctx context.Context, originTx, _ *Upser
 		return fmt.Errorf("failed to upsert source tx information: %w", err)
 	}
 
+	r.metrics.IncGlobalTxSourceInserted(uint16(originTx.ChainId))
 	return nil
 }
 
@@ -199,6 +203,7 @@ func (r *MongoRepository) UpsertTargetTx(ctx context.Context, globalTx *TargetTx
 		r.logger.Error("Error inserting target tx in global transaction", zap.Error(err))
 		return err
 	}
+	r.metrics.IncGlobalTxDestinationTxInserted(uint16(globalTx.Destination.ChainID))
 	return err
 }
 

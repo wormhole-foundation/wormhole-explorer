@@ -8,6 +8,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/db"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/repository/vaa"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
@@ -15,11 +16,15 @@ import (
 type PostgreSQLRepository struct {
 	dbClient      *db.DB
 	vaaRepository *vaa.RepositoryPostreSQL
+	metrics       metrics.Metrics
 }
 
-func NewPostgreSQLRepository(postreSQLClient *db.DB, vaaRepository *vaa.RepositoryPostreSQL) *PostgreSQLRepository {
+func NewPostgreSQLRepository(postreSQLClient *db.DB, vaaRepository *vaa.RepositoryPostreSQL,
+	metrics metrics.Metrics) *PostgreSQLRepository {
 	return &PostgreSQLRepository{
-		dbClient: postreSQLClient,
+		metrics:       metrics,
+		dbClient:      postreSQLClient,
+		vaaRepository: vaaRepository,
 	}
 }
 
@@ -34,6 +39,7 @@ func (p *PostgreSQLRepository) UpsertOriginTx(ctx context.Context, originTx, nes
 		}
 	}
 
+	p.metrics.IncOperationTxSourceInserted(uint16(originTx.ChainId))
 	return nil
 }
 
@@ -178,7 +184,13 @@ func (p *PostgreSQLRepository) UpsertTargetTx(ctx context.Context, params *Targe
 		timestamp,                     // timestamp
 		nil,                           // rpc_response
 	)
+	if err != nil {
+		return err
+	}
 
+	if chainID != nil {
+		p.metrics.IncOperationTxTargetInserted(uint16(*chainID))
+	}
 	return err
 }
 

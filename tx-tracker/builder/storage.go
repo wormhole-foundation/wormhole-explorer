@@ -10,6 +10,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/consumer"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/repository/vaa"
 	"go.uber.org/zap"
 )
@@ -29,7 +30,8 @@ type StorageLayer struct {
 	vaaRepository vaa.VAARepository
 }
 
-func NewStorageLayer(ctx context.Context, params StorageLayerParams, logger *zap.Logger) (*StorageLayer, error) {
+func NewStorageLayer(ctx context.Context, metrics metrics.Metrics,
+	params StorageLayerParams, logger *zap.Logger) (*StorageLayer, error) {
 	var storageLayer StorageLayer
 	var mongoDb *dbutil.Session
 	var postgresDb *db.DB
@@ -42,7 +44,7 @@ func NewStorageLayer(ctx context.Context, params StorageLayerParams, logger *zap
 		}
 		storageLayer.mongoDB = mongoDb
 		vaaRepository := vaa.NewMongoVaaRepository(mongoDb.Database, logger)
-		storageLayer.repository = consumer.NewMongoRepository(logger, mongoDb.Database, vaaRepository)
+		storageLayer.repository = consumer.NewMongoRepository(logger, mongoDb.Database, vaaRepository, metrics)
 		storageLayer.vaaRepository = vaaRepository
 	case config.DbLayerPostgresql:
 		postgresDb, err = newPostgresDatabase(ctx, params.DbLogEnabled, params.DbUrl, logger)
@@ -51,7 +53,7 @@ func NewStorageLayer(ctx context.Context, params StorageLayerParams, logger *zap
 		}
 		vaaRepository := vaa.NewVaaRepositoryPostreSQL(postgresDb, logger)
 		storageLayer.postgresDB = postgresDb
-		storageLayer.repository = consumer.NewPostgreSQLRepository(postgresDb, vaaRepository)
+		storageLayer.repository = consumer.NewPostgreSQLRepository(postgresDb, vaaRepository, metrics)
 		storageLayer.vaaRepository = vaaRepository
 	case config.DbLayerDual:
 		mongoDb, err = dbutil.Connect(ctx, logger, params.MongodbUri, params.MongodbDatabase, false)
@@ -60,14 +62,14 @@ func NewStorageLayer(ctx context.Context, params StorageLayerParams, logger *zap
 		}
 		storageLayer.mongoDB = mongoDb
 		mongoVaaRepository := vaa.NewMongoVaaRepository(mongoDb.Database, logger)
-		mongoRepository := consumer.NewMongoRepository(logger, mongoDb.Database, mongoVaaRepository)
+		mongoRepository := consumer.NewMongoRepository(logger, mongoDb.Database, mongoVaaRepository, metrics)
 		postgresDb, err = newPostgresDatabase(ctx, params.DbLogEnabled, params.DbUrl, logger)
 		if err != nil {
 			return nil, err
 		}
 		storageLayer.postgresDB = postgresDb
 		postgresVaaRepository := vaa.NewVaaRepositoryPostreSQL(postgresDb, logger)
-		postgresRepository := consumer.NewPostgreSQLRepository(postgresDb, postgresVaaRepository)
+		postgresRepository := consumer.NewPostgreSQLRepository(postgresDb, postgresVaaRepository, metrics)
 		// create dual vaa repository
 		storageLayer.vaaRepository = vaa.NewDualVaaRepository(mongoVaaRepository, postgresVaaRepository)
 		// create dual repository
