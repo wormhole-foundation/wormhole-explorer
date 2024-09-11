@@ -227,3 +227,8 @@ func (m *mockMongoDBRepository) RegisterProcessedVaa(ctx context.Context, vaaDig
 	args := m.Called(ctx, vaaDigest, vaaId)
 	return args.Error(0)
 }
+
+func (m *mockMongoDBRepository) GetIDByVaaID(ctx context.Context, vaaId string) (string, error) {
+	args := m.Called(ctx, vaaId)
+	return args.String(0), args.Error(1)
+}
