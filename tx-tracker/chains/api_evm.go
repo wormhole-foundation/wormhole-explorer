@@ -150,7 +150,9 @@ func (e *apiEvm) fetchEvmTxByTxHash(
 	// build results and return
 	txDetail := &TxDetail{
 		From:             strings.ToLower(txReply.From),
+		NormalizedFrom:   utils.NormalizeHex(strings.ToLower(txReply.From)),
 		To:               strings.ToLower(txReply.To),
+		NormalizesTo:     utils.NormalizeHex(strings.ToLower(txReply.To)),
 		NativeTxHash:     nativeTxHash,
 		NormalizedTxHash: utils.NormalizeHex(txHash),
 		BlockNumber:      txReply.BlockNumber,
@@ -196,7 +198,9 @@ func (e *apiEvm) fetchEvmTxReceiptByTxHash(
 
 	return &TxDetail{
 		From:             strings.ToLower(txReceiptResponse.From),
+		NormalizedFrom:   utils.NormalizeHex(strings.ToLower(txReceiptResponse.From)),
 		To:               strings.ToLower(txReceiptResponse.To),
+		NormalizesTo:     utils.NormalizeHex(strings.ToLower(txReceiptResponse.To)),
 		NativeTxHash:     nativeTxHash,
 		NormalizedTxHash: utils.NormalizeHex(txHash),
 		BlockNumber:      txReceiptResponse.BlockNumber,
