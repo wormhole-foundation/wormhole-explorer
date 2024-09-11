@@ -30,7 +30,7 @@ func NewPostgresRepository(db *db.DB, metrics metrics.Metrics, logger *zap.Logge
 func (r *PostgresPricesRepository) Upsert(ctx context.Context, op OperationPrice) error {
 	query := `
 		INSERT INTO wormholescan.wh_operation_prices
-		(id, vaa_id, token_chain_id, token_address, coingecko_id, symbol, token_usd_price, total_token, total_usd, "timestamp", created_at, updated_at)  
+		(id, message_id, token_chain_id, token_address, coingecko_id, symbol, token_usd_price, total_token, total_usd, "timestamp", created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) 
 		ON CONFLICT(id) DO UPDATE 
 		SET updated_at = $12

@@ -8,6 +8,8 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
+	vaaRepo "github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/repository/vaa"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -31,8 +33,8 @@ type DestinationTx struct {
 }
 
 type FeeDetail struct {
-	Fee              string            `bson:"fee"`
-	RawFee           map[string]string `bson:"rawFee"`
+	Fee              string            `bson:"fee" json:"fee"`
+	RawFee           map[string]string `bson:"rawFee" json:"rawFee"`
 	GasTokenNotional string            `bson:"gasTokenNotional" json:"gasTokenNotional"`
 	FeeUSD           string            `bson:"feeUSD" json:"feeUSD"`
 }
@@ -47,20 +49,22 @@ type TargetTxUpdate struct {
 
 // Repository exposes operations over the `globalTransactions` collection.
 type MongoRepository struct {
+	metrics            metrics.Metrics
 	logger             *zap.Logger
 	globalTransactions *mongo.Collection
-	vaas               *mongo.Collection
 	vaaIdTxHash        *mongo.Collection
+	vaaRepository      *vaaRepo.RepositoryMongoDB
 }
 
 // New creates a new repository.
-func NewMongoRepository(logger *zap.Logger, db *mongo.Database) *MongoRepository {
-
+func NewMongoRepository(logger *zap.Logger, db *mongo.Database, vaaRepository *vaaRepo.RepositoryMongoDB,
+	metrics metrics.Metrics) *MongoRepository {
 	r := MongoRepository{
+		metrics:            metrics,
 		logger:             logger,
 		globalTransactions: db.Collection("globalTransactions"),
-		vaas:               db.Collection("vaas"),
 		vaaIdTxHash:        db.Collection("vaaIdTxHash"),
+		vaaRepository:      vaaRepository,
 	}
 
 	return &r
@@ -141,6 +145,7 @@ func (r *MongoRepository) UpsertOriginTx(ctx context.Context, originTx, _ *Upser
 		return fmt.Errorf("failed to upsert source tx information: %w", err)
 	}
 
+	r.metrics.IncGlobalTxSourceInserted(uint16(originTx.ChainId))
 	return nil
 }
 
@@ -198,6 +203,7 @@ func (r *MongoRepository) UpsertTargetTx(ctx context.Context, globalTx *TargetTx
 		r.logger.Error("Error inserting target tx in global transaction", zap.Error(err))
 		return err
 	}
+	r.metrics.IncGlobalTxDestinationTxInserted(uint16(globalTx.Destination.ChainID))
 	return err
 }
 
@@ -242,4 +248,13 @@ func (r *MongoRepository) FindSourceTxById(ctx context.Context, id string) (*Sou
 		return nil, err
 	}
 	return &sourceTxDoc, err
+}
+
+// GetIDByVaaID returns the id for the given vaa id
+func (p *MongoRepository) GetIDByVaaID(ctx context.Context, vaaID string) (string, error) {
+	vaa, err := p.vaaRepository.FindById(ctx, vaaID)
+	if err != nil {
+		return "", err
+	}
+	return domain.GetDigestFromRaw(vaa.Vaa)
 }
