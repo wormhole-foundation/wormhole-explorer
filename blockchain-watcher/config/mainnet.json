@@ -156,7 +156,6 @@
       "chainId": 30,
       "rpcs": [
         "https://mainnet.base.org",
-        "https://rpc.notadegen.com/base",
         "https://base-pokt.nodies.app",
         "https://base.publicnode.com"
       ]
