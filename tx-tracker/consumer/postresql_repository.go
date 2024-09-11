@@ -7,6 +7,7 @@ import (
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/db"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
+	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/repository/vaa"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
@@ -138,7 +139,15 @@ func (p *PostgreSQLRepository) UpsertTargetTx(ctx context.Context, params *Targe
 	var chainID *sdk.ChainID
 	if params.Destination != nil {
 		from = &params.Destination.From
+		if utils.StartsWith0x(params.Destination.From) {
+			normalizedFrom := utils.Remove0x(params.Destination.From)
+			from = &normalizedFrom
+		}
 		to = &params.Destination.To
+		if utils.StartsWith0x(params.Destination.To) {
+			normalizedTo := utils.Remove0x(params.Destination.To)
+			to = &normalizedTo
+		}
 		blockchainMethod = &params.Destination.Method
 		status = &params.Destination.Status
 		txHash = &params.Destination.TxHash
