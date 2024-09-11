@@ -15,6 +15,7 @@ type PricesRepository interface {
 type OperationPrice struct {
 	Digest        string
 	VaaID         string
+	ChainID       sdk.ChainID
 	TokenChainID  uint16
 	TokenAddress  string
 	Symbol        string

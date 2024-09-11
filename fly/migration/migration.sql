@@ -279,3 +279,8 @@ CREATE INDEX "wh_relays_transactions_from_tx_hash_idx"
     ON wormholescan.wh_relays ("from_tx_hash");
 CREATE INDEX "wh_relays_transactions_to_tx_hash_idx"
     ON wormholescan.wh_relays ("to_tx_hash");
+
+-- alter table wormholescan.wh_attestation_vaas add colum consistency_level
+ALTER TABLE wormholescan.wh_attestation_vaas ADD "consistency_level" smallint null;
+-- alter table wormholescan.wh_attestation_vaas_pythnet add colum consistency_level
+ALTER TABLE wormholescan.wh_attestation_vaas_pythnet ADD "consistency_level" smallint null;

@@ -23,7 +23,7 @@ func (d *DummyMetrics) IncDuplicatedVaaFailed(chainID sdk.ChainID) {}
 func (d *DummyMetrics) IncDuplicatedVaaExpired(chainID sdk.ChainID) {}
 
 // IncDuplicatedVaaCanNotFixed dummy implementation.
-func (d *DummyMetrics) IncDuplicatedVaaCanNotFixed(chainID sdk.ChainID) {}
+func (d *DummyMetrics) IncDuplicatedVaaCanNotFixed(chainID sdk.ChainID, dbLayer string) {}
 
 // IncGovernorStatusConsumedQueue dummy implementation.
 func (d *DummyMetrics) IncGovernorStatusConsumedQueue() {}
@@ -33,6 +33,9 @@ func (d *DummyMetrics) IncGovernorStatusProcessed(node string, address string) {
 
 // IncGovernorStatusFailed dummy implementation.
 func (d *DummyMetrics) IncGovernorStatusFailed(node string, address string) {}
+
+// IncGovernorStatusUpdated dummy implementation.
+func (d *DummyMetrics) IncGovernorStatusUpdated(node string, address string, dbLayer string) {}
 
 // IncGovernorStatusExpired dummy implementation.
 func (d *DummyMetrics) IncGovernorStatusExpired(node string, address string) {}
