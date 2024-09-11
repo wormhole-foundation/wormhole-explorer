@@ -57,6 +57,7 @@ func Run() {
 
 	storageLayer, err := builder.NewStorageLayer(
 		rootCtx,
+		metrics,
 		builder.StorageLayerParams{
 			DbLayer:         cfg.DbLayer,
 			MongodbUri:      cfg.MongodbUri,

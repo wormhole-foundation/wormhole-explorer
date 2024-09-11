@@ -19,4 +19,12 @@ type Metrics interface {
 	IncVaaFailed(chainID uint16, retry uint8)
 	IncWormchainUnknown(srcChannel string, dstChannel string)
 	VaaProcessingDuration(chain string, start *time.Time)
+	// TODO: remove after database migration.
+	IncOperationTxSourceInserted(chainID uint16)
+	// TODO: remove after database migration.
+	IncGlobalTxSourceInserted(chainID uint16)
+	// TODO: remove after database migration.
+	IncOperationTxTargetInserted(chainID uint16)
+	// TODO: remove after database migration.
+	IncGlobalTxDestinationTxInserted(chainID uint16)
 }

@@ -65,7 +65,13 @@ func (c *Controller) Process(ctx *fiber.Ctx) error {
 		return err
 	}
 
+	digest, err := domain.GetDigestFromRaw(v.Vaa)
+	if err != nil {
+		return err
+	}
+
 	p := &consumer.ProcessSourceTxParams{
+		ID:          digest,
 		TrackID:     "controller",
 		Source:      "controller",
 		Timestamp:   &vaa.Timestamp,
