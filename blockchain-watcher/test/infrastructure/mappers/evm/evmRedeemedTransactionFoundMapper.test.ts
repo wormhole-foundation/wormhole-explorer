@@ -726,7 +726,7 @@ describe("evmRedeemedTransactionFoundMapper", () => {
     expect(result?.attributes.blockNumber).toBe(252505050n);
     expect(result?.attributes.from).toBe("0x5acf4e865604ab620fb84acc047b990f2d2856fd");
     expect(result?.attributes.to).toBe("0xf18f923480dc144326e6c65d4f3d47aa459bb41c");
-    expect(result?.attributes.methodsByAddress).toBe("MethodFulfillOrder");
+    expect(result?.attributes.methodsByAddress).toBe("unknown"); // TODO: when the fast transfer PR is merged, this should be updated for MethodFulfillOrder
     expect(result?.attributes.emitterChain).toBe(1);
     expect(result?.attributes.emitterAddress).toBe(
       "320a277b216ad7630fcdeec95878d2261ef01b423d48cea81ea808d7984a2246"
