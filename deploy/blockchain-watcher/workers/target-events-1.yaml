@@ -601,6 +601,12 @@ data:
                 "strategy": "GetTransactionsByLogFiltersStrategy"
               },
               {
+                "addresses": [],
+                "type": "Mayan with Swift",                
+                "topics": ["0xcc5626df3b699006387b64eca775dbdfecd5ae542e2d6ab22923082e1320dfcb"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
                 "addresses": ["0xDA3adC6621B2677BEf9aD26598e6939CF0D92f88"],
                 "type": "NFT",                
                 "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
@@ -622,6 +628,11 @@ data:
                   "abi": "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
                   "topic": "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
                   "type": "Standard Relayer"
+                },
+                {
+                  "abi": "fulfillOrder(bytes cctpMsg, bytes cctpSigs, bytes encodedVm, address swapProtocol, bytes swapData)",
+                  "topic": "0xcc5626df3b699006387b64eca775dbdfecd5ae542e2d6ab22923082e1320dfcb",
+                  "type": "Mayan with Swift"
                 }
               ],
               "metricName": "process_vaa_event"
@@ -666,6 +677,12 @@ data:
               },
               {
                 "addresses": [],
+                "type": "Mayan with Swift",                
+                "topics": ["0xcc5626df3b699006387b64eca775dbdfecd5ae542e2d6ab22923082e1320dfcb"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
                 "type": "Fast Transfer",                
                 "topics": ["0x67cc74e969bff447b6e0f32eea34930545a732749bdcaaf3530c70e311900b06"],
                 "strategy": "GetTransactionsByLogFiltersStrategy"
@@ -692,6 +709,11 @@ data:
                   "abi": "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
                   "topic": "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
                   "type": "Standard Relayer"
+                },
+                {
+                  "abi": "fulfillOrder(bytes cctpMsg, bytes cctpSigs, bytes encodedVm, address swapProtocol, bytes swapData)",
+                  "topic": "0xcc5626df3b699006387b64eca775dbdfecd5ae542e2d6ab22923082e1320dfcb",
+                  "type": "Mayan with Swift"
                 }
               ],
               "metricName": "process_vaa_event"
@@ -729,6 +751,12 @@ data:
                 "strategy": "GetTransactionsByLogFiltersStrategy"
               },
               {
+                "addresses": [],
+                "type": "Mayan with Swift",                
+                "topics": ["0xcc5626df3b699006387b64eca775dbdfecd5ae542e2d6ab22923082e1320dfcb"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
                 "addresses": ["0x90BBd86a6Fe93D3bc3ed6335935447E75fAb7fCf", "0x0C79503A24e6C7f89b0dF2b1Bf6761A01252D4ee"],
                 "type": "NFT",                
                 "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
@@ -750,6 +778,11 @@ data:
                   "abi": "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
                   "topic": "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
                   "type": "Standard Relayer"
+                },
+                {
+                  "abi": "fulfillOrder(bytes cctpMsg, bytes cctpSigs, bytes encodedVm, address swapProtocol, bytes swapData)",
+                  "topic": "0xcc5626df3b699006387b64eca775dbdfecd5ae542e2d6ab22923082e1320dfcb",
+                  "type": "Mayan with Swift"
                 }
               ],
               "metricName": "process_vaa_event"
@@ -787,6 +820,12 @@ data:
                 "strategy": "GetTransactionsByLogFiltersStrategy"
               },
               {
+                "addresses": [],
+                "type": "Mayan with Swift",                
+                "topics": ["0xcc5626df3b699006387b64eca775dbdfecd5ae542e2d6ab22923082e1320dfcb"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
                 "addresses": ["0xf7B6737Ca9c4e08aE573F75A97B73D7a813f5De5"],
                 "type": "NFT",                
                 "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
@@ -808,6 +847,11 @@ data:
                   "abi": "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
                   "topic": "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
                   "type": "Standard Relayer"
+                },
+                {
+                  "abi": "fulfillOrder(bytes cctpMsg, bytes cctpSigs, bytes encodedVm, address swapProtocol, bytes swapData)",
+                  "topic": "0xcc5626df3b699006387b64eca775dbdfecd5ae542e2d6ab22923082e1320dfcb",
+                  "type": "Mayan with Swift"
                 }
               ],
               "metricName": "process_vaa_event"
@@ -851,6 +895,12 @@ data:
                 "strategy": "GetTransactionsByLogFiltersStrategy"
               },
               {
+                "addresses": [],
+                "type": "Mayan with Swift",                
+                "topics": ["0xcc5626df3b699006387b64eca775dbdfecd5ae542e2d6ab22923082e1320dfcb"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
                 "addresses": ["0x6FFd7EdE62328b3Af38FCD61461Bbfc52F5651fE"],
                 "type": "NFT",                
                 "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
@@ -872,6 +922,11 @@ data:
                   "abi": "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
                   "topic": "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
                   "type": "Standard Relayer"
+                },
+                {
+                  "abi": "fulfillOrder(bytes cctpMsg, bytes cctpSigs, bytes encodedVm, address swapProtocol, bytes swapData)",
+                  "topic": "0xcc5626df3b699006387b64eca775dbdfecd5ae542e2d6ab22923082e1320dfcb",
+                  "type": "Mayan with Swift"
                 }
               ],
               "metricName": "process_vaa_event"
@@ -904,6 +959,12 @@ data:
               },
               {
                 "addresses": [],
+                "type": "Mayan with Swift",                
+                "topics": ["0xcc5626df3b699006387b64eca775dbdfecd5ae542e2d6ab22923082e1320dfcb"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
                 "type": "Fast Transfer",                
                 "topics": ["0x67cc74e969bff447b6e0f32eea34930545a732749bdcaaf3530c70e311900b06"],
                 "strategy": "GetTransactionsByLogFiltersStrategy"
@@ -930,6 +991,11 @@ data:
                   "abi": "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
                   "topic": "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
                   "type": "Standard Relayer"
+                },
+                {
+                  "abi": "fulfillOrder(bytes cctpMsg, bytes cctpSigs, bytes encodedVm, address swapProtocol, bytes swapData)",
+                  "topic": "0xcc5626df3b699006387b64eca775dbdfecd5ae542e2d6ab22923082e1320dfcb",
+                  "type": "Mayan with Swift"
                 }
               ],
               "metricName": "process_vaa_event"
@@ -973,6 +1039,12 @@ data:
                 "strategy": "GetTransactionsByLogFiltersStrategy"
               },
               {
+                "addresses": [],
+                "type": "Mayan with Swift",                
+                "topics": ["0xcc5626df3b699006387b64eca775dbdfecd5ae542e2d6ab22923082e1320dfcb"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
                 "addresses": ["0xfE8cD454b4A1CA468B57D79c0cc77Ef5B6f64585"],
                 "type": "NFT",                
                 "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
@@ -994,6 +1066,11 @@ data:
                   "abi": "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
                   "topic": "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
                   "type": "Standard Relayer"
+                },
+                {
+                  "abi": "fulfillOrder(bytes cctpMsg, bytes cctpSigs, bytes encodedVm, address swapProtocol, bytes swapData)",
+                  "topic": "0xcc5626df3b699006387b64eca775dbdfecd5ae542e2d6ab22923082e1320dfcb",
+                  "type": "Mayan with Swift"
                 }
               ],
               "metricName": "process_vaa_event"

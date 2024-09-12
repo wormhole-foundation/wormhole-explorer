@@ -218,6 +218,16 @@
               "method": "MethodCompleteTransfer"
             }
           ]
+        },
+        {
+          "addresses": [],
+          "type": "Mayan with Swift",
+          "methods": [
+            {
+              "methodId": "0x078eab72",
+              "method": "MethodFulfillOrder"
+            }
+          ]
         }
       ]
     },
@@ -426,6 +436,16 @@
               "method": "MethodReceiveMessage"
             }
           ]
+        },
+        {
+          "addresses": [],
+          "type": "Mayan with Swift",
+          "methods": [
+            {
+              "methodId": "0x078eab72",
+              "method": "MethodFulfillOrder"
+            }
+          ]
         }
       ]
     },
@@ -531,6 +551,16 @@
             {
               "methodId": "0xc6878519",
               "method": "MethodCompleteTransfer"
+            }
+          ]
+        },
+        {
+          "addresses": [],
+          "type": "Mayan with Swift",
+          "methods": [
+            {
+              "methodId": "0x078eab72",
+              "method": "MethodFulfillOrder"
             }
           ]
         },
@@ -760,6 +790,16 @@
             {
               "methodId": "0xf953cec7",
               "method": "WormholeTransceiverReceiveMessage"
+            }
+          ]
+        },
+        {
+          "addresses": [],
+          "type": "Mayan with Swift",
+          "methods": [
+            {
+              "methodId": "0x078eab72",
+              "method": "MethodFulfillOrder"
             }
           ]
         }
@@ -1073,6 +1113,16 @@
         },
         {
           "addresses": [],
+          "type": "Mayan with Swift",
+          "methods": [
+            {
+              "methodId": "0x078eab72",
+              "method": "MethodFulfillOrder"
+            }
+          ]
+        },
+        {
+          "addresses": [],
           "type": "Fast Transfer",
           "methods": [
             {
@@ -1264,6 +1314,16 @@
               "method": "MethodCompleteTransfer"
             }
           ]
+        },
+        {
+          "addresses": [],
+          "type": "Mayan with Swift",
+          "methods": [
+            {
+              "methodId": "0x078eab72",
+              "method": "MethodFulfillOrder"
+            }
+          ]
         }
       ]
     },
@@ -1447,6 +1507,16 @@
             {
               "methodId": "0x2f25e25f",
               "method": "MethodCompleteTransferWithRelay"
+            }
+          ]
+        },
+        {
+          "addresses": [],
+          "type": "Mayan with Swift",
+          "methods": [
+            {
+              "methodId": "0x078eab72",
+              "method": "MethodFulfillOrder"
             }
           ]
         }
