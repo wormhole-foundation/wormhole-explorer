@@ -198,10 +198,10 @@ const mapVaaFromMayanWithSwiftDelivery: LogToVaaMapper = (
   if (!abi) return undefined;
 
   const iface = new ethers.utils.Interface([`function ${abi.abi}`]);
-  const decodedDeliveryFunction = iface.decodeFunctionData(abi.abi, input);
-  if (!decodedDeliveryFunction || !decodedDeliveryFunction.encodedVm) return undefined;
+  const decodedFulfillOrderFunction = iface.decodeFunctionData(abi.abi, input);
+  if (!decodedFulfillOrderFunction || !decodedFulfillOrderFunction.encodedVm) return undefined;
 
-  const payload = decodedDeliveryFunction.encodedVm;
+  const payload = decodedFulfillOrderFunction.encodedVm;
   const vaaBuffer = Buffer.from(payload.substring(2), "hex"); // Remove 0x
   const vaa = parseVaa(vaaBuffer);
 
