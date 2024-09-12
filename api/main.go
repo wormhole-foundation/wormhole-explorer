@@ -197,6 +197,7 @@ func main() {
 		protocols.WrapQueryAPI(influxCli.QueryAPI(cfg.Influx.Organization)),
 		cfg.Influx.BucketInfinite,
 		cfg.Influx.Bucket30Days,
+		cfg.Influx.Bucket24Hours,
 		rootLogger)
 	guardianSetRepository := repository.NewGuardianSetRepository(db.Database, rootLogger)
 
