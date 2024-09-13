@@ -778,6 +778,10 @@ spec:
             - name: ETHEREUM_HOLESKY_RPCS
               value: '{{ .ETHEREUM_HOLESKY_RPCS }}'
             {{ end }}
+            {{ if .ACALA_RPCS }}
+            - name: ACALA_RPCS
+              value: '{{ .ACALA_RPCS }}'
+            {{ end }}
           resources:
             limits:
               cpu: {{ .RESOURCES_LIMITS_CPU }}
