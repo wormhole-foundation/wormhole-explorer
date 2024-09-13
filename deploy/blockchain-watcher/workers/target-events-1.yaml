@@ -584,8 +584,8 @@ data:
               },
               {
                 "addresses": [],
-                "type": "CCTP",
-                "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"],
+                "type": "CCTP and MCTP",
+                "topics": ["0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d"],
                 "strategy": "GetTransactionsByLogFiltersStrategy"
               },
               {
@@ -633,6 +633,11 @@ data:
                   "abi": "fulfillOrder(bytes cctpMsg, bytes cctpSigs, bytes encodedVm, address swapProtocol, bytes swapData)",
                   "topic": "0xcc5626df3b699006387b64eca775dbdfecd5ae542e2d6ab22923082e1320dfcb",
                   "type": "Mayan with Swift"
+                },
+                {
+                  "abi": "redeemWithFee(bytes cctpMsg,bytes cctpSigs,bytes encodedVm)",
+                  "topic": "0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d",
+                  "type": "MCTP"
                 }
               ],
               "metricName": "process_vaa_event"
@@ -659,8 +664,8 @@ data:
               },
               {
                 "addresses": [],
-                "type": "CCTP",
-                "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"],
+                "type": "CCTP and MCTP",
+                "topics": ["0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d"],
                 "strategy": "GetTransactionsByLogFiltersStrategy"
               },
               {
@@ -708,6 +713,11 @@ data:
                   "abi": "fulfillOrder(bytes cctpMsg, bytes cctpSigs, bytes encodedVm, address swapProtocol, bytes swapData)",
                   "topic": "0xcc5626df3b699006387b64eca775dbdfecd5ae542e2d6ab22923082e1320dfcb",
                   "type": "Mayan with Swift"
+                },
+                {
+                  "abi": "redeemWithFee(bytes cctpMsg,bytes cctpSigs,bytes encodedVm)",
+                  "topic": "0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d",
+                  "type": "MCTP"
                 }
               ],
               "metricName": "process_vaa_event"
@@ -734,8 +744,8 @@ data:
               },
               {
                 "addresses": [],
-                "type": "CCTP",
-                "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"],
+                "type": "CCTP and MCTP",
+                "topics": ["0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d"],
                 "strategy": "GetTransactionsByLogFiltersStrategy"
               },
               {
@@ -777,6 +787,11 @@ data:
                   "abi": "fulfillOrder(bytes cctpMsg, bytes cctpSigs, bytes encodedVm, address swapProtocol, bytes swapData)",
                   "topic": "0xcc5626df3b699006387b64eca775dbdfecd5ae542e2d6ab22923082e1320dfcb",
                   "type": "Mayan with Swift"
+                },
+                {
+                  "abi": "redeemWithFee(bytes cctpMsg,bytes cctpSigs,bytes encodedVm)",
+                  "topic": "0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d",
+                  "type": "MCTP"
                 }
               ],
               "metricName": "process_vaa_event"
@@ -803,8 +818,8 @@ data:
               },
               {
                 "addresses": [],
-                "type": "CCTP",
-                "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"],
+                "type": "CCTP and MCTP",
+                "topics": ["0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d"],
                 "strategy": "GetTransactionsByLogFiltersStrategy"
               },
               {
@@ -846,6 +861,11 @@ data:
                   "abi": "fulfillOrder(bytes cctpMsg, bytes cctpSigs, bytes encodedVm, address swapProtocol, bytes swapData)",
                   "topic": "0xcc5626df3b699006387b64eca775dbdfecd5ae542e2d6ab22923082e1320dfcb",
                   "type": "Mayan with Swift"
+                },
+                {
+                  "abi": "redeemWithFee(bytes cctpMsg,bytes cctpSigs,bytes encodedVm)",
+                  "topic": "0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d",
+                  "type": "MCTP"
                 }
               ],
               "metricName": "process_vaa_event"
@@ -872,8 +892,8 @@ data:
               },
               {
                 "addresses": [],
-                "type": "CCTP",
-                "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"],
+                "type": "CCTP and MCTP",
+                "topics": ["0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d"],
                 "strategy": "GetTransactionsByLogFiltersStrategy"
               },
               {
@@ -921,6 +941,11 @@ data:
                   "abi": "fulfillOrder(bytes cctpMsg, bytes cctpSigs, bytes encodedVm, address swapProtocol, bytes swapData)",
                   "topic": "0xcc5626df3b699006387b64eca775dbdfecd5ae542e2d6ab22923082e1320dfcb",
                   "type": "Mayan with Swift"
+                },
+                {
+                  "abi": "redeemWithFee(bytes cctpMsg,bytes cctpSigs,bytes encodedVm)",
+                  "topic": "0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d",
+                  "type": "MCTP"
                 }
               ],
               "metricName": "process_vaa_event"
@@ -1010,8 +1035,8 @@ data:
               },
               {
                 "addresses": [],
-                "type": "CCTP",
-                "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"],
+                "type": "CCTP and MCTP",
+                "topics": ["0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d"],
                 "strategy": "GetTransactionsByLogFiltersStrategy"
               },
               {
@@ -1059,6 +1084,11 @@ data:
                   "abi": "fulfillOrder(bytes cctpMsg, bytes cctpSigs, bytes encodedVm, address swapProtocol, bytes swapData)",
                   "topic": "0xcc5626df3b699006387b64eca775dbdfecd5ae542e2d6ab22923082e1320dfcb",
                   "type": "Mayan with Swift"
+                },
+                {
+                  "abi": "redeemWithFee(bytes cctpMsg,bytes cctpSigs,bytes encodedVm)",
+                  "topic": "0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d",
+                  "type": "MCTP"
                 }
               ],
               "metricName": "process_vaa_event"

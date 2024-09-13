@@ -214,6 +214,16 @@
               "method": "MethodFulfillOrder"
             }
           ]
+        },
+        {
+          "addresses": [],
+          "type": "MCTP",
+          "methods": [
+            {
+              "methodId": "0x958c0937",
+              "method": "MethodRedeemWithFee"
+            }
+          ]
         }
       ]
     },
@@ -430,6 +440,16 @@
             {
               "methodId": "0x078eab72",
               "method": "MethodFulfillOrder"
+            }
+          ]
+        },
+        {
+          "addresses": [],
+          "type": "MCTP",
+          "methods": [
+            {
+              "methodId": "0x958c0937",
+              "method": "MethodRedeemWithFee"
             }
           ]
         }
@@ -778,6 +798,16 @@
               "method": "MethodFulfillOrder"
             }
           ]
+        },
+        {
+          "addresses": [],
+          "type": "MCTP",
+          "methods": [
+            {
+              "methodId": "0x958c0937",
+              "method": "MethodRedeemWithFee"
+            }
+          ]
         }
       ]
     },
@@ -1096,6 +1126,16 @@
               "method": "MethodFulfillOrder"
             }
           ]
+        },
+        {
+          "addresses": [],
+          "type": "MCTP",
+          "methods": [
+            {
+              "methodId": "0x958c0937",
+              "method": "MethodRedeemWithFee"
+            }
+          ]
         }
       ]
     },
@@ -1288,6 +1328,16 @@
             {
               "methodId": "0x078eab72",
               "method": "MethodFulfillOrder"
+            }
+          ]
+        },
+        {
+          "addresses": [],
+          "type": "MCTP",
+          "methods": [
+            {
+              "methodId": "0x958c0937",
+              "method": "MethodRedeemWithFee"
             }
           ]
         }
@@ -1483,6 +1533,16 @@
             {
               "methodId": "0x078eab72",
               "method": "MethodFulfillOrder"
+            }
+          ]
+        },
+        {
+          "addresses": [],
+          "type": "MCTP",
+          "methods": [
+            {
+              "methodId": "0x958c0937",
+              "method": "MethodRedeemWithFee"
             }
           ]
         }

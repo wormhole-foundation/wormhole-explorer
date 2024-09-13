@@ -189,27 +189,32 @@ const mapVaaFromInput: LogToVaaMapper = (_, input: string) => {
   }
 };
 
-const mapVaaFromMayanWithSwiftDelivery: LogToVaaMapper = (
+const mapVaaFromfunction: LogToVaaMapper = (
   log: EvmTransactionLog,
   input: string,
   cfg: HandleEvmConfig
 ) => {
-  const abi = cfg.abis?.find((abi) => abi.topic === log.topics[0]);
-  if (!abi) return undefined;
+  try {
+    const abi = cfg.abis?.find((abi) => abi.topic === log.topics[0]);
+    if (!abi) return undefined;
 
-  const iface = new ethers.utils.Interface([`function ${abi.abi}`]);
-  const decodedFulfillOrderFunction = iface.decodeFunctionData(abi.abi, input);
-  if (!decodedFulfillOrderFunction || !decodedFulfillOrderFunction.encodedVm) return undefined;
+    const iface = new ethers.utils.Interface([`function ${abi.abi}`]);
+    const decodedFulfillOrderFunction = iface.decodeFunctionData(abi.abi, input);
+    if (!decodedFulfillOrderFunction || !decodedFulfillOrderFunction.encodedVm) return undefined;
 
-  const payload = decodedFulfillOrderFunction.encodedVm;
-  const vaaBuffer = Buffer.from(payload.substring(2), "hex"); // Remove 0x
-  const vaa = parseVaa(vaaBuffer);
+    const payload = decodedFulfillOrderFunction.encodedVm;
+    const vaaBuffer = Buffer.from(payload.substring(2), "hex"); // Remove 0x
+    const vaa = parseVaa(vaaBuffer);
 
-  return {
-    emitterChain: Number(vaa.emitterChain),
-    emitterAddress: vaa.emitterAddress.toString("hex"),
-    sequence: Number(vaa.sequence),
-  };
+    return {
+      emitterChain: Number(vaa.emitterChain),
+      emitterAddress: vaa.emitterAddress.toString("hex"),
+      sequence: Number(vaa.sequence),
+    };
+  } catch (e) {
+    // If we cant parse the VAA we ignore it and then try to use other mapper
+    return undefined;
+  }
 };
 
 type VaaInformation = {
@@ -229,8 +234,8 @@ const REDEEM_TOPICS: Record<string, LogToVaaMapper> = {
   "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef": mapVaaFromInput, // Token Bridge sepolia
   "0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0": mapVaaFromDataBuilder(1), // NTT manual
   "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e": mapVaaFromTopics, // CCTP
-  "0xcc5626df3b699006387b64eca775dbdfecd5ae542e2d6ab22923082e1320dfcb":
-    mapVaaFromMayanWithSwiftDelivery, // Mayan with Swift
+  "0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d": mapVaaFromfunction, // MCTP
+  "0xcc5626df3b699006387b64eca775dbdfecd5ae542e2d6ab22923082e1320dfcb": mapVaaFromfunction, // Mayan with Swift
   "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e":
     mapVaaFromStandardRelayerDelivery, // Standard Relayer
 };
