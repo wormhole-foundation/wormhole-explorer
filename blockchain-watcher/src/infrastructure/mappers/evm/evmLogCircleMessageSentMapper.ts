@@ -13,7 +13,6 @@ export const evmLogCircleMessageSentMapper = (
   transaction: EvmTransaction,
   cfg?: HandleEvmConfig
 ): LogFoundEvent<CircleMessageSent> | undefined => {
-  const messageProtocol = mappedMessageProtocol(transaction.logs);
   const circleMessageSent = mappedCircleMessageSent(transaction.logs, cfg!);
 
   if (!circleMessageSent) {
@@ -23,6 +22,7 @@ export const evmLogCircleMessageSentMapper = (
     return undefined;
   }
 
+  const messageProtocol = mappedMessageProtocol(transaction.logs);
   logger.info(
     `[${transaction.chain}] Circle message sent event info: [tx: ${transaction.hash}] [protocol: ${circleMessageSent.protocol} - ${messageProtocol}]`
   );

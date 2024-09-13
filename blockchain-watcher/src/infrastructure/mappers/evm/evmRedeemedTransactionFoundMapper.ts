@@ -229,6 +229,7 @@ const REDEEM_TOPICS: Record<string, LogToVaaMapper> = {
   "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef": mapVaaFromInput, // Token Bridge sepolia
   "0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0": mapVaaFromDataBuilder(1), // NTT manual
   "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e": mapVaaFromTopics, // CCTP
+  "0x67cc74e969bff447b6e0f32eea34930545a732749bdcaaf3530c70e311900b06": mapVaaFromTopics, // Fast Transfer
   "0xcc5626df3b699006387b64eca775dbdfecd5ae542e2d6ab22923082e1320dfcb":
     mapVaaFromMayanWithSwiftDelivery, // Mayan with Swift
   "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e":
