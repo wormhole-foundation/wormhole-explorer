@@ -1,6 +1,6 @@
 module github.com/wormhole-foundation/wormhole-explorer/spy
 
-go 1.20
+go 1.21.9
 
 require (
 	github.com/certusone/wormhole/node v0.0.0-20240416174455-25e60611a867
@@ -10,7 +10,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/sethvargo/go-envconfig v1.0.0 // Configuration environment
 	github.com/stretchr/testify v1.8.4 // Testing
-	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240416174455-25e60611a867
+	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240823200831-78771ff5297e
 	go.mongodb.org/mongo-driver v1.11.2
 	go.uber.org/zap v1.26.0
 	google.golang.org/grpc v1.57.1
