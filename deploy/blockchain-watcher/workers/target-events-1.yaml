@@ -584,9 +584,15 @@ data:
               },
               {
                 "addresses": [],
-                "type": "CCTP and MCTP",
-                "topics": ["0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d"],
+                "type": "CCTP",
+                "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"],
                 "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": ["0xF18f923480dC144326e6C65d4F3D47Aa459bb41C"],
+                "type": "MCTP",
+                "topics": ["0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d"],
+                "strategy": "GetTransactionsByBlocksStrategy"
               },
               {
                 "addresses": [],
@@ -664,9 +670,15 @@ data:
               },
               {
                 "addresses": [],
-                "type": "CCTP and MCTP",
-                "topics": ["0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d"],
+                "type": "CCTP",
+                "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"],
                 "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": ["0xF18f923480dC144326e6C65d4F3D47Aa459bb41C"],
+                "type": "MCTP",
+                "topics": ["0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d"],
+                "strategy": "GetTransactionsByBlocksStrategy"
               },
               {
                 "addresses": [],
@@ -750,9 +762,15 @@ data:
               },
               {
                 "addresses": [],
-                "type": "CCTP and MCTP",
-                "topics": ["0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d"],
+                "type": "CCTP",
+                "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"],
                 "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": ["0xF18f923480dC144326e6C65d4F3D47Aa459bb41C"],
+                "type": "MCTP",
+                "topics": ["0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d"],
+                "strategy": "GetTransactionsByBlocksStrategy"
               },
               {
                 "addresses": [],
@@ -824,9 +842,15 @@ data:
               },
               {
                 "addresses": [],
-                "type": "CCTP and MCTP",
-                "topics": ["0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d"],
+                "type": "CCTP",
+                "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"],
                 "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": ["0xF18f923480dC144326e6C65d4F3D47Aa459bb41C"],
+                "type": "MCTP",
+                "topics": ["0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d"],
+                "strategy": "GetTransactionsByBlocksStrategy"
               },
               {
                 "addresses": [],
@@ -898,9 +922,15 @@ data:
               },
               {
                 "addresses": [],
-                "type": "CCTP and MCTP",
-                "topics": ["0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d"],
+                "type": "CCTP",
+                "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"],
                 "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": ["0xF18f923480dC144326e6C65d4F3D47Aa459bb41C"],
+                "type": "MCTP",
+                "topics": ["0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d"],
+                "strategy": "GetTransactionsByBlocksStrategy"
               },
               {
                 "addresses": [],
@@ -1047,9 +1077,15 @@ data:
               },
               {
                 "addresses": [],
-                "type": "CCTP and MCTP",
-                "topics": ["0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d"],
+                "type": "CCTP",
+                "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"],
                 "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": ["0xF18f923480dC144326e6C65d4F3D47Aa459bb41C"],
+                "type": "MCTP",
+                "topics": ["0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d"],
+                "strategy": "GetTransactionsByBlocksStrategy"
               },
               {
                 "addresses": [],
