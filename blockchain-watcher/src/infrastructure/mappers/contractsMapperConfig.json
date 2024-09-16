@@ -65,6 +65,20 @@
               "method": "completeWrappedInstruction"
             }
           ]
+        },
+        {
+          "addresses": ["HtkeCDdYY4i9ncAxXKjYTx8Uu3WM8JbtiLRYjtHwaVXb"],
+          "type": "Fast Transfer",
+          "methods": [
+            {
+              "methodId": "b0261e11e64ece9d",
+              "method": "executeFastOrderCctp"
+            },
+            {
+              "methodId": "ddb2b82bf7f85aa0",
+              "method": "executeSlowOrderCctp"
+            }
+          ]
         }
       ]
     },
@@ -567,6 +581,16 @@
             {
               "methodId": "0x078eab72",
               "method": "MethodFulfillOrder"
+            }
+          ]
+        },
+        {
+          "addresses": [],
+          "type": "Fast Transfer",
+          "methods": [
+            {
+              "methodId": "0x604009a9",
+              "method": "FillRedeemed"
             }
           ]
         }
@@ -1124,6 +1148,16 @@
             {
               "methodId": "0x078eab72",
               "method": "MethodFulfillOrder"
+            }
+          ]
+        },
+        {
+          "addresses": [],
+          "type": "Fast Transfer",
+          "methods": [
+            {
+              "methodId": "0x604009a9",
+              "method": "FillRedeemed"
             }
           ]
         },
