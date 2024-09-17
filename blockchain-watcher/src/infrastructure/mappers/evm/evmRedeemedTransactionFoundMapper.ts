@@ -30,7 +30,7 @@ export const evmRedeemedTransactionFoundMapper = (
   );
   const { type: protocolType, method: protocolMethod } = protocol;
 
-  const vaaInformation = mappedVaaInformation(transaction.logs, transaction.input, cfg!);
+  const vaaInformation = mappedVaaInformation(transaction, cfg!);
   if (!vaaInformation) {
     logger.warn(
       `[${transaction.chain}] Cannot mapper vaa information: [hash: ${transaction.hash}][protocol: ${protocolType}/${protocolMethod}]`
@@ -87,26 +87,30 @@ export const evmRedeemedTransactionFoundMapper = (
  * Mapped vaa information from logs.data or input using the topics to map the correct mapper
  */
 const mappedVaaInformation = (
-  logs: EvmTransactionLog[],
-  input: string,
+  transaction: EvmTransaction,
   cfg: HandleEvmConfig
 ): VaaInformation | undefined => {
-  const filterLogs = logs.filter((log) => {
-    return REDEEM_TOPICS[log.topics[0]];
-  });
+  const filterLogs = transaction.logs.filter((log) => REDEEM_TOPICS[log.topics[0]]);
+  if (filterLogs.length === 0) return undefined;
 
-  if (!filterLogs) return undefined;
+  // Try to find the mapper by the topics
+  const txTopics = transaction.topics;
+  if (txTopics) {
+    for (const topic of txTopics) {
+      const log = filterLogs.find((log) => log.topics[0] === topic);
+      if (log) {
+        const mapper = REDEEM_TOPICS[topic];
+        const vaaInformation = mapper(log, transaction.input, cfg);
+        if (vaaInformation) return vaaInformation;
+      }
+    }
+  }
 
+  // Try to find the mapper by the logs
   for (const log of filterLogs) {
     const mapper = REDEEM_TOPICS[log.topics[0]];
-    const vaaInformation = mapper(log, input, cfg);
-
-    if (
-      vaaInformation &&
-      vaaInformation.emitterChain &&
-      vaaInformation.emitterAddress &&
-      vaaInformation.sequence
-    ) {
+    const vaaInformation = mapper(log, transaction.input, cfg);
+    if (vaaInformation?.emitterChain && vaaInformation.emitterAddress && vaaInformation.sequence) {
       return vaaInformation;
     }
   }

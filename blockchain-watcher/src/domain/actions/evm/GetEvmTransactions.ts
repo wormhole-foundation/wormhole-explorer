@@ -62,7 +62,8 @@ export function populateTransaction(
   evmBlocks: Record<string, EvmBlock>,
   transactionReceipts: Record<string, ReceiptTransaction>,
   filterTransactions: EvmTransaction[],
-  populatedTransactions: EvmTransaction[]
+  populatedTransactions: EvmTransaction[],
+  topics: string[]
 ) {
   filterTransactions.forEach((transaction) => {
     if (transactionReceipts[transaction.hash]) {
@@ -74,6 +75,7 @@ export function populateTransaction(
       transaction.environment = opts.environment;
       transaction.chainId = opts.chainId;
       transaction.chain = opts.chain;
+      transaction.topics = topics;
       populatedTransactions.push(transaction);
     }
   });
