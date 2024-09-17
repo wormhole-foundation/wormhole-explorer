@@ -124,7 +124,7 @@ func (d *MayanRestClient) GetActivity(ctx context.Context, from, to time.Time) (
 
 func (d *MayanRestClient) GetStats(ctx context.Context) (Stats, error) {
 	decoratedLogger := d.logger
-	url := d.baseURL + "/v3/stats/wh/stats"
+	url := d.baseURL + "/v3/mayanResp/overview"
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		decoratedLogger.Error("failed creating http request for retrieving protocol stats", zap.Error(err))
@@ -157,14 +157,24 @@ func (d *MayanRestClient) GetStats(ctx context.Context) (Stats, error) {
 		decoratedLogger.Error("failed reading response body", zap.Error(err))
 		return Stats{}, errors.Wrapf(errors.WithStack(err), "failed reading response body from protocol stats. url:%s - status_code:%d", url, resp.StatusCode)
 	}
-	var stats Stats
-	err = json.Unmarshal(body, &stats)
+	var mayanResp mayanOverviewResponse
+	err = json.Unmarshal(body, &mayanResp)
 	if err != nil {
 		decoratedLogger.Error("failed reading response body", zap.Error(err), zap.String("response_body", string(body)))
 		return Stats{}, errors.Wrapf(errors.WithStack(err), "failed unmarshalling response body from protocol stats. url:%s - status_code:%d - response_body:%s", url, resp.StatusCode, string(body))
 	}
 
-	return stats, nil
+	return Stats{
+		TotalMessages: mayanResp.AllTime.TotalMessages,
+		Volume:        float64(mayanResp.AllTime.Volume),
+	}, nil
+}
+
+type mayanOverviewResponse struct {
+	AllTime struct {
+		TotalMessages uint64 `json:"swaps"`
+		Volume        uint64 `json:"volume"`
+	} `json:"allTime"`
 }
 
 func (d *MayanRestClient) ProtocolName() string {
