@@ -14,9 +14,11 @@ import (
 	"time"
 )
 
+const baseURL = "https://explorer-api.mayan.finance"
+
 func Test_HttpRestClientActivity_FailRequestCreation(t *testing.T) {
 
-	a := repository.NewMayanRestClient("https://explorer-api.mayan.finance", zap.NewNop(),
+	a := repository.NewMayanRestClient(baseURL, zap.NewNop(),
 		mocks.MockHttpClient(func(req *http.Request) (*http.Response, error) {
 			return nil, nil
 		}))
@@ -26,7 +28,7 @@ func Test_HttpRestClientActivity_FailRequestCreation(t *testing.T) {
 
 func Test_HttpRestClientActivity_FailedRequestExecution(t *testing.T) {
 
-	a := repository.NewMayanRestClient("https://explorer-api.mayan.finance", zap.NewNop(),
+	a := repository.NewMayanRestClient(baseURL, zap.NewNop(),
 		mocks.MockHttpClient(func(req *http.Request) (*http.Response, error) {
 			return nil, errors.New("mocked_http_client_do")
 		}))
@@ -37,7 +39,7 @@ func Test_HttpRestClientActivity_FailedRequestExecution(t *testing.T) {
 
 func Test_HttpRestClientActivity_Status500(t *testing.T) {
 
-	a := repository.NewMayanRestClient("https://explorer-api.mayan.finance", zap.NewNop(),
+	a := repository.NewMayanRestClient(baseURL, zap.NewNop(),
 		mocks.MockHttpClient(func(req *http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusInternalServerError,
@@ -51,7 +53,7 @@ func Test_HttpRestClientActivity_Status500(t *testing.T) {
 
 func Test_HttpRestClientActivity_Status200_FailedReadBody(t *testing.T) {
 
-	a := repository.NewMayanRestClient("https://explorer-api.mayan.finance", zap.NewNop(),
+	a := repository.NewMayanRestClient(baseURL, zap.NewNop(),
 		mocks.MockHttpClient(func(req *http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusOK,
@@ -65,7 +67,7 @@ func Test_HttpRestClientActivity_Status200_FailedReadBody(t *testing.T) {
 
 func Test_HttpRestClientActivity_Status200_FailedParsing(t *testing.T) {
 
-	a := repository.NewMayanRestClient("https://explorer-api.mayan.finance", zap.NewNop(),
+	a := repository.NewMayanRestClient(baseURL, zap.NewNop(),
 		mocks.MockHttpClient(func(req *http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusOK,
@@ -79,7 +81,7 @@ func Test_HttpRestClientActivity_Status200_FailedParsing(t *testing.T) {
 
 func Test_HttpRestClientActivity_Status200_Succeed(t *testing.T) {
 
-	a := repository.NewMayanRestClient("https://explorer-api.mayan.finance", zap.NewNop(),
+	a := repository.NewMayanRestClient(baseURL, zap.NewNop(),
 		mocks.MockHttpClient(func(req *http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusOK,
@@ -101,7 +103,7 @@ func Test_HttpRestClientActivity_Status200_Succeed(t *testing.T) {
 
 func Test_HttpRestClientStats_FailRequestCreation(t *testing.T) {
 
-	a := repository.NewMayanRestClient("https://explorer-api.mayan.finance", zap.NewNop(),
+	a := repository.NewMayanRestClient(baseURL, zap.NewNop(),
 		mocks.MockHttpClient(func(req *http.Request) (*http.Response, error) {
 			return nil, nil
 		}))
@@ -111,7 +113,7 @@ func Test_HttpRestClientStats_FailRequestCreation(t *testing.T) {
 
 func Test_HttpRestClientStats_FailedRequestExecution(t *testing.T) {
 
-	a := repository.NewMayanRestClient("https://explorer-api.mayan.finance", zap.NewNop(),
+	a := repository.NewMayanRestClient(baseURL, zap.NewNop(),
 		mocks.MockHttpClient(func(req *http.Request) (*http.Response, error) {
 			return nil, errors.New("mocked_http_client_do")
 		}))
@@ -122,7 +124,7 @@ func Test_HttpRestClientStats_FailedRequestExecution(t *testing.T) {
 
 func Test_HttpRestClientStats_Status500(t *testing.T) {
 
-	a := repository.NewMayanRestClient("https://explorer-api.mayan.finance", zap.NewNop(),
+	a := repository.NewMayanRestClient(baseURL, zap.NewNop(),
 		mocks.MockHttpClient(func(req *http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusInternalServerError,
@@ -136,7 +138,7 @@ func Test_HttpRestClientStats_Status500(t *testing.T) {
 
 func Test_HttpRestClientStats_Status200_FailedReadBody(t *testing.T) {
 
-	a := repository.NewMayanRestClient("https://explorer-api.mayan.finance", zap.NewNop(),
+	a := repository.NewMayanRestClient(baseURL, zap.NewNop(),
 		mocks.MockHttpClient(func(req *http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusOK,
@@ -150,7 +152,7 @@ func Test_HttpRestClientStats_Status200_FailedReadBody(t *testing.T) {
 
 func Test_HttpRestClientStats_Status200_FailedParsing(t *testing.T) {
 
-	a := repository.NewMayanRestClient("https://explorer-api.mayan.finance", zap.NewNop(),
+	a := repository.NewMayanRestClient(baseURL, zap.NewNop(),
 		mocks.MockHttpClient(func(req *http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusOK,
@@ -164,7 +166,7 @@ func Test_HttpRestClientStats_Status200_FailedParsing(t *testing.T) {
 
 func Test_HttpRestClientStats_Status200_Succeed(t *testing.T) {
 
-	a := repository.NewMayanRestClient("https://explorer-api.mayan.finance", zap.NewNop(),
+	a := repository.NewMayanRestClient(baseURL, zap.NewNop(),
 		mocks.MockHttpClient(func(req *http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusOK,
