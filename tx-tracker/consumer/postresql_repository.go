@@ -8,6 +8,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/db"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/repository/vaa"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -68,6 +69,7 @@ func (p *PostgreSQLRepository) upsertOriginTx(ctx context.Context, params *Upser
 
 	var from, to, rpcResponse, nativeTxHash *string
 	var blockNumber *uint64
+	var feeDetail *chains.FeeDetail
 	if params.TxDetail != nil {
 		from = &params.TxDetail.From
 		if params.TxDetail.NormalizedFrom != "" {
@@ -90,24 +92,28 @@ func (p *PostgreSQLRepository) upsertOriginTx(ctx context.Context, params *Upser
 		if params.TxDetail.RpcResponse != "" {
 			rpcResponse = &params.TxDetail.RpcResponse
 		}
+
+		if params.TxDetail.FeeDetail != nil {
+			feeDetail = params.TxDetail.FeeDetail
+		}
 	}
 
 	_, err := p.dbClient.Exec(ctx, query,
 		params.ChainId,
 		nativeTxHash,
-		"source-tx",                // type
-		time.Now(),                 // created_at
-		time.Now(),                 // updated_at
-		params.Id,                  // attestation_vaas_id
-		params.VaaId,               // message_id
-		params.TxStatus,            // status
-		from,                       // from_address
-		to,                         // to_address
-		blockNumber,                // block_number
-		nil,                        // blockchain_method: only applies for incoming targetTx from blockchain-watcher
-		&params.TxDetail.FeeDetail, // fee_detail
-		params.Timestamp,           // timestamp
-		rpcResponse,                // rpc_response
+		"source-tx",      // type
+		time.Now(),       // created_at
+		time.Now(),       // updated_at
+		params.Id,        // attestation_vaas_id
+		params.VaaId,     // message_id
+		params.TxStatus,  // status
+		from,             // from_address
+		to,               // to_address
+		blockNumber,      // block_number
+		nil,              // blockchain_method: only applies for incoming targetTx from blockchain-watcher
+		feeDetail,        // fee_detail
+		params.Timestamp, // timestamp
+		rpcResponse,      // rpc_response
 	)
 
 	if err != nil {
@@ -143,6 +149,7 @@ func (p *PostgreSQLRepository) UpsertTargetTx(ctx context.Context, params *Targe
 	var blockNumber *uint64
 	var timestamp, updatedAt *time.Time
 	var chainID *sdk.ChainID
+	var feeDetail *FeeDetail
 	if params.Destination != nil {
 		from = &params.Destination.From
 		if utils.StartsWith0x(params.Destination.From) {
@@ -166,23 +173,26 @@ func (p *PostgreSQLRepository) UpsertTargetTx(ctx context.Context, params *Targe
 			blockNumber = &bn
 		}
 
+		if params.Destination.FeeDetail != nil {
+			feeDetail = params.Destination.FeeDetail
+		}
 	}
 	_, err := p.dbClient.Exec(ctx, query,
 		chainID,
 		txHash,
-		"target-tx",                   // type
-		time.Now(),                    // created_at
-		updatedAt,                     // updated_at
-		params.ID,                     // attestation_vaas_id
-		params.VaaID,                  // message_id
-		status,                        // status
-		from,                          // from_address
-		to,                            // to_address
-		blockNumber,                   // block_number
-		blockchainMethod,              // blockchain_method
-		&params.Destination.FeeDetail, // fee_detail
-		timestamp,                     // timestamp
-		nil,                           // rpc_response
+		"target-tx",      // type
+		time.Now(),       // created_at
+		updatedAt,        // updated_at
+		params.ID,        // attestation_vaas_id
+		params.VaaID,     // message_id
+		status,           // status
+		from,             // from_address
+		to,               // to_address
+		blockNumber,      // block_number
+		blockchainMethod, // blockchain_method
+		feeDetail,        // fee_detail
+		timestamp,        // timestamp
+		nil,              // rpc_response
 	)
 	if err != nil {
 		return err
