@@ -1,6 +1,6 @@
 module github.com/wormhole-foundation/wormhole-explorer/fly
 
-go 1.20
+go 1.21.9
 
 require (
 	github.com/ansrivas/fiberprometheus/v2 v2.6.0
@@ -20,7 +20,7 @@ require (
 	github.com/sethvargo/go-envconfig v1.0.0
 	github.com/stretchr/testify v1.8.4
 	github.com/test-go/testify v1.1.4
-	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240416174455-25e60611a867
+	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240823200831-78771ff5297e
 	go.mongodb.org/mongo-driver v1.11.2
 	go.uber.org/zap v1.27.0
 	google.golang.org/protobuf v1.32.0
