@@ -124,7 +124,7 @@ func (d *MayanRestClient) GetActivity(ctx context.Context, from, to time.Time) (
 
 func (d *MayanRestClient) GetStats(ctx context.Context) (Stats, error) {
 	decoratedLogger := d.logger
-	url := d.baseURL + "/v3/mayanResp/overview"
+	url := d.baseURL + "/v3/stats/overview"
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		decoratedLogger.Error("failed creating http request for retrieving protocol stats", zap.Error(err))

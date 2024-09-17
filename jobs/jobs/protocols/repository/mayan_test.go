@@ -131,7 +131,7 @@ func Test_HttpRestClientStats_Status500(t *testing.T) {
 		}))
 	_, err := a.GetStats(context.Background())
 	assert.NotNil(t, err)
-	assert.Equal(t, "failed retrieving protocol stats from url:https://explorer-api.mayan.finance/v3/mayanResp/overview - status_code:500 - response_body:response_body_test", err.Error())
+	assert.Equal(t, "failed retrieving protocol stats from url:https://explorer-api.mayan.finance/v3/stats/overview - status_code:500 - response_body:response_body_test", err.Error())
 }
 
 func Test_HttpRestClientStats_Status200_FailedReadBody(t *testing.T) {
@@ -145,7 +145,7 @@ func Test_HttpRestClientStats_Status200_FailedReadBody(t *testing.T) {
 		}))
 	_, err := a.GetStats(context.Background())
 	assert.NotNil(t, err)
-	assert.Equal(t, "failed reading response body from protocol stats. url:https://explorer-api.mayan.finance/v3/mayanResp/overview - status_code:200: mocked_fail_read", err.Error())
+	assert.Equal(t, "failed reading response body from protocol stats. url:https://explorer-api.mayan.finance/v3/stats/overview - status_code:200: mocked_fail_read", err.Error())
 }
 
 func Test_HttpRestClientStats_Status200_FailedParsing(t *testing.T) {
@@ -159,7 +159,7 @@ func Test_HttpRestClientStats_Status200_FailedParsing(t *testing.T) {
 		}))
 	_, err := a.GetStats(context.Background())
 	assert.NotNil(t, err)
-	assert.Equal(t, "failed unmarshalling response body from protocol stats. url:https://explorer-api.mayan.finance/v3/mayanResp/overview - status_code:200 - response_body:this should be a json: invalid character 'h' in literal true (expecting 'r')", err.Error())
+	assert.Equal(t, "failed unmarshalling response body from protocol stats. url:https://explorer-api.mayan.finance/v3/stats/overview - status_code:200 - response_body:this should be a json: invalid character 'h' in literal true (expecting 'r')", err.Error())
 }
 
 func Test_HttpRestClientStats_Status200_Succeed(t *testing.T) {
