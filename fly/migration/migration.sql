@@ -4,7 +4,7 @@ CREATE SCHEMA IF NOT EXISTS wormholescan;
 -- create table wormholescan.wh_observations
 CREATE TABLE wormholescan.wh_observations (
     "id" varchar not null,
-    "emitter_chain_id" smallint not null,
+    "emitter_chain_id" int not null,
     "emitter_address" varchar not null,
     "sequence" decimal(20,0) not null,
     "hash" varchar not null,
@@ -27,7 +27,7 @@ CREATE TABLE wormholescan.wh_attestation_vaas (
     "id" varchar not null,
     "vaa_id" varchar not null,
     "version" smallint not null,
-    "emitter_chain_id" smallint not null,
+    "emitter_chain_id" int not null,
     "emitter_address" varchar not null,
     "sequence" decimal(20,0) not null,
     "guardian_set_index" bigint not null,
@@ -35,6 +35,7 @@ CREATE TABLE wormholescan.wh_attestation_vaas (
     "timestamp" timestamptz not null,
     "active" boolean not null,
     "is_duplicated" boolean not null,
+    "consistency_level" smallint null,
     "created_at" timestamptz not null,
     "updated_at" timestamptz null,
    PRIMARY KEY (id)
@@ -51,7 +52,7 @@ CREATE INDEX "wh_attestation_vaas_timestamp_idx"
 
 
 CREATE TABLE wormholescan.wh_operation_transactions (
-    "chain_id" smallint not null,
+    "chain_id" int not null,
     "tx_hash" varchar not null,
     "type" varchar not null,
     "created_at" timestamp not null,
@@ -131,7 +132,7 @@ CREATE TABLE wormholescan.wh_attestation_vaas_pythnet (
     "id" varchar not null,
     "vaa_id" varchar not null,
     "version" smallint not null,
-    "emitter_chain_id" smallint not null,
+    "emitter_chain_id" int not null,
     "emitter_address" varchar not null,
     "sequence" decimal(20,0) not null,
     "guardian_set_index" bigint not null,
@@ -139,6 +140,7 @@ CREATE TABLE wormholescan.wh_attestation_vaas_pythnet (
     "timestamp" timestamptz not null,
     "active" boolean not null,
     "is_duplicated" boolean not null,
+    "consistency_level" smallint null,
     "created_at" timestamptz not null,
     "updated_at" timestamptz null,
    PRIMARY KEY (id)
@@ -175,7 +177,7 @@ CREATE TABLE wormholescan.wh_guardian_set_addresses (
 -- create table wormholescan.governor_config_chains
 CREATE TABLE wormholescan.wh_governor_config_chains (
     "governor_config_id" varchar not null,
-    "chain_id" smallint not null,
+    "chain_id" int not null,
     "notional_limit" decimal(20,0) not null,
     "big_transaction_size" decimal(20,0) not null,
     "created_at" timestamptz not null,
@@ -196,7 +198,7 @@ CREATE TABLE wormholescan.wh_guardian_governor_vaas (
 -- create table wormholescan.wh_governor_vaas
 CREATE TABLE  wormholescan.wh_governor_vaas (
     "id" varchar not null,
-    "chain_id" smallint not null,
+    "chain_id" int not null,
     "emitter_address" varchar not null,
     "sequence" decimal(20,0) not null,
     "tx_hash" varchar not null,
@@ -211,7 +213,7 @@ CREATE TABLE  wormholescan.wh_governor_vaas (
 CREATE TABLE wormholescan.wh_operation_prices (
     "id" varchar not null,
     "message_id" varchar not null,
-    "token_chain_id" smallint not null,
+    "token_chain_id" int not null,
     "token_address" varchar not null,
     "coingecko_id" varchar not null,
     "symbol" varchar not null,
@@ -231,14 +233,14 @@ CREATE TABLE wormholescan.wh_attestation_vaa_properties (
     "app_id" text[] null,
     "payload" json null,
     "raw_standard_fields" json null,
-    "from_chain_id" smallint null,
+    "from_chain_id" int null,
     "from_address" varchar null,
-    "to_chain_id" smallint null,
+    "to_chain_id" int null,
     "to_address" varchar null,
-    "token_chain_id" smallint null,
+    "token_chain_id" int null,
     "token_address" varchar null,
     "amount" decimal(30,0) null,
-    "fee_chain_id" smallint null,
+    "fee_chain_id" int null,
     "fee_address" varchar null,
     "fee" decimal(30,0) null,
     "timestamp" timestamptz not null,
@@ -279,7 +281,3 @@ CREATE INDEX "wh_relays_transactions_from_tx_hash_idx"
 CREATE INDEX "wh_relays_transactions_to_tx_hash_idx"
     ON wormholescan.wh_relays ("to_tx_hash");
 
--- alter table wormholescan.wh_attestation_vaas add colum consistency_level
-ALTER TABLE wormholescan.wh_attestation_vaas ADD "consistency_level" smallint null;
--- alter table wormholescan.wh_attestation_vaas_pythnet add colum consistency_level
-ALTER TABLE wormholescan.wh_attestation_vaas_pythnet ADD "consistency_level" smallint null;
