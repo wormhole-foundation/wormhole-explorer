@@ -26,7 +26,8 @@ export const STANDARD_RELAYERS: Record<Environment, Record<number, string>> = {
     23: "0x27428DD2d3DD32A4D7f7C497eAaa23130d894911", // arbitrum
     24: "0x27428DD2d3DD32A4D7f7C497eAaa23130d894911", // optimism
     30: "0x706f82e9bb5b0813501714ab5974216704980e31", // base
-    34: "0x706f82e9bb5b0813501714ab5974216704980e31", // scroll
-    43: "0x706f82e9bb5b0813501714ab5974216704980e31", // snaxchain
+    34: "0x27428DD2d3DD32A4D7f7C497eAaa23130d894911", // scroll
+    36: "0x27428DD2d3DD32A4D7f7C497eAaa23130d894911", // blast
+    43: "0x27428DD2d3DD32A4D7f7C497eAaa23130d894911", // snaxchain
   },
 };
