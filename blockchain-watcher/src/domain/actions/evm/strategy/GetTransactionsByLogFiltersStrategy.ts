@@ -63,7 +63,8 @@ export class GetTransactionsByLogFiltersStrategy implements GetTransactions {
           evmBlocks,
           transactionReceipts,
           filterTransactions,
-          populatedTransactions
+          populatedTransactions,
+          filter.topics
         );
       }
     }
