@@ -1,12 +1,13 @@
 import { LogFoundEvent } from "../../../domain/entities";
+import { v4 as uuidv4 } from "uuid";
+import winston from "../../log";
 import crypto from "node:crypto";
 import {
-  SNSClient,
-  PublishBatchCommand,
   PublishBatchCommandInput,
   PublishBatchRequestEntry,
+  PublishBatchCommand,
+  SNSClient,
 } from "@aws-sdk/client-sns";
-import winston from "../../log";
 
 const CHUNK_SIZE = 10;
 
@@ -127,7 +128,7 @@ export class SnsEvent {
 
   static fromLogFoundEvent<T>(logFoundEvent: LogFoundEvent<T>): SnsEvent {
     return new SnsEvent(
-      `chain-event-${logFoundEvent.txHash}-${logFoundEvent.blockHeight}`,
+      `chain-event-${uuidv4()}-${logFoundEvent.txHash}`,
       "blockchain-watcher",
       logFoundEvent.name,
       new Date().toISOString(),
