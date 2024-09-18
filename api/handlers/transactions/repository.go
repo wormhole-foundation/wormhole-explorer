@@ -14,7 +14,6 @@ import (
 	"time"
 
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
-	//"github.com/influxdata/influxdb-client-go/v2/api"
 	"github.com/mitchellh/mapstructure"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/common"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/config"
@@ -776,8 +775,7 @@ func (r *Repository) getTotalPythMessage(ctx context.Context) (string, error) {
 
 	filter := bson.M{"emitterAddr": pythEmitterAddr}
 	options := options.FindOne().SetSort(bson.D{{Key: "timestamp", Value: -1}})
-	singleResult := r.collections.vaasPythnet.FindOne(ctx, filter, options)
-	err := singleResult.Decode(&vaaPyth)
+	err := r.collections.vaasPythnet.FindOne(ctx, filter, options).Decode(&vaaPyth)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			r.logger.Warn("no pyth message found")

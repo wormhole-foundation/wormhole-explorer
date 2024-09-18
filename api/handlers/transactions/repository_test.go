@@ -859,7 +859,6 @@ func TestGetScorecards(t *testing.T) {
 	}
 }
 
-// Helper function to create a mock influx result
 func mockInfluxResult(value uint64) *mockInfluxQueryResult {
 	result := new(mockInfluxQueryResult)
 	result.On("Next").Return(true)
@@ -868,7 +867,6 @@ func mockInfluxResult(value uint64) *mockInfluxQueryResult {
 	return result
 }
 
-// Helper function to create a mock influx result with an error
 func mockInfluxError(errMsg string) *mockInfluxQueryResult {
 	result := new(mockInfluxQueryResult)
 	result.On("Next").Return(false)
@@ -886,7 +884,6 @@ func (m *mockTvl) Get(ctx context.Context) (string, error) {
 	return args.String(0), args.Error(1)
 }
 
-// Mocking the influxQueryAPI interface
 type mockQueryAPI struct {
 	mock.Mock
 }
@@ -896,7 +893,6 @@ func (m *mockQueryAPI) Query(ctx context.Context, query string) (influxQueryResu
 	return args.Get(0).(influxQueryResult), args.Error(1)
 }
 
-// Mocking the influxQueryResult interface
 type mockInfluxQueryResult struct {
 	mock.Mock
 }
