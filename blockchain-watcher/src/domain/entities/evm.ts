@@ -46,7 +46,6 @@ export type EvmTransaction = {
   logs: EvmTransactionLog[];
   gasUsed: string;
   effectiveGasPrice: string;
-  topics?: string[];
 };
 
 export type EvmTransactionLog = { address: string; topics: string[]; data: string };
