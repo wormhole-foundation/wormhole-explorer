@@ -1,5 +1,9 @@
-import { JsonRPCBlockRepositoryCfg, ProviderPoolMap } from "../RepositoriesBuilder";
-import { divideIntoBatches, getChainProvider } from "../common/utils";
+import {
+  JsonRPCBlockRepositoryCfg,
+  ProviderPoolMap,
+  ProviderPoolMap2,
+} from "../RepositoriesBuilder";
+import { divideIntoBatches, getChainProvider, getProviders } from "../common/utils";
 import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
 import { EvmBlockRepository } from "../../../domain/repositories";
 import { HttpClientError } from "../../errors/HttpClientError";
@@ -12,6 +16,7 @@ import {
   EvmLog,
   EvmTag,
 } from "../../../domain/entities";
+import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
 
 /**
  * EvmJsonRPCBlockRepository is a repository that uses a JSON RPC endpoint to fetch blocks.
@@ -22,13 +27,13 @@ const HEXADECIMAL_PREFIX = "0x";
 const TX_BATCH_SIZE = 10;
 
 export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
-  protected pool: ProviderPoolMap;
+  protected pool: ProviderPoolMap2;
   protected cfg: JsonRPCBlockRepositoryCfg;
   protected readonly logger;
 
   constructor(
     cfg: JsonRPCBlockRepositoryCfg,
-    pool: Record<string, ProviderPool<InstrumentedHttpProvider>>
+    pool: Record<string, ProviderPoolDecorator<InstrumentedHttpProvider>>
   ) {
     this.cfg = cfg;
     this.pool = pool;
@@ -37,6 +42,22 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   }
 
   async getBlockHeight(chain: string, finality: EvmTag): Promise<bigint> {
+    const provider = this.pool[chain];
+    const providers = provider.getProviders();
+    let response: { result?: EvmBlock; error?: ErrorBlock };
+    const results: { url: string; height: BigInt }[] = [];
+
+    for (const provider of providers) {
+      response = await provider.post<typeof response>({
+        jsonrpc: "2.0",
+        method: "eth_getBlockByNumber",
+        params: [finality, false], // this means we'll get a light block (no txs)
+        id: 1,
+      });
+      results.push({ url: provider.getUrl(), height: BigInt(response.result?.number!) });
+    }
+    provider.setProviders();
+
     const block: EvmBlock = await this.getBlock(chain, finality);
     return block.number;
   }

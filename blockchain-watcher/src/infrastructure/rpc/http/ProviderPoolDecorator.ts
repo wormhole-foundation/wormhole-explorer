@@ -9,12 +9,17 @@ import {
   RpcConfig,
 } from "@xlabs/rpc-pool";
 
+export interface ProviderPoolDecorator<T extends InstrumentedRpc> extends ProviderPool<T> {
+  getProviders(): T[];
+  setProviders(): void;
+}
+
 export function extendedProviderPoolSupplier<T extends InstrumentedRpc>(
   rpcs: RpcConfig[],
   createProvider: (rpcCfg: RpcConfig) => T,
   type?: string,
   logger?: Logger
-): ProviderPool<T> {
+): ProviderPoolDecorator<T> {
   switch (type) {
     case "healthy":
       return HealthyProvidersPool.fromConfigs(
@@ -23,8 +28,14 @@ export function extendedProviderPoolSupplier<T extends InstrumentedRpc>(
           rpc: RpcConfig
         ) => InstrumentedEthersProvider | InstrumentedConnection,
         logger
-      ) as unknown as ProviderPool<T>;
+      ) as unknown as ProviderPoolDecorator<T>;
     default:
-      return providerPoolSupplier(rpcs, createProvider, type, logger);
+      return HealthyProvidersPool.fromConfigs(
+        rpcs,
+        createProvider as unknown as (
+          rpc: RpcConfig
+        ) => InstrumentedEthersProvider | InstrumentedConnection,
+        logger
+      ) as unknown as ProviderPoolDecorator<T>;
   }
 }

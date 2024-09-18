@@ -25,6 +25,14 @@ export class HealthyProvidersPool<
     return randomProvider;
   }
 
+  getProviders(): T[] {
+    return this.providers;
+  }
+
+  setProviders(): void {
+    this.providers = [];
+  }
+
   static fromConfigs<
     T extends InstrumentedEthersProvider | InstrumentedConnection | InstrumentedSuiClient
   >(

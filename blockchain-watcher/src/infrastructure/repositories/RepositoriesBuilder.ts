@@ -10,7 +10,10 @@ import { WormchainJsonRPCBlockRepository } from "./wormchain/WormchainJsonRPCBlo
 import { AlgorandJsonRPCBlockRepository } from "./algorand/AlgorandJsonRPCBlockRepository";
 import { InstrumentedConnectionWrapper } from "../rpc/http/InstrumentedConnectionWrapper";
 import { CosmosJsonRPCBlockRepository } from "./cosmos/CosmosJsonRPCBlockRepository";
-import { extendedProviderPoolSupplier } from "../rpc/http/ProviderPoolDecorator";
+import {
+  extendedProviderPoolSupplier,
+  ProviderPoolDecorator,
+} from "../rpc/http/ProviderPoolDecorator";
 import { AptosJsonRPCBlockRepository } from "./aptos/AptosJsonRPCBlockRepository";
 import { SNSClient, SNSClientConfig } from "@aws-sdk/client-sns";
 import { NearJsonRPCBlockRepository } from "./near/NearJsonRPCBlockRepository";
@@ -274,8 +277,10 @@ export class RepositoriesBuilder {
         new BscEvmJsonRPCBlockRepository(repoCfg, pools),
         "bsc"
       );
+
+      const pools2 = this.createAllProvidersPool2();
       const evmRepository = new RateLimitedEvmJsonRPCBlockRepository(
-        new EvmJsonRPCBlockRepository(repoCfg, pools),
+        new EvmJsonRPCBlockRepository(repoCfg, pools2),
         "evm"
       );
 
@@ -413,6 +418,19 @@ export class RepositoriesBuilder {
     return pools;
   }
 
+  private createAllProvidersPool2(): ProviderPoolMap2 {
+    let pools: ProviderPoolMap2 = {};
+    for (const chain in this.cfg.chains) {
+      const cfg = this.cfg.chains[chain];
+      pools[chain] = extendedProviderPoolSupplier(
+        cfg.rpcs.map((url) => ({ url })),
+        (rpcCfg: RpcConfig) => this.createHttpClient(chain, rpcCfg.url),
+        POOL_STRATEGY
+      );
+    }
+    return pools;
+  }
+
   private createDefaultProviderPools(chain: string, rpcs?: string[]) {
     if (!rpcs) {
       rpcs = this.cfg.chains[chain].rpcs;
@@ -444,3 +462,4 @@ export type JsonRPCBlockRepositoryCfg = {
 };
 
 export type ProviderPoolMap = Record<string, ProviderPool<InstrumentedHttpProvider>>;
+export type ProviderPoolMap2 = Record<string, ProviderPoolDecorator<InstrumentedHttpProvider>>;
