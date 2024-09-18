@@ -62,15 +62,19 @@ export function populateTransaction(
   evmBlocks: Record<string, EvmBlock>,
   transactionReceipts: Record<string, ReceiptTransaction>,
   filterTransactions: EvmTransaction[],
-  populatedTransactions: EvmTransaction[]
+  populatedTransactions: EvmTransaction[],
+  topics: string[]
 ) {
   filterTransactions.forEach((transaction) => {
-    if (transactionReceipts[transaction.hash]) {
-      transaction.effectiveGasPrice = transactionReceipts[transaction.hash].effectiveGasPrice;
-      transaction.gasUsed = transactionReceipts[transaction.hash].gasUsed;
+    const txReceipt = transactionReceipts[transaction.hash];
+    if (txReceipt) {
+      transaction.effectiveGasPrice = txReceipt.effectiveGasPrice;
+      transaction.gasUsed = txReceipt.gasUsed;
       transaction.timestamp = evmBlocks[transaction.blockHash].timestamp;
-      transaction.status = transactionReceipts[transaction.hash].status;
-      transaction.logs = transactionReceipts[transaction.hash].logs;
+      transaction.status = txReceipt.status;
+      transaction.logs = txReceipt.logs.filter((log) =>
+        log.topics.some((topic) => topics.includes(topic))
+      );
       transaction.environment = opts.environment;
       transaction.chainId = opts.chainId;
       transaction.chain = opts.chain;
