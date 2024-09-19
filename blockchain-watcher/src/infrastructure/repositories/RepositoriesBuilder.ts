@@ -10,10 +10,6 @@ import { WormchainJsonRPCBlockRepository } from "./wormchain/WormchainJsonRPCBlo
 import { AlgorandJsonRPCBlockRepository } from "./algorand/AlgorandJsonRPCBlockRepository";
 import { InstrumentedConnectionWrapper } from "../rpc/http/InstrumentedConnectionWrapper";
 import { CosmosJsonRPCBlockRepository } from "./cosmos/CosmosJsonRPCBlockRepository";
-import {
-  extendedProviderPoolSupplier,
-  ProviderPoolDecorator,
-} from "../rpc/http/ProviderPoolDecorator";
 import { AptosJsonRPCBlockRepository } from "./aptos/AptosJsonRPCBlockRepository";
 import { SNSClient, SNSClientConfig } from "@aws-sdk/client-sns";
 import { NearJsonRPCBlockRepository } from "./near/NearJsonRPCBlockRepository";
@@ -44,6 +40,10 @@ import {
   PromStatRepository,
   SnsEventRepository,
 } from ".";
+import {
+  extendedProviderPoolSupplier,
+  ProviderPoolDecorator,
+} from "../rpc/http/ProviderPoolDecorator";
 
 const WORMCHAIN_CHAIN = "wormchain";
 const ALGORAND_CHAIN = "algorand";
@@ -278,9 +278,8 @@ export class RepositoriesBuilder {
         "bsc"
       );
 
-      const pools2 = this.createAllProvidersPool2();
       const evmRepository = new RateLimitedEvmJsonRPCBlockRepository(
-        new EvmJsonRPCBlockRepository(repoCfg, pools2),
+        new EvmJsonRPCBlockRepository(repoCfg, pools),
         "evm"
       );
 
@@ -406,19 +405,6 @@ export class RepositoriesBuilder {
   }
 
   private createAllProvidersPool(): ProviderPoolMap {
-    let pools: ProviderPoolMap = {};
-    for (const chain in this.cfg.chains) {
-      const cfg = this.cfg.chains[chain];
-      pools[chain] = extendedProviderPoolSupplier(
-        cfg.rpcs.map((url) => ({ url })),
-        (rpcCfg: RpcConfig) => this.createHttpClient(chain, rpcCfg.url),
-        POOL_STRATEGY
-      );
-    }
-    return pools;
-  }
-
-  private createAllProvidersPool2(): ProviderPoolMap {
     let pools: ProviderPoolMap = {};
     for (const chain in this.cfg.chains) {
       const cfg = this.cfg.chains[chain];
