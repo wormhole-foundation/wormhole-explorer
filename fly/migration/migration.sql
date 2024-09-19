@@ -62,7 +62,7 @@ CREATE TABLE wormholescan.wh_operation_transactions (
     "status" varchar null,
     "from_address" varchar null,
     "to_address" varchar null,
-    "block_number" decimal(20,0) null,
+    "block_number" varchar null,
     "blockchain_method" varchar null,
     "fee_detail" jsonb null,
     "timestamp" timestamptz not null,
