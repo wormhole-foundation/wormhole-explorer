@@ -127,8 +127,12 @@ export class SnsEvent {
   }
 
   static fromLogFoundEvent<T>(logFoundEvent: LogFoundEvent<T>): SnsEvent {
+    const prefix = `chain-event-${uuidv4()}-${logFoundEvent.txHash}`;
+    // SNS message attributes have a limit of 127 characters
+    const trackId = prefix.length > 127 ? prefix.substring(0, 127) : prefix;
+
     return new SnsEvent(
-      `chain-event-${uuidv4()}-${logFoundEvent.txHash}`,
+      trackId,
       "blockchain-watcher",
       logFoundEvent.name,
       new Date().toISOString(),
