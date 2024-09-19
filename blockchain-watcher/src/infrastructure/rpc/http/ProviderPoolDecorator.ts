@@ -1,3 +1,4 @@
+import { InstrumentedHttpProvider } from "./InstrumentedHttpProvider";
 import { HealthyProvidersPool } from "./HealthyProvidersPool";
 import { Logger } from "winston";
 import {
@@ -11,7 +12,7 @@ import {
 
 export interface ProviderPoolDecorator<T extends InstrumentedRpc> extends ProviderPool<T> {
   getProviders(): T[];
-  setProviders(): void;
+  setProviders(providers: InstrumentedHttpProvider[], providersHeight: ProvidersHeight[]): void;
 }
 
 export function extendedProviderPoolSupplier<T extends InstrumentedRpc>(
@@ -30,12 +31,16 @@ export function extendedProviderPoolSupplier<T extends InstrumentedRpc>(
         logger
       ) as unknown as ProviderPoolDecorator<T>;
     default:
-      return HealthyProvidersPool.fromConfigs(
+      return providerPoolSupplier(
         rpcs,
-        createProvider as unknown as (
-          rpc: RpcConfig
-        ) => InstrumentedEthersProvider | InstrumentedConnection,
+        createProvider,
+        type,
         logger
       ) as unknown as ProviderPoolDecorator<T>;
   }
+}
+
+export interface ProvidersHeight {
+  url: string;
+  height: BigInt;
 }

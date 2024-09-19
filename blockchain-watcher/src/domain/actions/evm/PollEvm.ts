@@ -45,6 +45,10 @@ export class PollEvm extends RunPollingJob {
     this.getEvm = new this.getEvmRecords[getEvm ?? "GetEvmLogs"](blockRepo);
   }
 
+  protected async setProviders(): Promise<void> {
+    await this.blockRepo.setProviders(this.cfg.chain, this.cfg.getCommitment());
+  }
+
   protected async preHook(): Promise<void> {
     const metadata = await this.metadataRepo.get(this.cfg.id);
     if (metadata) {

@@ -43,6 +43,7 @@ export interface EvmBlockRepository {
     blockNumberOrTag: EvmTag | bigint,
     isTransactionsPresent: boolean
   ): Promise<EvmBlock>;
+  setProviders(chain: string, finality: string): Promise<void>;
 }
 
 export interface SolanaSlotRepository {

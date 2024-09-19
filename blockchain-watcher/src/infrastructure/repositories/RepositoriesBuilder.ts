@@ -418,8 +418,8 @@ export class RepositoriesBuilder {
     return pools;
   }
 
-  private createAllProvidersPool2(): ProviderPoolMap2 {
-    let pools: ProviderPoolMap2 = {};
+  private createAllProvidersPool2(): ProviderPoolMap {
+    let pools: ProviderPoolMap = {};
     for (const chain in this.cfg.chains) {
       const cfg = this.cfg.chains[chain];
       pools[chain] = extendedProviderPoolSupplier(
@@ -461,5 +461,4 @@ export type JsonRPCBlockRepositoryCfg = {
   environment: string;
 };
 
-export type ProviderPoolMap = Record<string, ProviderPool<InstrumentedHttpProvider>>;
-export type ProviderPoolMap2 = Record<string, ProviderPoolDecorator<InstrumentedHttpProvider>>;
+export type ProviderPoolMap = Record<string, ProviderPoolDecorator<InstrumentedHttpProvider>>;
