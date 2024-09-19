@@ -74,7 +74,7 @@ const mappedVaaInformation = (payload: string): VaaInformation | undefined => {
       emitterAddress: vaa.emitterAddress.toString("hex").toUpperCase(),
       sequence: Number(vaa.sequence),
     };
-  } catch (error) {
+  } catch (e) {
     // If we cant parse the VAA we ignore
     return undefined;
   }
