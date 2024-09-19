@@ -2,7 +2,6 @@ package consumer
 
 import (
 	"context"
-	"strconv"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/db"
@@ -68,7 +67,7 @@ func (p *PostgreSQLRepository) upsertOriginTx(ctx context.Context, params *Upser
 		`
 
 	var from, to, rpcResponse, nativeTxHash *string
-	var blockNumber *uint64
+	var blockNumber string
 	var feeDetail *chains.FeeDetail
 	if params.TxDetail != nil {
 		from = &params.TxDetail.From
@@ -84,11 +83,6 @@ func (p *PostgreSQLRepository) upsertOriginTx(ctx context.Context, params *Upser
 			nativeTxHash = &params.TxDetail.NormalizedTxHash
 		}
 
-		bn, errBn := strconv.ParseUint(params.TxDetail.BlockNumber, 10, 64)
-		if errBn == nil {
-			blockNumber = &bn
-		}
-
 		if params.TxDetail.RpcResponse != "" {
 			rpcResponse = &params.TxDetail.RpcResponse
 		}
@@ -97,6 +91,7 @@ func (p *PostgreSQLRepository) upsertOriginTx(ctx context.Context, params *Upser
 			feeDetail = params.TxDetail.FeeDetail
 		}
 	}
+	blockNumber = params.TxDetail.BlockNumber
 
 	_, err := p.dbClient.Exec(ctx, query,
 		params.ChainId,
@@ -146,7 +141,7 @@ func (p *PostgreSQLRepository) UpsertTargetTx(ctx context.Context, params *Targe
 		`
 
 	var from, to, blockchainMethod, status, txHash *string
-	var blockNumber *uint64
+	var blockNumber string
 	var timestamp, updatedAt *time.Time
 	var chainID *sdk.ChainID
 	var feeDetail *FeeDetail
@@ -167,11 +162,7 @@ func (p *PostgreSQLRepository) UpsertTargetTx(ctx context.Context, params *Targe
 		chainID = &params.Destination.ChainID
 		timestamp = params.Destination.Timestamp
 		updatedAt = params.Destination.UpdatedAt
-
-		bn, errBn := strconv.ParseUint(params.Destination.BlockNumber, 10, 64)
-		if errBn == nil {
-			blockNumber = &bn
-		}
+		blockNumber = params.Destination.BlockNumber
 
 		if params.Destination.FeeDetail != nil {
 			feeDetail = params.Destination.FeeDetail
