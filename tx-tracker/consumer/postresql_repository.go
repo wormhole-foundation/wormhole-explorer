@@ -90,8 +90,8 @@ func (p *PostgreSQLRepository) upsertOriginTx(ctx context.Context, params *Upser
 		if params.TxDetail.FeeDetail != nil {
 			feeDetail = params.TxDetail.FeeDetail
 		}
+		blockNumber = params.TxDetail.BlockNumber
 	}
-	blockNumber = params.TxDetail.BlockNumber
 
 	_, err := p.dbClient.Exec(ctx, query,
 		params.ChainId,
