@@ -12,7 +12,11 @@ import {
 
 export interface ProviderPoolDecorator<T extends InstrumentedRpc> extends ProviderPool<T> {
   getProviders(): T[];
-  setProviders(providers: InstrumentedHttpProvider[], providersHeight: ProvidersHeight[]): void;
+  setProviders(
+    providers: InstrumentedHttpProvider[],
+    providersHeight: ProvidersHeight[],
+    blockHeightCursor: bigint | undefined
+  ): void;
 }
 
 export function extendedProviderPoolSupplier<T extends InstrumentedRpc>(
@@ -42,5 +46,5 @@ export function extendedProviderPoolSupplier<T extends InstrumentedRpc>(
 
 export interface ProvidersHeight {
   url: string;
-  height: BigInt;
+  height: bigint;
 }

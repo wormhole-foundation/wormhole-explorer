@@ -46,7 +46,11 @@ export class PollEvm extends RunPollingJob {
   }
 
   protected async setProviders(): Promise<void> {
-    await this.blockRepo.setProviders(this.cfg.chain, this.cfg.getCommitment());
+    await this.blockRepo.setProviders(
+      this.cfg.chain,
+      this.cfg.getCommitment(),
+      this.blockHeightCursor
+    );
   }
 
   protected async preHook(): Promise<void> {

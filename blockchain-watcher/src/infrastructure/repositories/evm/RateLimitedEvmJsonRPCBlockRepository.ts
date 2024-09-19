@@ -23,8 +23,14 @@ export class RateLimitedEvmJsonRPCBlockRepository
     this.logger = winston.child({ module: "RateLimitedEvmJsonRPCBlockRepository" });
   }
 
-  setProviders(chain: string, finality: string): Promise<void> {
-    return this.breaker.fn(() => this.delegate.setProviders(chain, finality)).execute();
+  setProviders(
+    chain: string,
+    finality: string,
+    blockHeightCursor: bigint | undefined
+  ): Promise<void> {
+    return this.breaker
+      .fn(() => this.delegate.setProviders(chain, finality, blockHeightCursor))
+      .execute();
   }
 
   getBlockHeight(chain: string, finality: string): Promise<bigint> {

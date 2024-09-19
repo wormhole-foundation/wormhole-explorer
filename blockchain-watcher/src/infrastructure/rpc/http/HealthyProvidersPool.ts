@@ -1,6 +1,7 @@
 import { InstrumentedHttpProvider } from "./InstrumentedHttpProvider";
 import { ProvidersHeight } from "./ProviderPoolDecorator";
 import { Logger } from "winston";
+import winston from "../../log";
 import {
   InstrumentedEthersProvider,
   InstrumentedConnection,
@@ -10,7 +11,12 @@ import {
   RpcConfig,
 } from "@xlabs/rpc-pool";
 
+let logger: winston.Logger;
+logger = winston.child({ module: "HealthyProvidersPool" });
+
 type Weighted<T> = { provider: T; weight: number };
+
+const THRESHOLD = 100n;
 
 export class HealthyProvidersPool<
   T extends InstrumentedEthersProvider | InstrumentedConnection | InstrumentedSuiClient
@@ -45,10 +51,23 @@ export class HealthyProvidersPool<
     return this.providers;
   }
 
-  setProviders(providers: InstrumentedHttpProvider[], providersHeight: ProvidersHeight[]): void {
+  setProviders(
+    providers: InstrumentedHttpProvider[],
+    providersHeight: ProvidersHeight[],
+    blockHeightCursor: bigint | undefined
+  ): void {
+    if (!providersHeight || providersHeight.length === 0) {
+      this.providers = this.get() as unknown as T[];
+      return;
+    }
+
     const sortedProviders = this.sortResponsesByHeight(providersHeight);
     const averageHeight = this.calculateAverageHeight(sortedProviders);
-    const filteredProviders = this.filterOutliers(sortedProviders, averageHeight, 5);
+    const filteredProviders = this.filterOutliers(
+      sortedProviders,
+      averageHeight,
+      blockHeightCursor
+    );
     const healthyProviders = this.removeInvalidProviders(providers, filteredProviders);
 
     this.providers =
@@ -61,24 +80,38 @@ export class HealthyProvidersPool<
     return providersHeight.sort((a, b) => Number(b.height) - Number(a.height));
   }
 
-  private calculateAverageHeight(providersHeight: ProvidersHeight[]): number {
-    if (providersHeight.length === 0) return 0;
-
-    const totalHeight = providersHeight.reduce((sum, provider) => sum + Number(provider.height), 0);
-    return totalHeight / providersHeight.length;
+  private calculateAverageHeight(providers: ProvidersHeight[]): bigint {
+    const totalHeight = providers.reduce((sum, provider) => sum + provider.height, BigInt(0));
+    return totalHeight / BigInt(providers.length);
   }
 
   private filterOutliers(
-    providersHeight: ProvidersHeight[],
-    averageHeight: number,
-    threshold: number
+    providers: ProvidersHeight[],
+    averageHeight: bigint,
+    blockHeightCursor: bigint | undefined
   ): ProvidersHeight[] {
-    return providersHeight.filter((provider) => {
-      const deviation =
-        Number(provider.height) > averageHeight
-          ? Number(provider.height) - averageHeight
-          : averageHeight - Number(provider.height);
-      return deviation <= threshold;
+    return providers.filter((provider) => {
+      // Check if the provider is behind the cursor
+      if (blockHeightCursor && provider.height < blockHeightCursor) {
+        logger.warn(
+          `Provider ${provider.url} is not healthy: behind the cursor [${provider.height} < ${blockHeightCursor}]`
+        );
+        return false;
+      }
+
+      // Calculate the deviation from the average height
+      const deviation = Math.abs(Number(provider.height) - Number(averageHeight));
+
+      // Check if the provider's height deviates too much from the average height
+      if (deviation > THRESHOLD) {
+        logger.warn(
+          `Provider ${provider.url} is not healthy: deviation from average height is too high [${deviation} > ${THRESHOLD}]`
+        );
+        return false;
+      }
+
+      // If the provider passes both checks, it is considered healthy
+      return true;
     });
   }
 

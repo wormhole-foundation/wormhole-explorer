@@ -40,24 +40,31 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
    * Set the providers for a chain. This process run every five minutes
    * to validate the health of the providers
    */
-  async setProviders(chain: string, finality: EvmTag): Promise<void> {
+  async setProviders(
+    chain: string,
+    finality: EvmTag,
+    blockHeightCursor: bigint | undefined
+  ): Promise<void> {
     const provider = this.pool[chain];
     const providers = provider.getProviders();
 
     let response: { result?: EvmBlock; error?: ErrorBlock };
-    const providersHeight: { url: string; height: BigInt }[] = [];
+    const providersHeight: { url: string; height: bigint }[] = [];
 
     for (const provider of providers) {
-      response = await provider.post<typeof response>({
-        jsonrpc: "2.0",
-        method: "eth_getBlockByNumber",
-        params: [finality, false], // this means we'll get a light block (no txs)
-        id: 1,
-      });
-      providersHeight.push({ url: provider.getUrl(), height: BigInt(response.result?.number!) });
+      try {
+        response = await provider.post<typeof response>({
+          jsonrpc: "2.0",
+          method: "eth_getBlockByNumber",
+          params: [finality, false], // this means we'll get a light block (no txs)
+          id: 1,
+        });
+        providersHeight.push({ url: provider.getUrl(), height: BigInt(response.result?.number!) });
+      } catch (e) {
+        provider.setProviderOffline();
+      }
     }
-
-    provider.setProviders(providers, providersHeight);
+    provider.setProviders(providers, providersHeight, blockHeightCursor);
   }
 
   async getBlockHeight(chain: string, finality: EvmTag): Promise<bigint> {
@@ -263,6 +270,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         { timeout: chainCfg.timeout, retries: chainCfg.retries }
       );
     } catch (e: HttpClientError | any) {
+      provider.setProviderOffline();
       throw e;
     }
 
