@@ -64,15 +64,20 @@ export const algorandRedeemedTransactionFoundMapper = (
 };
 
 const mappedVaaInformation = (payload: string): VaaInformation | undefined => {
-  const payloadToHex = Buffer.from(payload, "base64").toString("hex");
-  const buffer = Buffer.from(payloadToHex, "hex");
-  const vaa = parseVaa(buffer);
+  try {
+    const payloadToHex = Buffer.from(payload, "base64").toString("hex");
+    const buffer = Buffer.from(payloadToHex, "hex");
+    const vaa = parseVaa(buffer);
 
-  return {
-    emitterChain: vaa.emitterChain,
-    emitterAddress: vaa.emitterAddress.toString("hex").toUpperCase(),
-    sequence: Number(vaa.sequence),
-  };
+    return {
+      emitterChain: vaa.emitterChain,
+      emitterAddress: vaa.emitterAddress.toString("hex").toUpperCase(),
+      sequence: Number(vaa.sequence),
+    };
+  } catch (error) {
+    // If we cant parse the VAA we ignore
+    return undefined;
+  }
 };
 
 type VaaInformation = {
