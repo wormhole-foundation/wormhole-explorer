@@ -1,8 +1,16 @@
 package transactions
 
 import (
+	"context"
+	"errors"
+	"github.com/influxdata/influxdb-client-go/v2/api/query"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/wormhole-foundation/wormhole-explorer/api/internal/config"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/integration/mtest"
+	"go.uber.org/zap"
 	"strings"
 	"testing"
 	"time"
@@ -720,4 +728,184 @@ func Test_buildTokenSymbolActivityQuery(t *testing.T) {
 			assert.Equal(t, strings.TrimSpace(tc.expectedQuery), strings.TrimSpace(query))
 		})
 	}
+}
+
+func TestGetScorecards(t *testing.T) {
+
+	m := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+	defer m.Close()
+
+	logger, _ := zap.NewDevelopment()
+
+	tests := []struct {
+		name             string
+		mockTvlReturn    string
+		mockTvlErr       error
+		mockQueryResults map[string]struct {
+			res           *mockInfluxQueryResult
+			expectedQuery string
+		}
+		mockPythResponse   bson.D
+		expectedErr        bool
+		expectedScorecards *Scorecards
+	}{
+		{
+			name:          "All queries succeed",
+			mockTvlReturn: "1000",
+			mockTvlErr:    nil,
+			mockQueryResults: map[string]struct {
+				res           *mockInfluxQueryResult
+				expectedQuery string
+			}{
+				"messages24h":   {mockInfluxResult(100), buildMessages24HrQuery("wormscan-24hours")},
+				"totalTxCount":  {mockInfluxResult(100), buildTotalTrxCountQuery("wormscan", "wormscan-30days", time.Now())},
+				"totalTxVolume": {mockInfluxResult(1000e8), buildTotalTrxVolumeQuery("wormscan", "wormscan-30days", time.Now())},
+				"volume24h":     {mockInfluxResult(200e8), buildVolumeQuery("wormscan", _24h)},
+				"volume7d":      {mockInfluxResult(1500e8), buildVolumeQuery("wormscan", _7d)},
+				"volume30d":     {mockInfluxResult(5000e8), buildVolumeQuery("wormscan", _30d)},
+			},
+			mockPythResponse: bson.D{{"_id", "some-id"}, {"sequence", "123456"}},
+			expectedErr:      false,
+			expectedScorecards: &Scorecards{
+				Messages24h:   "100",
+				TotalMessages: "965587054", // 965463498 + 100 + 123456
+				TotalTxCount:  "100",
+				TotalTxVolume: "1000.00000000",
+				Tvl:           "1000",
+				Volume24h:     "200.00000000",
+				Volume7d:      "1500.00000000",
+				Volume30d:     "5000.00000000",
+			},
+		},
+		{
+			name:          "Tvl query fails",
+			mockTvlReturn: "",
+			mockTvlErr:    errors.New("mock_tvl_error"),
+			mockQueryResults: map[string]struct {
+				res           *mockInfluxQueryResult
+				expectedQuery string
+			}{
+				"messages24h":   {mockInfluxResult(100), buildMessages24HrQuery("wormscan-24hours")},
+				"totalTxCount":  {mockInfluxResult(100), buildTotalTrxCountQuery("wormscan", "wormscan-30days", time.Now())},
+				"totalTxVolume": {mockInfluxResult(1000e8), buildTotalTrxVolumeQuery("wormscan", "wormscan-30days", time.Now())},
+				"volume24h":     {mockInfluxResult(200e8), buildVolumeQuery("wormscan", _24h)},
+				"volume7d":      {mockInfluxResult(1500e8), buildVolumeQuery("wormscan", _7d)},
+				"volume30d":     {mockInfluxResult(5000e8), buildVolumeQuery("wormscan", _30d)},
+			},
+			mockPythResponse:   bson.D{{"_id", "some-id"}, {"sequence", "123456"}},
+			expectedErr:        true,
+			expectedScorecards: nil,
+		},
+
+		{
+			name:          "Multiple queries fail",
+			mockTvlReturn: "1000",
+			mockTvlErr:    nil,
+			mockQueryResults: map[string]struct {
+				res           *mockInfluxQueryResult
+				expectedQuery string
+			}{
+				"messages24h":   {mockInfluxError("failed_query"), buildMessages24HrQuery("wormscan-24hours")},
+				"totalTxCount":  {mockInfluxResult(100), buildTotalTrxCountQuery("wormscan", "wormscan-30days", time.Now())},
+				"totalTxVolume": {mockInfluxError("failed_query"), buildTotalTrxVolumeQuery("wormscan", "wormscan-30days", time.Now())},
+				"volume24h":     {mockInfluxResult(200e8), buildVolumeQuery("wormscan", _24h)},
+				"volume7d":      {mockInfluxResult(1500e8), buildVolumeQuery("wormscan", _7d)},
+				"volume30d":     {mockInfluxResult(5000e8), buildVolumeQuery("wormscan", _30d)},
+			},
+			mockPythResponse:   nil, // Simulating no documents found
+			expectedErr:        true,
+			expectedScorecards: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		m.Run(tt.name, func(mt *mtest.T) {
+			tvlMock := new(mockTvl)
+			queryAPIMock := new(mockQueryAPI)
+			mt.AddMockResponses(mtest.CreateCursorResponse(1, "wormhole.vaasPythnet", "firstBatch", tt.mockPythResponse))
+
+			repo := &Repository{
+				tvl:        tvlMock,
+				queryAPI:   queryAPIMock,
+				logger:     logger,
+				p2pNetwork: config.P2pMainNet,
+				collections: repositoryCollections{
+					vaasPythnet: mt.Coll,
+				},
+				bucket24HoursRetention:  "wormscan-24hours",
+				bucket30DaysRetention:   "wormscan-30days",
+				bucketInfiniteRetention: "wormscan",
+			}
+
+			tvlMock.On("Get", mock.Anything).Return(tt.mockTvlReturn, tt.mockTvlErr)
+
+			for _, result := range tt.mockQueryResults {
+				queryAPIMock.On("Query", mock.Anything, result.expectedQuery).Return(result.res, nil)
+			}
+
+			scorecards, err := repo.GetScorecards(context.Background())
+
+			if tt.expectedErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, scorecards)
+				assert.Equal(t, tt.expectedScorecards, scorecards)
+			}
+
+			tvlMock.AssertExpectations(t)
+			queryAPIMock.AssertExpectations(t)
+		})
+	}
+}
+
+func mockInfluxResult(value uint64) *mockInfluxQueryResult {
+	result := new(mockInfluxQueryResult)
+	result.On("Next").Return(true)
+	result.On("Record").Return(query.NewFluxRecord(0, map[string]interface{}{"_value": value}))
+	result.On("Err").Return(nil)
+	return result
+}
+
+func mockInfluxError(errMsg string) *mockInfluxQueryResult {
+	result := new(mockInfluxQueryResult)
+	result.On("Next").Return(false)
+	result.On("Err").Return(errors.New(errMsg))
+	return result
+}
+
+// Mocking the Tvl interface
+type mockTvl struct {
+	mock.Mock
+}
+
+func (m *mockTvl) Get(ctx context.Context) (string, error) {
+	args := m.Called(ctx)
+	return args.String(0), args.Error(1)
+}
+
+type mockQueryAPI struct {
+	mock.Mock
+}
+
+func (m *mockQueryAPI) Query(ctx context.Context, query string) (influxQueryResult, error) {
+	args := m.Called(ctx, query)
+	return args.Get(0).(influxQueryResult), args.Error(1)
+}
+
+type mockInfluxQueryResult struct {
+	mock.Mock
+}
+
+func (m *mockInfluxQueryResult) Err() error {
+	return m.Called().Error(0)
+}
+
+func (m *mockInfluxQueryResult) Next() bool {
+	return m.Called().Bool(0)
+}
+
+func (m *mockInfluxQueryResult) Record() *query.FluxRecord {
+	args := m.Called()
+	return args.Get(0).(*query.FluxRecord)
 }
