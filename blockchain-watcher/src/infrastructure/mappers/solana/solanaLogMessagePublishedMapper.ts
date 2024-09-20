@@ -50,15 +50,21 @@ export const solanaLogMessagePublishedMapper = async (
     }
 
     const accountId = accountKeys[instruction.accountKeyIndexes[1]];
-    const { message } = await getPostedMessage(connection, accountId, commitment);
-    const { sequence, emitterAddress, emitterChain, nonce, payload, consistencyLevel } =
-      message || {};
 
-    const emitterAddressToHex = emitterAddress.toString("hex");
     const txHash = tx.transaction.signatures[0];
+    const vaaInformation = await getVaaInformation(accountId, commitment);
+    if (!vaaInformation) {
+      logger.warn(
+        `[solana}] Cannot mapper vaa information: [hash: ${txHash}][account: ${accountId}]`
+      );
+      return [];
+    }
+
+    const { sequence, emitterAddress, emitterChain, nonce, payload, consistencyLevel } =
+      vaaInformation || {};
 
     logger.info(
-      `[solana] Source event info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddressToHex}/${sequence}]`
+      `[solana] Source event info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddress}/${sequence}]`
     );
 
     results.push({
@@ -69,7 +75,7 @@ export const solanaLogMessagePublishedMapper = async (
       blockHeight: BigInt(tx.slot.toString()),
       blockTime: tx.blockTime,
       attributes: {
-        sender: emitterAddressToHex,
+        sender: emitterAddress,
         sequence: Number(sequence),
         payload: payload.toString("hex"),
         nonce,
@@ -79,4 +85,33 @@ export const solanaLogMessagePublishedMapper = async (
   }
 
   return results;
+};
+
+const getVaaInformation = async (
+  accountAddress: string,
+  commitment?: Commitment
+): Promise<VaaInformation | undefined> => {
+  try {
+    const { message } = await getPostedMessage(connection, accountAddress, commitment);
+    return {
+      emitterChain: message.emitterChain,
+      emitterAddress: message.emitterAddress.toString("hex"),
+      sequence: Number(message.sequence),
+      nonce: message.nonce,
+      payload: message.payload,
+      consistencyLevel: message.consistencyLevel,
+    };
+  } catch (e) {
+    // If we can't get the message, we can't process the transaction
+    return undefined;
+  }
+};
+
+type VaaInformation = {
+  emitterChain: number;
+  emitterAddress: string;
+  sequence: number;
+  nonce: number;
+  payload: Buffer;
+  consistencyLevel: number;
 };
