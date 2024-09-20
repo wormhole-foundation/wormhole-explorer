@@ -74,16 +74,23 @@ const processProgram = async (
     }
 
     const accountAddress = accountKeys[instruction.accountKeyIndexes[programParam.vaaAccountIndex]];
-    const { message } = await getPostedMessage(connection, accountAddress, commitment);
-    const { sequence, emitterAddress, emitterChain } = message || {};
     const txHash = transaction.transaction.signatures[0];
+    const vaaInformation = await getVaaInformation(accountAddress, commitment);
+
+    if (!vaaInformation) {
+      logger.warn(
+        `[${chain}] Cannot mapper vaa information: [hash: ${txHash}][account: ${accountAddress}]`
+      );
+      return [];
+    }
+
+    const { emitterChain, emitterAddress, sequence } = vaaInformation;
     const protocol = findProtocol(SOLANA_CHAIN, programId, hexData, txHash);
     const protocolMethod = protocol?.method ?? "unknown";
     const protocolType = protocol?.type ?? "unknown";
-    const emitterAddressToHex = emitterAddress.toString("hex");
 
     logger.info(
-      `[${chain}] Redeemed transaction info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddressToHex}/${sequence}][protocol: ${protocolType}/${protocolMethod}]`
+      `[${chain}] Redeemed transaction info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddress}/${sequence}][protocol: ${protocolType}/${protocolMethod}]`
     );
 
     results.push({
@@ -96,8 +103,8 @@ const processProgram = async (
       attributes: {
         methodsByAddress: protocol?.method ?? "unknownInstruction",
         status: mappedStatus(transaction),
-        emitterChain: emitterChain,
-        emitterAddress: emitterAddressToHex,
+        emitterChain: emitterChain!,
+        emitterAddress: emitterAddress!,
         sequence: Number(sequence),
         protocol: protocolType,
         fee: transaction.meta?.fee,
@@ -110,6 +117,23 @@ const processProgram = async (
   return results;
 };
 
+const getVaaInformation = async (
+  accountAddress: string,
+  commitment?: Commitment
+): Promise<VaaInformation | undefined> => {
+  try {
+    const { message } = await getPostedMessage(connection, accountAddress, commitment);
+    return {
+      emitterChain: message.emitterChain,
+      emitterAddress: message.emitterAddress.toString("hex"),
+      sequence: Number(message.sequence),
+    };
+  } catch (e) {
+    // If we can't get the message, we can't process the transaction
+    return undefined;
+  }
+};
+
 const mappedStatus = (transaction: solana.Transaction): string => {
   if (!transaction.meta || transaction.meta.err) TRANSACTION_STATUS_FAILED;
   return TRANSACTION_STATUS_COMPLETED;
@@ -120,6 +144,12 @@ const normalizeInstructionData = (data: Uint8Array): string => {
   // Some instruction data contains only two characteres like token bridge: 02
   // and other contains 16 characteres like fast transfer or NTT
   return hexData.length > 2 ? hexData.slice(0, 16) : hexData;
+};
+
+type VaaInformation = {
+  emitterChain: number;
+  emitterAddress: string;
+  sequence: number;
 };
 
 export interface ProgramParams {
