@@ -40,7 +40,6 @@ CREATE TABLE wormholescan.wh_attestation_vaas (
     "updated_at" timestamptz null,
    PRIMARY KEY (id)
 );
-
 CREATE INDEX "wh_attestation_vaas_vaa_id_idx" 
     ON wormholescan.wh_attestation_vaas ("vaa_id");
 CREATE INDEX "wh_attestation_vaas_emitter_chain_id_idx" 
@@ -50,7 +49,7 @@ CREATE INDEX "wh_attestation_vaas_emitter_chain_id_emitter_address_idx"
 CREATE INDEX "wh_attestation_vaas_timestamp_idx" 
     ON wormholescan.wh_attestation_vaas ("timestamp" desc);
 
-
+-- create table wormholescan.wh_operation_transactions
 CREATE TABLE wormholescan.wh_operation_transactions (
     "chain_id" int not null,
     "tx_hash" varchar not null,
@@ -79,8 +78,12 @@ CREATE INDEX "wh_operation_transactions_to_address_idx"
     ON wormholescan.wh_operation_transactions ("to_address");
 CREATE INDEX "wh_operation_transactions_chain_id_type_idx"
     ON wormholescan.wh_operation_transactions ("chain_id", "type");
+CREATE INDEX "wh_operation_transactions_attestation_vaas_id_idx"
+    ON wormholescan.wh_operation_transactions ("attestation_vaas_id");
+CREATE INDEX "wh_operation_transactions_timestamp_idx" 
+    ON wormholescan.wh_operation_transactions ("timestamp" desc);
 
-
+-- create table wormholescan.wh_operation_transactions_processed
 CREATE TABLE wormholescan.wh_operation_transactions_processed (
     "id" varchar not null,
     "message_id" varchar not null,
@@ -89,6 +92,8 @@ CREATE TABLE wormholescan.wh_operation_transactions_processed (
     "updated_at" timestamptz not null,
     PRIMARY KEY (id)
 );
+CREATE INDEX "wh_operation_transactions_processed_message_id_idx"
+    ON wormholescan.wh_operation_transactions_processed ("message_id");
 
 -- create table wormholescan.wh_governor_status
 CREATE TABLE wormholescan.wh_governor_status (
@@ -145,7 +150,6 @@ CREATE TABLE wormholescan.wh_attestation_vaas_pythnet (
     "updated_at" timestamptz null,
    PRIMARY KEY (id)
 );
-
 CREATE INDEX "wh_attestation_vaas_pythnet_vaa_id_idx" 
     ON wormholescan.wh_attestation_vaas_pythnet ("vaa_id");
 CREATE INDEX "wh_attestation_vaas_pythnet_emitter_chain_id_idx" 
@@ -248,7 +252,6 @@ CREATE TABLE wormholescan.wh_attestation_vaa_properties (
     "updated_at" timestamptz not null,
      PRIMARY KEY (id)
 );
-
 CREATE INDEX "wh_attestation_vaa_properties_message_id_idx"
     ON wormholescan.wh_attestation_vaa_properties ("message_id");
 CREATE INDEX "wh_attestation_vaa_properties_app_id_idx" 
@@ -260,6 +263,7 @@ CREATE INDEX "wh_attestation_vaa_properties_to_address_idx"
 CREATE INDEX "wh_attestation_vaa_properties_timestamp_idx" 
     ON wormholescan.wh_attestation_vaa_properties ("timestamp" desc);
 
+-- create table wormholescan.wh_relays
 CREATE TABLE wormholescan.wh_relays (
     "vaa_id" varchar not null,
     "relayer" varchar not null,
@@ -275,7 +279,6 @@ CREATE TABLE wormholescan.wh_relays (
     "updated_at" timestamptz not null,
     PRIMARY KEY ("vaa_id")
 );
-
 CREATE INDEX "wh_relays_transactions_from_tx_hash_idx"
     ON wormholescan.wh_relays ("from_tx_hash");
 CREATE INDEX "wh_relays_transactions_to_tx_hash_idx"
