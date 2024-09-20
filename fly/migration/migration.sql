@@ -222,7 +222,7 @@ CREATE TABLE wormholescan.wh_operation_prices (
     "coingecko_id" varchar not null,
     "symbol" varchar not null,
     "token_usd_price" decimal(20,8) not null,
-    "total_token" decimal(20,8) not null,
+    "total_token" decimal(30,8) not null,
     "total_usd" decimal(20,8) not null,
     "timestamp" timestamptz not null,
     "created_at" timestamptz not null,
