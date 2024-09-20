@@ -36,9 +36,9 @@ import {
   SuiJsonRPCBlockRepository,
   Web3SolanaSlotRepository,
   FileMetadataRepository,
-  StaticJobRepository,
   PromStatRepository,
   SnsEventRepository,
+  StaticJob,
 } from ".";
 import {
   extendedProviderPoolSupplier,
@@ -131,7 +131,7 @@ export class RepositoriesBuilder {
 
     this.repositories.set(
       "jobs",
-      new StaticJobRepository(
+      new StaticJob(
         this.cfg.environment,
         this.cfg.jobs.dir,
         this.cfg.dryRun,
@@ -148,6 +148,7 @@ export class RepositoriesBuilder {
           cosmosRepo: this.getCosmosRepository(),
           algorandRepo: this.getAlgorandRepository(),
           nearRepo: this.getNearRepository(),
+          repositories: this.repositories,
         }
       )
     );

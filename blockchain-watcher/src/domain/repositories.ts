@@ -7,7 +7,6 @@ import { AlgorandTransaction } from "./entities/algorand";
 import { TransactionFilter } from "./actions/aptos/PollAptos";
 import { CosmosTransaction } from "./entities/cosmos";
 import { NearTransaction } from "./entities/near";
-import { RunPollingJob } from "./actions/RunPollingJob";
 import { Filter } from "./actions/cosmos/types";
 import {
   TransactionFilter as SuiTransactionFilter,
@@ -16,10 +15,8 @@ import {
 } from "@mysten/sui.js/client";
 import {
   ReceiptTransaction,
-  JobDefinition,
   EvmLogFilter,
   EvmBlock,
-  Handler,
   solana,
   EvmLog,
   EvmTag,
@@ -132,10 +129,4 @@ export interface StatRepository {
   count(id: string, labels: Record<string, any>, increase?: number): void;
   measure(id: string, value: bigint | number, labels: Record<string, any>): void;
   report: () => Promise<string>;
-}
-
-export interface JobRepository {
-  getJobDefinitions(): Promise<JobDefinition[]>;
-  getSource(jobDef: JobDefinition): RunPollingJob;
-  getHandlers(jobDef: JobDefinition): Promise<Handler[]>;
 }

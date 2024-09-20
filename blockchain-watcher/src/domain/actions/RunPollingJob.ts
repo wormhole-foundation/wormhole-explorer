@@ -17,7 +17,6 @@ export abstract class RunPollingJob {
   protected abstract report(): void;
   protected abstract get(): Promise<any[]>;
   protected abstract persist(): Promise<void>;
-  protected abstract setProviders(): Promise<void>;
 
   constructor(id: string, statRepo?: StatRepository, interval: number = DEFAULT_INTERVAL) {
     this.interval = interval;
@@ -36,14 +35,6 @@ export abstract class RunPollingJob {
         await this.stop();
         break;
       }
-
-      setInterval(async () => {
-        try {
-          await this.setProviders();
-        } catch (e) {
-          this.logger.error("[run] Error updating providers", e);
-        }
-      }, 5 * 60 * 1000); // 5 minutes
 
       let items: any[];
 

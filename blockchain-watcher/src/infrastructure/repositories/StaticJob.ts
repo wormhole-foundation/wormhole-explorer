@@ -22,6 +22,7 @@ import { HandleAlgorandTransactions } from "../../domain/actions/algorand/Handle
 import { HandleSolanaTransactions } from "../../domain/actions/solana/HandleSolanaTransactions";
 import { HandleCosmosTransactions } from "../../domain/actions/cosmos/HandleCosmosTransactions";
 import { evmNttTransferSentMapper } from "../mappers/evm/evmNttTransferSentMapper";
+import { PoolRpcs, PoolRpcsConfig } from "../../domain/actions/poolRpcs/PoolRpcs";
 import { HandleAptosTransactions } from "../../domain/actions/aptos/HandleAptosTransactions";
 import { HandleNearTransactions } from "../../domain/actions/near/HandleNearTransactions";
 import { HandleWormchainRedeems } from "../../domain/actions/wormchain/HandleWormchainRedeems";
@@ -29,6 +30,8 @@ import { HandleEvmTransactions } from "../../domain/actions/evm/HandleEvmTransac
 import { HandleSuiTransactions } from "../../domain/actions/sui/HandleSuiTransactions";
 import { InfluxEventRepository } from "./target/InfluxEventRepository";
 import { HandleWormchainLogs } from "../../domain/actions/wormchain/HandleWormchainLogs";
+import { RunPoolRpcs } from "../../domain/actions/RunPoolRpcs";
+import { Job } from "../../domain/jobs";
 import log from "../log";
 import {
   PollCosmosConfigProps,
@@ -50,7 +53,6 @@ import {
   AptosRepository,
   NearRepository,
   StatRepository,
-  JobRepository,
   SuiRepository,
 } from "../../domain/repositories";
 import {
@@ -83,11 +85,12 @@ import {
   PollAlgorand,
 } from "../../domain/actions/algorand/PollAlgorand";
 
-export class StaticJobRepository implements JobRepository {
+export class StaticJob implements Job {
   private fileRepo: FileMetadataRepository;
   private environment: string;
   private dryRun: boolean = false;
-  private sources: Map<string, (def: JobDefinition) => RunPollingJob> = new Map();
+  private runPollingJob: Map<string, (def: JobDefinition) => RunPollingJob> = new Map();
+  private runRunPoolConfig: Map<string, (def: JobDefinition) => RunPoolRpcs> = new Map();
   private handlers: Map<string, (cfg: any, target: string, mapper: any) => Promise<Handler>> =
     new Map();
   private mappers: Map<string, any> = new Map();
@@ -104,6 +107,7 @@ export class StaticJobRepository implements JobRepository {
   private cosmosRepo: CosmosRepository;
   private algorandRepo: AlgorandRepository;
   private nearRepo: NearRepository;
+  private repositories: Map<any, any>;
 
   constructor(
     environment: string,
@@ -122,6 +126,7 @@ export class StaticJobRepository implements JobRepository {
       cosmosRepo: CosmosRepository;
       algorandRepo: AlgorandRepository;
       nearRepo: NearRepository;
+      repositories: Map<any, any>;
     }
   ) {
     this.fileRepo = new FileMetadataRepository(path);
@@ -139,6 +144,7 @@ export class StaticJobRepository implements JobRepository {
     this.nearRepo = repos.nearRepo;
     this.environment = environment;
     this.dryRun = dryRun;
+    this.repositories = repos.repositories;
     this.fill();
   }
 
@@ -150,12 +156,17 @@ export class StaticJobRepository implements JobRepository {
     return persisted;
   }
 
-  getSource(jobDef: JobDefinition): RunPollingJob {
-    const src = this.sources.get(jobDef.source.action);
+  getRunPollingJob(jobDef: JobDefinition): RunPollingJob {
+    const src = this.runPollingJob.get(jobDef.source.action);
     if (!src) {
       throw new Error(`Source ${jobDef.source.action} not found`);
     }
     return src(jobDef);
+  }
+
+  getRunPoolRpcs(jobDef: JobDefinition): RunPoolRpcs {
+    const src = this.runRunPoolConfig.get("PoolRpcs");
+    return src!(jobDef);
   }
 
   async getHandlers(jobDef: JobDefinition): Promise<Handler[]> {
@@ -273,14 +284,30 @@ export class StaticJobRepository implements JobRepository {
         })
       );
 
-    this.sources.set("PollEvm", pollEvm);
-    this.sources.set("PollSolanaTransactions", pollSolanaTransactions);
-    this.sources.set("PollSuiTransactions", pollSuiTransactions);
-    this.sources.set("PollAptos", pollAptos);
-    this.sources.set("PollWormchain", pollWormchain);
-    this.sources.set("PollCosmos", pollComsos);
-    this.sources.set("PollAlgorand", pollAlgorand);
-    this.sources.set("PollNear", pollNear);
+    const poolRpcs = (jobDef: JobDefinition) =>
+      new PoolRpcs(
+        this.repositories,
+        new PoolRpcsConfig({
+          environment: jobDef.source.config.environment,
+          commitment: jobDef.source.config.commitment,
+          interval: jobDef.source.config.interval,
+          chainId: jobDef.chainId,
+          chain: jobDef.chain,
+          id: jobDef.id,
+        })
+      );
+
+    // Polling jobs
+    this.runPollingJob.set("PollEvm", pollEvm);
+    this.runPollingJob.set("PollSolanaTransactions", pollSolanaTransactions);
+    this.runPollingJob.set("PollSuiTransactions", pollSuiTransactions);
+    this.runPollingJob.set("PollAptos", pollAptos);
+    this.runPollingJob.set("PollWormchain", pollWormchain);
+    this.runPollingJob.set("PollCosmos", pollComsos);
+    this.runPollingJob.set("PollAlgorand", pollAlgorand);
+    this.runPollingJob.set("PollNear", pollNear);
+    // Pool config
+    this.runRunPoolConfig.set("PoolRpcs", poolRpcs);
   }
 
   private loadMappers(): void {

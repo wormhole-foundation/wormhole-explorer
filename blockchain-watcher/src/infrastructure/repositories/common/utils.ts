@@ -33,7 +33,6 @@ export function getChainProvider(
   if (!selectedPool) {
     throw new Error(`No provider pool configured for chain ${chain}`);
   }
-  selectedPool.getProviders();
   return selectedPool.get();
 }
 

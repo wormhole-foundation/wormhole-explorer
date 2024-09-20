@@ -209,6 +209,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         { timeout: chainCfg.timeout, retries: chainCfg.retries }
       );
     } catch (e: HttpClientError | any) {
+      provider.setProviderOffline();
       throw e;
     }
 

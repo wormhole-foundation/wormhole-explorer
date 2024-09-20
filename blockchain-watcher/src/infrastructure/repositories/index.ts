@@ -16,7 +16,7 @@ export * from "./evm/ArbitrumEvmJsonRPCBlockRepository";
 export * from "./evm/MoonbeamEvmJsonRPCBlockRepository";
 export * from "./evm/PolygonEvmJsonRPCBlockRepository";
 export * from "./PromStatRepository";
-export * from "./StaticJobRepository";
+export * from "./StaticJob";
 export * from "./solana/Web3SolanaSlotRepository";
 export * from "./solana/RateLimitedSolanaSlotRepository";
 export * from "./sui/SuiJsonRPCBlockRepository";
