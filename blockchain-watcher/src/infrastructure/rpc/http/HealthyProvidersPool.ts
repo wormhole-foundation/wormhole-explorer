@@ -62,7 +62,7 @@ export class HealthyProvidersPool<
     }
 
     const sortedProviders = this.sortResponsesByHeight(providersHeight);
-    const averageHeight = this.calculateAverageHeight(sortedProviders);
+    const averageHeight = this.calculateAverageHeight(sortedProviders, blockHeightCursor);
     const filteredProviders = this.filterOutliers(
       sortedProviders,
       averageHeight,
@@ -80,7 +80,51 @@ export class HealthyProvidersPool<
     return providersHeight.sort((a, b) => Number(b.height) - Number(a.height));
   }
 
-  private calculateAverageHeight(providers: ProvidersHeight[]): bigint {
+  private calculateAverageHeight(
+    providers: ProvidersHeight[],
+    blockHeightCursor: bigint | undefined
+  ): bigint {
+    if (blockHeightCursor) {
+      // Filter out providers that are behind the cursor
+      const filter = providers.filter((provider) => {
+        const diff = provider.height - blockHeightCursor;
+        return diff;
+      });
+
+      // Determine the maximum height and the next maximum height
+      const heights = filter.map((item) => parseFloat(String(item.height)));
+      const maxHeight = Math.max(...heights);
+      const nextMaxHeight = Math.max(...heights.filter((h) => h < maxHeight));
+
+      // Filter out the maximum height if it's significantly ahead
+      if (maxHeight - nextMaxHeight > THRESHOLD) {
+        providers = filter.filter((item) => parseFloat(String(item.height)) < nextMaxHeight + 1);
+      } else {
+        providers = filter;
+      }
+
+      const totalHeight = providers.reduce((sum, provider) => sum + provider.height, BigInt(0));
+      return totalHeight / BigInt(providers.length);
+    }
+
+    // Determine the maximum height and the next maximum height
+    const heights = providers.map((item) => parseFloat(String(item.height)));
+    const maxHeight = Math.max(...heights);
+    const nextMaxHeight = Math.max(...heights.filter((h) => h < maxHeight));
+
+    // Determine the minimum height and the next minimum height
+    const minHeight = Math.min(...heights);
+    const nextMinHeight = Math.min(...heights.filter((h) => h > minHeight));
+
+    // Filter out the maximum height if it's significantly ahead
+    if (maxHeight - nextMaxHeight > THRESHOLD) {
+      providers = providers.filter((item) => parseFloat(String(item.height)) < nextMaxHeight + 1);
+    }
+
+    if (minHeight - nextMinHeight > THRESHOLD) {
+      providers = providers.filter((item) => parseFloat(String(item.height)) < nextMinHeight + 1);
+    }
+
     const totalHeight = providers.reduce((sum, provider) => sum + provider.height, BigInt(0));
     return totalHeight / BigInt(providers.length);
   }
