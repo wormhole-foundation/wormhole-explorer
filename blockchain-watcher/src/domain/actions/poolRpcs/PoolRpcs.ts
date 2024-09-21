@@ -11,7 +11,7 @@ export class PoolRpcs extends RunPoolRpcs {
     super(repositories);
     this.repositories = repositories;
     this.cfg = cfg;
-    this.logger = winston.child({ module: "PollNear", label: "pool-rpc-config" });
+    this.logger = winston.child({ module: "PoolRpcs", label: "pool-rpcs" });
   }
 
   protected async set(): Promise<void> {
@@ -48,11 +48,6 @@ export class PoolRpcs extends RunPoolRpcs {
     return height;
   }
 }
-
-type BlockData = {
-  lastBlock: string;
-  [key: string]: any;
-};
 
 export interface PoolRpcsConfigProps {
   environment: string;

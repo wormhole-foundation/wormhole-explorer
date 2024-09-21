@@ -157,16 +157,16 @@ export class StaticJob implements Job {
   }
 
   getRunPollingJob(jobDef: JobDefinition): RunPollingJob {
-    const src = this.runPollingJob.get(jobDef.source.action);
-    if (!src) {
+    const action = this.runPollingJob.get(jobDef.source.action);
+    if (!action) {
       throw new Error(`Source ${jobDef.source.action} not found`);
     }
-    return src(jobDef);
+    return action(jobDef);
   }
 
   getRunPoolRpcs(jobDef: JobDefinition): RunPoolRpcs {
-    const src = this.runRunPoolConfig.get("PoolRpcs");
-    return src!(jobDef);
+    const action = this.runRunPoolConfig.get("PoolRpcs");
+    return action!(jobDef);
   }
 
   async getHandlers(jobDef: JobDefinition): Promise<Handler[]> {
@@ -306,7 +306,7 @@ export class StaticJob implements Job {
     this.runPollingJob.set("PollCosmos", pollComsos);
     this.runPollingJob.set("PollAlgorand", pollAlgorand);
     this.runPollingJob.set("PollNear", pollNear);
-    // Pool config
+    // Pool rpcs
     this.runRunPoolConfig.set("PoolRpcs", poolRpcs);
   }
 
