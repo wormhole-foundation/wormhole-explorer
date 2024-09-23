@@ -4,6 +4,8 @@ import { CosmosRepository } from "../../../domain/repositories";
 import { getChainProvider } from "../common/utils";
 import { Filter } from "../../../domain/actions/cosmos/types";
 import winston from "winston";
+import { EvmTag } from "../../../domain/entities";
+import { ProviderHealthCheck } from "../../../domain/actions/poolRpcs/PoolRpcs";
 
 const TRANSACTION_SEARCH_ENDPOINT = "/tx_search";
 const BLOCK_ENDPOINT = "/block";
@@ -17,6 +19,32 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
     this.logger = winston.child({ module: "CosmosJsonRPCBlockRepository" });
     this.pool = pool;
     this.cfg = cfg;
+  }
+
+  async healthCheck(chain: string, _: EvmTag, cursor: bigint): Promise<void> {
+    const resultHeight: ProviderHealthCheck[] = [];
+    const pool = this.pool[chain];
+    const providers = pool.getProviders();
+    const blockEndpoint = `${BLOCK_ENDPOINT}?height=${cursor}`;
+    let resultsBlock: ResultBlock;
+
+    for (const provider of providers) {
+      try {
+        resultsBlock = await provider.get<typeof resultsBlock>(blockEndpoint);
+        const result = (
+          "result" in resultsBlock ? resultsBlock.result : resultsBlock
+        ) as ResultBlock;
+
+        resultHeight.push({
+          url: provider.getUrl(),
+          height: BigInt(result.block.header.height),
+          isLive: true,
+        });
+      } catch (e) {
+        resultHeight.push({ url: provider.getUrl(), height: undefined, isLive: false });
+      }
+    }
+    pool.setProviders(providers, resultHeight, cursor);
   }
 
   async getTransactions(

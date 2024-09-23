@@ -1,8 +1,9 @@
 import { InstrumentedConnectionWrapper } from "../../rpc/http/InstrumentedConnectionWrapper";
 import { Fallible, SolanaFailure } from "../../../domain/errors";
+import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
 import { SolanaSlotRepository } from "../../../domain/repositories";
-import { ProviderPool } from "@xlabs/rpc-pool";
-import { solana } from "../../../domain/entities";
+import { ProviderHealthCheck } from "../../../domain/actions/poolRpcs/PoolRpcs";
+import { EvmTag, solana } from "../../../domain/entities";
 import winston from "../../log";
 import {
   VersionedTransactionResponse,
@@ -15,8 +16,31 @@ import {
 export class Web3SolanaSlotRepository implements SolanaSlotRepository {
   protected readonly logger;
 
-  constructor(private readonly pool: ProviderPool<InstrumentedConnectionWrapper>) {
+  constructor(private readonly pool: ProviderPoolDecorator<InstrumentedConnectionWrapper>) {
     this.logger = winston.child({ module: "Web3SolanaSlotRepository" });
+  }
+
+  async getPool(): Promise<ProviderPoolDecorator<InstrumentedConnectionWrapper>> {
+    return this.pool;
+  }
+
+  async healthCheck(_: string, finality: EvmTag, cursor: bigint): Promise<void> {
+    const providers = this.pool.getProviders();
+    const result: ProviderHealthCheck[] = [];
+
+    for (const provider of providers) {
+      try {
+        const response = await this.pool.get().getSlot(finality as Commitment);
+        result.push({
+          url: provider.getUrl(),
+          height: BigInt(response),
+          isLive: true,
+        });
+      } catch (e) {
+        result.push({ url: provider.getUrl(), height: undefined, isLive: false });
+      }
+    }
+    this.pool.setProviders(providers, result, cursor);
   }
 
   getLatestSlot(commitment: string): Promise<number> {

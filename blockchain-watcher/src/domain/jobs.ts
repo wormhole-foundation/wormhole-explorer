@@ -6,5 +6,5 @@ export interface Job {
   getJobDefinitions(): Promise<JobDefinition[]>;
   getRunPollingJob(jobDef: JobDefinition): RunPollingJob;
   getHandlers(jobDef: JobDefinition): Promise<Handler[]>;
-  getRunPoolRpcs(obDef: JobDefinition): RunPoolRpcs;
+  getRunPoolRpcs(jobsDef: JobDefinition[]): RunPoolRpcs;
 }

@@ -1,10 +1,11 @@
 import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
+import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
 import { AlgorandTransaction } from "../../../domain/entities/algorand";
 import { AlgorandRepository } from "../../../domain/repositories";
-import { ProviderPool } from "@xlabs/rpc-pool";
+import { ProviderHealthCheck } from "../../../domain/actions/poolRpcs/PoolRpcs";
 import winston from "winston";
 
-type ProviderPoolMap = ProviderPool<InstrumentedHttpProvider>;
+type ProviderPoolMap = ProviderPoolDecorator<InstrumentedHttpProvider>;
 
 let TRANSACTIONS_ENDPOINT = "/v2/transactions";
 let STATUS_ENDPOINT = "/v2/status";
@@ -15,12 +16,33 @@ export class AlgorandJsonRPCBlockRepository implements AlgorandRepository {
   protected algoIndexerPools: ProviderPoolMap;
 
   constructor(
-    algoV2Pools: ProviderPool<InstrumentedHttpProvider>,
-    algoIndexerPools: ProviderPool<InstrumentedHttpProvider>
+    algoV2Pools: ProviderPoolDecorator<InstrumentedHttpProvider>,
+    algoIndexerPools: ProviderPoolDecorator<InstrumentedHttpProvider>
   ) {
     this.logger = winston.child({ module: "AlgorandJsonRPCBlockRepository" });
     this.algoV2Pools = algoV2Pools;
     this.algoIndexerPools = algoIndexerPools;
+  }
+
+  async healthCheck(chain: string, finality: string, cursor: bigint): Promise<void> {
+    const providers = this.algoV2Pools.getProviders();
+    const result: ProviderHealthCheck[] = [];
+    let response: ResultStatus;
+
+    for (const provider of providers) {
+      const url = provider.getUrl();
+      try {
+        response = await provider.get<typeof response>(STATUS_ENDPOINT);
+        const lastRound = response["last-round"] ? BigInt(response["last-round"]) : undefined;
+        const isLive = lastRound !== undefined;
+
+        result.push({ url: url, height: lastRound, isLive: isLive });
+      } catch (e) {
+        console.error(`Error fetching status from ${url}:`, e);
+        result.push({ url: url, height: undefined, isLive: false });
+      }
+    }
+    this.algoV2Pools.setProviders(providers, result, cursor);
   }
 
   async getBlockHeight(): Promise<bigint | undefined> {

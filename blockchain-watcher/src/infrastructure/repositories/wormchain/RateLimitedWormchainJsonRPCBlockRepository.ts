@@ -1,6 +1,7 @@
 import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
 import { WormchainRepository } from "../../../domain/repositories";
 import { Options } from "../common/rateLimitedOptions";
+import { EvmTag } from "../../../domain/entities";
 import winston from "winston";
 import {
   IbcTransaction,
@@ -19,6 +20,10 @@ export class RateLimitedWormchainJsonRPCBlockRepository
   ) {
     super(delegate, chain, opts);
     this.logger = winston.child({ module: "RateLimitedWormchainJsonRPCBlockRepository" });
+  }
+
+  healthCheck(chain: string, finality: EvmTag, cursor: bigint): Promise<void> {
+    return this.breaker.fn(() => this.delegate.healthCheck(chain, finality, cursor)).execute();
   }
 
   getBlockHeight(chain: string): Promise<bigint | undefined> {

@@ -1,7 +1,9 @@
 import { Range, TransactionFilter } from "../../../domain/actions/aptos/PollAptos";
 import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
+import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
 import { AptosRepository } from "../../../domain/repositories";
-import { ProviderPool } from "@xlabs/rpc-pool";
+import { ProviderHealthCheck } from "../../../domain/actions/poolRpcs/PoolRpcs";
+import { EvmTag } from "../../../domain/entities";
 import winston from "winston";
 import {
   AptosTransactionByVersion,
@@ -15,15 +17,40 @@ let BLOCK_BY_VERSION_ENDPOINT = "/blocks/by_version";
 let TRANSACTION_ENDPOINT = "/transactions";
 let ACCOUNT_ENDPOINT = "/accounts";
 
-type ProviderPoolMap = ProviderPool<InstrumentedHttpProvider>;
+type ProviderPoolMap = ProviderPoolDecorator<InstrumentedHttpProvider>;
 
 export class AptosJsonRPCBlockRepository implements AptosRepository {
   private readonly logger: winston.Logger;
   protected pool: ProviderPoolMap;
 
-  constructor(pool: ProviderPool<InstrumentedHttpProvider>) {
+  constructor(pool: ProviderPoolDecorator<InstrumentedHttpProvider>) {
     this.logger = winston.child({ module: "AptosJsonRPCBlockRepository" });
     this.pool = pool;
+  }
+
+  async healthCheck(chain: string, finality: EvmTag, cursor: bigint): Promise<void> {
+    // If the cursor is not set yet, we try again later
+    if (!cursor) {
+      return;
+    }
+    const blockEndpoint = `${BLOCK_BY_VERSION_ENDPOINT}/${Number(cursor)}`;
+    const providers = this.pool.getProviders();
+    let blockResult: AptosBlockByVersion = {};
+    const result: ProviderHealthCheck[] = [];
+
+    for (const provider of providers) {
+      try {
+        blockResult = await this.pool.get().get<typeof blockResult>(blockEndpoint);
+        result.push({
+          url: provider.getUrl(),
+          height: BigInt(blockResult.block_height!),
+          isLive: true,
+        });
+      } catch (e) {
+        result.push({ url: provider.getUrl(), height: undefined, isLive: false });
+      }
+    }
+    this.pool.setProviders(providers, result, cursor);
   }
 
   async getEventsByEventHandle(

@@ -308,6 +308,7 @@ const givenAptosBlockRepository = (sequenceNumber: string = "148985") => {
     getEventsByEventHandle: () => Promise.resolve(events),
     getTransactionsByVersion: () => Promise.resolve(txs),
     getTransactions: () => Promise.resolve([]),
+    healthCheck: () => Promise.resolve(),
   };
 
   getSequenceNumberSpy = jest.spyOn(aptosRepo, "getEventsByEventHandle");

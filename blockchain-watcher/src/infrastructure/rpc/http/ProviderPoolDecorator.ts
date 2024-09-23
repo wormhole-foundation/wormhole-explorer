@@ -1,9 +1,12 @@
+import { InstrumentedConnectionWrapper } from "./InstrumentedConnectionWrapper";
 import { InstrumentedHttpProvider } from "./InstrumentedHttpProvider";
 import { HealthyProvidersPool } from "./HealthyProvidersPool";
+import { ProviderHealthCheck } from "../../../domain/actions/poolRpcs/PoolRpcs";
 import { Logger } from "winston";
 import {
   InstrumentedEthersProvider,
   InstrumentedConnection,
+  InstrumentedSuiClient,
   providerPoolSupplier,
   InstrumentedRpc,
   ProviderPool,
@@ -13,8 +16,11 @@ import {
 export interface ProviderPoolDecorator<T extends InstrumentedRpc> extends ProviderPool<T> {
   getProviders(): T[];
   setProviders(
-    providers: InstrumentedHttpProvider[],
-    providersHeight: ProvidersHeight[],
+    providers:
+      | InstrumentedHttpProvider[]
+      | InstrumentedConnectionWrapper[]
+      | InstrumentedSuiClient[],
+    providerHealthCheck: ProviderHealthCheck[],
     blockHeightCursor: bigint | undefined
   ): void;
 }
@@ -42,9 +48,4 @@ export function extendedProviderPoolSupplier<T extends InstrumentedRpc>(
         logger
       ) as unknown as ProviderPoolDecorator<T>;
   }
-}
-
-export interface ProvidersHeight {
-  url: string;
-  height: bigint;
 }

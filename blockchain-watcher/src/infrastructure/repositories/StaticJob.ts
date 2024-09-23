@@ -89,8 +89,8 @@ export class StaticJob implements Job {
   private fileRepo: FileMetadataRepository;
   private environment: string;
   private dryRun: boolean = false;
-  private runPollingJob: Map<string, (def: JobDefinition) => RunPollingJob> = new Map();
-  private runRunPoolConfig: Map<string, (def: JobDefinition) => RunPoolRpcs> = new Map();
+  private runPollingJob: Map<string, (jobDef: JobDefinition) => RunPollingJob> = new Map();
+  private runRunPoolConfig: Map<string, (jobsDef: JobDefinition[]) => RunPoolRpcs> = new Map();
   private handlers: Map<string, (cfg: any, target: string, mapper: any) => Promise<Handler>> =
     new Map();
   private mappers: Map<string, any> = new Map();
@@ -121,9 +121,9 @@ export class StaticJob implements Job {
     return action(jobDef);
   }
 
-  getRunPoolRpcs(jobDef: JobDefinition): RunPoolRpcs {
+  getRunPoolRpcs(jobsDef: JobDefinition[]): RunPoolRpcs {
     const action = this.runRunPoolConfig.get("PoolRpcs")!;
-    return action(jobDef);
+    return action(jobsDef);
   }
 
   async getHandlers(jobDef: JobDefinition): Promise<Handler[]> {
@@ -246,18 +246,20 @@ export class StaticJob implements Job {
         })
       );
 
-    const poolRpcs = (jobDef: JobDefinition) =>
+    const poolRpcs = (jobsDef: JobDefinition[]) =>
       new PoolRpcs(
         this.repos,
-        new PoolRpcsConfig({
-          environment: jobDef.source.config.environment,
-          commitment: jobDef.source.config.commitment,
-          repository: jobDef.source.repository,
-          interval: jobDef.source.config.interval,
-          chainId: jobDef.chainId,
-          chain: jobDef.chain,
-          id: jobDef.id,
-        })
+        new PoolRpcsConfig(
+          jobsDef.map((jobDef) => ({
+            environment: jobDef.source.config.environment,
+            commitment: jobDef.source.config.commitment,
+            repository: jobDef.source.repository,
+            interval: jobDef.source.config.interval,
+            chainId: jobDef.source.config.chainId,
+            chain: jobDef.chain,
+            id: jobDef.id,
+          }))
+        )
       );
 
     // Polling jobs

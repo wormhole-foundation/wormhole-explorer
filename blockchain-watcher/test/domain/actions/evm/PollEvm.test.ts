@@ -158,8 +158,7 @@ const givenEvmBlockRepository = (height?: bigint, blocksAhead?: bigint) => {
     getFilteredLogs: () => Promise.resolve(logsResponse),
     getTransactionReceipt: () => Promise.resolve(receiptResponse),
     getBlock: () => Promise.resolve(blocksResponse[0]),
-    getPool: () => Promise.resolve(provider),
-    getAllBlockHeight: () => Promise.resolve([]),
+    healthCheck: () => Promise.resolve(),
   };
 
   getBlocksSpy = jest.spyOn(evmBlockRepo, "getBlocks");

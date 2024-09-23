@@ -3,6 +3,8 @@ import { JobDefinition } from "../entities";
 import { Job } from "../jobs";
 import { RunPoolRpcs } from "./RunPoolRpcs";
 
+const POOL_RPCS = "pool-rpcs";
+
 export class StartJobs {
   private readonly logger = winston.child({ module: "StartJobs" });
   private readonly job: Job;
@@ -15,12 +17,15 @@ export class StartJobs {
   public async run(): Promise<JobDefinition[]> {
     const jobs = await this.job.getJobDefinitions();
     for (const job of jobs) {
-      await this.runSingle(job);
+      // Run jobs
+      await this.runJob(job);
     }
+    // Run pool
+    await this.runPool(jobs);
     return jobs;
   }
 
-  public async runSingle(job: JobDefinition): Promise<JobDefinition> {
+  public async runJob(job: JobDefinition): Promise<JobDefinition> {
     if (this.runnables.has(job.id)) {
       throw new Error(`Job ${job.id} already exists. Ids must be unique`);
     }
@@ -32,13 +37,16 @@ export class StartJobs {
     }
 
     const runJob = this.job.getRunPollingJob(job);
-    const runPoolRpcs = this.job.getRunPoolRpcs(job);
 
     this.runnables.set(job.id, () => runJob.run(handlers));
-    this.runnables.set("pool-rpcs", () => runPoolRpcs.run());
     this.runnables.get(job.id)!();
-    this.runnables.get("pool-rpcs")!();
-
     return job;
+  }
+
+  public async runPool(jobs: JobDefinition[]): Promise<RunPoolRpcs> {
+    const runPoolRpcs = this.job.getRunPoolRpcs(jobs);
+    this.runnables.set(POOL_RPCS, () => runPoolRpcs.run());
+    this.runnables.get(POOL_RPCS)!();
+    return runPoolRpcs;
   }
 }

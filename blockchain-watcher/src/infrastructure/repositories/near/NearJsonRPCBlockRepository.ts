@@ -1,41 +1,51 @@
 import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
 import { FinalExecutionOutcome } from "near-api-js/lib/providers/provider";
+import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
 import { HttpClientError } from "../../errors/HttpClientError";
 import { NearTransaction } from "../../../domain/entities/near";
 import { NearRepository } from "../../../domain/repositories";
-import { ProviderPool } from "@xlabs/rpc-pool";
+import { ProviderHealthCheck } from "../../../domain/actions/poolRpcs/PoolRpcs";
 import winston from "winston";
 
-type ProviderPoolMap = ProviderPool<InstrumentedHttpProvider>;
+type ProviderPoolMap = ProviderPoolDecorator<InstrumentedHttpProvider>;
 const NEAR_CHAIN_ID = 15;
 
 export class NearJsonRPCBlockRepository implements NearRepository {
   private readonly logger: winston.Logger;
   protected pool: ProviderPoolMap;
 
-  constructor(pool: ProviderPool<InstrumentedHttpProvider>) {
+  constructor(pool: ProviderPoolDecorator<InstrumentedHttpProvider>) {
     this.logger = winston.child({ module: "NearJsonRPCBlockRepository" });
     this.pool = pool;
   }
 
-  async getBlockHeight(commitment: string): Promise<bigint | undefined> {
-    let response: { result: BlockResult };
+  async healthCheck(_: string, finality: string, cursor: bigint): Promise<void> {
+    const providers = this.pool.getProviders();
+    const result: ProviderHealthCheck[] = [];
+    let response;
 
+    for (const provider of providers) {
+      try {
+        response = await this.getBlockByHeight(provider, finality);
+        result.push({
+          url: provider.getUrl(),
+          height: response,
+          isLive: true,
+        });
+      } catch (e) {
+        result.push({ url: provider.getUrl(), height: undefined, isLive: false });
+      }
+    }
+    this.pool.setProviders(providers, result, cursor);
+  }
+
+  async getBlockHeight(commitment: string): Promise<bigint | undefined> {
     try {
-      response = await this.pool.get().post<typeof response>({
-        jsonrpc: "2.0",
-        id: "", // Is not used
-        method: "block",
-        params: {
-          finality: commitment,
-        },
-      });
+      return await this.getBlockByHeight(this.pool.get(), commitment);
     } catch (e: HttpClientError | any) {
       this.handleError(e, "getBlockHeight");
       throw e;
     }
-
-    return BigInt(response.result.header.height);
   }
 
   async getTransactions(
@@ -157,6 +167,29 @@ export class NearJsonRPCBlockRepository implements NearRepository {
 
   private handleError(e: any, method: string) {
     this.logger.error(`[Near] Error calling ${method}: ${e.message ?? e}`);
+  }
+
+  // Private method to not duplicate code getting block height value
+  private async getBlockByHeight(
+    providers: InstrumentedHttpProvider,
+    commitment: string
+  ): Promise<bigint | undefined> {
+    let response: { result: BlockResult };
+
+    try {
+      response = await providers.post<typeof response>({
+        jsonrpc: "2.0",
+        id: "", // Is not used
+        method: "block",
+        params: {
+          finality: commitment,
+        },
+      });
+    } catch (e: HttpClientError | any) {
+      this.handleError(e, "getBlockHeight");
+      throw e;
+    }
+    return BigInt(response.result.header.height);
   }
 }
 

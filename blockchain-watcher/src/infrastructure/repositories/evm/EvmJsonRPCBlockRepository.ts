@@ -2,9 +2,9 @@ import { JsonRPCBlockRepositoryCfg, ProviderPoolMap } from "../RepositoriesBuild
 import { divideIntoBatches, getChainProvider } from "../common/utils";
 import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
 import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
+import { ProviderHealthCheck } from "../../../domain/actions/poolRpcs/PoolRpcs";
 import { EvmBlockRepository } from "../../../domain/repositories";
 import { HttpClientError } from "../../errors/HttpClientError";
-import { ProviderHeight } from "../../../domain/actions/poolRpcs/PoolRpcs";
 import winston from "../../log";
 import {
   ReceiptTransaction,
@@ -37,31 +37,29 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     this.logger.info(`Created for ${Object.keys(this.cfg.chains)}`);
   }
 
-  async getPool(chain: string): Promise<ProviderPoolDecorator<InstrumentedHttpProvider>> {
-    return this.pool[chain];
-  }
-
-  async getAllBlockHeight(
-    providers: InstrumentedHttpProvider[],
-    finality: EvmTag
-  ): Promise<ProviderHeight[]> {
-    let response: { result?: EvmBlock; error?: ErrorBlock };
-    const providersHeight: ProviderHeight[] = [];
+  async healthCheck(chain: string, finality: EvmTag, cursor: bigint): Promise<void> {
+    const pool = this.pool[chain];
+    const providers = pool.getProviders();
+    const result: ProviderHealthCheck[] = [];
 
     for (const provider of providers) {
       try {
-        response = await provider.post<typeof response>({
-          jsonrpc: "2.0",
-          method: "eth_getBlockByNumber",
-          params: [finality, false], // this means we'll get a light block (no txs)
-          id: 1,
+        const response = await this.getBlockByNumber(
+          provider,
+          finality,
+          false // isTransactionsPresent
+        );
+
+        result.push({
+          url: provider.getUrl(),
+          height: BigInt(response.result?.number!),
+          isLive: true,
         });
-        providersHeight.push({ url: provider.getUrl(), height: BigInt(response.result?.number!) });
       } catch (e) {
-        provider.setProviderOffline();
+        result.push({ url: provider.getUrl(), height: undefined, isLive: false });
       }
     }
-    return providersHeight;
+    pool.setProviders(providers, result, cursor);
   }
 
   async getBlockHeight(chain: string, finality: EvmTag): Promise<bigint> {
@@ -248,29 +246,16 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     blockNumberOrTag: EvmTag | bigint,
     isTransactionsPresent: boolean = false
   ): Promise<EvmBlock> {
-    const blockNumberParam =
-      typeof blockNumberOrTag === "bigint"
-        ? `${HEXADECIMAL_PREFIX}${blockNumberOrTag.toString(16)}`
-        : blockNumberOrTag;
-
     const provider = getChainProvider(chain, this.pool);
     const chainCfg = this.getCurrentChain(chain);
-    let response: { result?: EvmBlock; error?: ErrorBlock };
 
-    try {
-      response = await provider.post<typeof response>(
-        {
-          jsonrpc: "2.0",
-          method: "eth_getBlockByNumber",
-          params: [blockNumberParam, isTransactionsPresent], // this means we'll get a light block (no txs)
-          id: 1,
-        },
-        { timeout: chainCfg.timeout, retries: chainCfg.retries }
-      );
-    } catch (e: HttpClientError | any) {
-      provider.setProviderOffline();
-      throw e;
-    }
+    const response = await this.getBlockByNumber(
+      provider,
+      blockNumberOrTag,
+      isTransactionsPresent,
+      chainCfg.timeout,
+      chainCfg.retries
+    );
 
     const result = response?.result;
     if (result && result.hash && result.number && result.timestamp) {
@@ -410,6 +395,36 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       timeout: cfg.timeout ?? 10_000,
       retries: cfg.retries ?? 2,
     };
+  }
+
+  // Private method to not duplicate code getting block height value
+  private async getBlockByNumber(
+    provider: InstrumentedHttpProvider,
+    blockNumberOrTag: EvmTag | bigint,
+    isTransactionsPresent: boolean = false,
+    timeout: number = 10_000,
+    retries: number = 2
+  ) {
+    let response: { result?: EvmBlock; error?: ErrorBlock };
+    const blockNumberParam =
+      typeof blockNumberOrTag === "bigint"
+        ? `${HEXADECIMAL_PREFIX}${blockNumberOrTag.toString(16)}`
+        : blockNumberOrTag;
+
+    try {
+      return await provider.post<typeof response>(
+        {
+          jsonrpc: "2.0",
+          method: "eth_getBlockByNumber",
+          params: [blockNumberParam, isTransactionsPresent], // this means we'll get a light block (no txs)
+          id: 1,
+        },
+        { timeout: timeout, retries: retries }
+      );
+    } catch (e: HttpClientError | any) {
+      provider.setProviderOffline();
+      throw e;
+    }
   }
 
   private describeFilter(filter: EvmLogFilter): string {

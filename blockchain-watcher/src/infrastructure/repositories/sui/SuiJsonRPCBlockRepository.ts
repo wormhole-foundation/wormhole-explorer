@@ -2,8 +2,10 @@ import { InstrumentedSuiClient, ProviderPool } from "@xlabs/rpc-pool";
 import { SuiTransactionBlockReceipt } from "../../../domain/entities/sui";
 import { divideIntoBatches } from "../common/utils";
 import { SuiRepository } from "../../../domain/repositories";
+import { EvmTag, Range } from "../../../domain/entities";
+import { ProviderHealthCheck } from "../../../domain/actions/poolRpcs/PoolRpcs";
+import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
 import winston from "winston";
-import { Range } from "../../../domain/entities";
 import {
   SuiTransactionBlockResponse,
   TransactionFilter,
@@ -17,8 +19,28 @@ const TX_BATCH_SIZE = 50;
 export class SuiJsonRPCBlockRepository implements SuiRepository {
   private readonly logger: winston.Logger;
 
-  constructor(private readonly pool: ProviderPool<InstrumentedSuiClient>) {
+  constructor(private readonly pool: ProviderPoolDecorator<InstrumentedSuiClient>) {
     this.logger = winston.child({ module: "SuiJsonRPCBlockRepository" });
+  }
+
+  async healthCheck(chain: string, finality: EvmTag, cursor: bigint): Promise<void> {
+    const result: ProviderHealthCheck[] = [];
+    const providers = this.pool.getProviders();
+    let response;
+
+    for (const provider of providers) {
+      try {
+        response = await this.pool.get().getLatestCheckpointSequenceNumber();
+        result.push({
+          url: provider.url,
+          height: BigInt(response),
+          isLive: true,
+        });
+      } catch (e) {
+        result.push({ url: provider.url, height: undefined, isLive: false });
+      }
+    }
+    this.pool.setProviders(providers, result, cursor);
   }
 
   async getLastCheckpointNumber(): Promise<bigint> {

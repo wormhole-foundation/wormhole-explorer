@@ -1,16 +1,13 @@
 import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
-import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
-import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
 import { EvmBlockRepository } from "../../../domain/repositories";
-import { ProviderHeight } from "../../../domain/actions/poolRpcs/PoolRpcs";
 import { Options } from "../common/rateLimitedOptions";
 import winston from "winston";
 import {
-  EvmBlock,
+  ReceiptTransaction,
   EvmLogFilter,
+  EvmBlock,
   EvmLog,
   EvmTag,
-  ReceiptTransaction,
 } from "../../../domain/entities";
 
 export class RateLimitedEvmJsonRPCBlockRepository
@@ -26,15 +23,8 @@ export class RateLimitedEvmJsonRPCBlockRepository
     this.logger = winston.child({ module: "RateLimitedEvmJsonRPCBlockRepository" });
   }
 
-  getPool(chain: string): Promise<ProviderPoolDecorator<InstrumentedHttpProvider>> {
-    return this.breaker.fn(() => this.delegate.getPool(chain)).execute();
-  }
-
-  getAllBlockHeight(
-    providers: InstrumentedHttpProvider[],
-    finality: EvmTag
-  ): Promise<ProviderHeight[]> {
-    return this.breaker.fn(() => this.delegate.getAllBlockHeight(providers, finality)).execute();
+  healthCheck(chain: string, finality: EvmTag, cursor: bigint): Promise<void> {
+    return this.breaker.fn(() => this.delegate.healthCheck(chain, finality, cursor)).execute();
   }
 
   getBlockHeight(chain: string, finality: string): Promise<bigint> {

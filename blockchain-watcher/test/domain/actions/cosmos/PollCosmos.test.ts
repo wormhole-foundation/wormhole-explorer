@@ -542,6 +542,7 @@ const givenCosmosBlockRepository = (timestamp?: number, txs: any = []) => {
   cosmosRepo = {
     getTransactions: () => Promise.resolve(txs),
     getBlockTimestamp: () => Promise.resolve(timestamp),
+    healthCheck: () => Promise.resolve(),
   };
 
   getTransactionsSpy = jest.spyOn(cosmosRepo, "getTransactions");

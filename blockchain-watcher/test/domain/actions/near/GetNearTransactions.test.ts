@@ -554,6 +554,7 @@ const givenNearRepository = (height?: bigint, txs: any = []) => {
   nearRepo = {
     getBlockHeight: () => Promise.resolve(height),
     getTransactions: () => Promise.resolve(txs),
+    healthCheck: () => Promise.resolve(),
   };
 
   getBlockHeightSpy = jest.spyOn(nearRepo, "getBlockHeight");

@@ -1,15 +1,12 @@
 import { IbcTransaction, WormchainBlockLogs, CosmosRedeem } from "./entities/wormchain";
 import { AptosEvent, AptosTransaction } from "./entities/aptos";
 import { SuiTransactionBlockReceipt } from "./entities/sui";
-import { InstrumentedHttpProvider } from "../infrastructure/rpc/http/InstrumentedHttpProvider";
 import { Fallible, SolanaFailure } from "./errors";
 import { ConfirmedSignatureInfo } from "./entities/solana";
-import { ProviderPoolDecorator } from "../infrastructure/rpc/http/ProviderPoolDecorator";
 import { AlgorandTransaction } from "./entities/algorand";
 import { TransactionFilter } from "./actions/aptos/PollAptos";
 import { CosmosTransaction } from "./entities/cosmos";
 import { NearTransaction } from "./entities/near";
-import { ProviderHeight } from "./actions/poolRpcs/PoolRpcs";
 import { Filter } from "./actions/cosmos/types";
 import {
   TransactionFilter as SuiTransactionFilter,
@@ -43,11 +40,7 @@ export interface EvmBlockRepository {
     blockNumberOrTag: EvmTag | bigint,
     isTransactionsPresent: boolean
   ): Promise<EvmBlock>;
-  getAllBlockHeight(
-    providers: InstrumentedHttpProvider[],
-    finality: EvmTag
-  ): Promise<ProviderHeight[]>;
-  getPool(chain: string): Promise<ProviderPoolDecorator<InstrumentedHttpProvider>>;
+  healthCheck(chain: string, finality: EvmTag, cursor: bigint): Promise<void>;
 }
 
 export interface SolanaSlotRepository {
@@ -61,6 +54,7 @@ export interface SolanaSlotRepository {
     finality?: string
   ): Promise<ConfirmedSignatureInfo[]>;
   getTransactions(sigs: ConfirmedSignatureInfo[], finality?: string): Promise<solana.Transaction[]>;
+  healthCheck(chain: string, finality: EvmTag, cursor: bigint): Promise<void>;
 }
 
 export interface SuiRepository {
@@ -77,6 +71,7 @@ export interface SuiRepository {
     filter: SuiEventFilter,
     cursor?: string
   ): Promise<SuiTransactionBlockReceipt[]>;
+  healthCheck(chain: string, finality: EvmTag, cursor: bigint): Promise<void>;
 }
 
 export interface AptosRepository {
@@ -88,6 +83,7 @@ export interface AptosRepository {
     filter: TransactionFilter
   ): Promise<AptosEvent[]>;
   getTransactionsByVersion(records: AptosEvent[] | AptosTransaction[]): Promise<AptosTransaction[]>;
+  healthCheck(chain: string, finality: EvmTag, cursor: bigint): Promise<void>;
 }
 
 export interface WormchainRepository {
@@ -98,6 +94,7 @@ export interface WormchainRepository {
     attributesTypes: string[]
   ): Promise<WormchainBlockLogs>;
   getRedeems(ibcTransaction: IbcTransaction): Promise<CosmosRedeem[]>;
+  healthCheck(chain: string, finality: EvmTag, cursor: bigint): Promise<void>;
 }
 
 export interface CosmosRepository {
@@ -107,6 +104,7 @@ export interface CosmosRepository {
     chain: string
   ): Promise<CosmosTransaction[]>;
   getBlockTimestamp(blockNumber: bigint, chain: string): Promise<number | undefined>;
+  healthCheck(chain: string, finality: EvmTag, cursor: bigint): Promise<void>;
 }
 
 export interface AlgorandRepository {
@@ -116,11 +114,13 @@ export interface AlgorandRepository {
     toBlock: bigint
   ): Promise<AlgorandTransaction[]>;
   getBlockHeight(): Promise<bigint | undefined>;
+  healthCheck(chain: string, finality: EvmTag, cursor: bigint): Promise<void>;
 }
 
 export interface NearRepository {
   getTransactions(contract: string, fromBlock: bigint, toBlock: bigint): Promise<NearTransaction[]>;
   getBlockHeight(commitment: string): Promise<bigint | undefined>;
+  healthCheck(chain: string, finality: EvmTag, cursor: bigint): Promise<void>;
 }
 
 export interface MetadataRepository<Metadata> {

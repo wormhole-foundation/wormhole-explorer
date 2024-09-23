@@ -1,8 +1,10 @@
 import { divideIntoBatches, getChainProvider, hexToHash } from "../common/utils";
 import { ProviderPoolMap, JsonRPCBlockRepositoryCfg } from "../RepositoriesBuilder";
 import { WormchainRepository } from "../../../domain/repositories";
+import { ProviderHealthCheck } from "../../../domain/actions/poolRpcs/PoolRpcs";
 import { setTimeout } from "timers/promises";
 import { mapChain } from "../../../common/wormchain";
+import { EvmTag } from "../../../domain/entities";
 import winston from "winston";
 import {
   WormchainTransaction,
@@ -28,6 +30,36 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
     this.logger = winston.child({ module: "WormchainJsonRPCBlockRepository" });
     this.pool = pool;
     this.cfg = cfg;
+  }
+
+  async healthCheck(chain: string, finality: EvmTag, cursor: bigint): Promise<void> {
+    const result: ProviderHealthCheck[] = [];
+    let reponse: ResultBlockHeight;
+    const pool = this.pool[chain];
+    const providers = pool.getProviders();
+
+    for (const provider of providers) {
+      try {
+        reponse = await provider.get<typeof reponse>(BLOCK_HEIGHT_ENDPOINT);
+
+        if (
+          reponse &&
+          reponse.result &&
+          reponse.result.response &&
+          reponse.result.response.last_block_height
+        ) {
+          const blockHeight = reponse.result.response.last_block_height;
+          result.push({
+            url: provider.getUrl(),
+            height: BigInt(blockHeight),
+            isLive: true,
+          });
+        }
+      } catch (e) {
+        result.push({ url: provider.getUrl(), height: undefined, isLive: false });
+      }
+    }
+    pool.setProviders(providers, result, cursor);
   }
 
   async getBlockHeight(chain: string): Promise<bigint | undefined> {
