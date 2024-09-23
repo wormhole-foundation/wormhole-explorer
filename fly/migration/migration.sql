@@ -85,15 +85,17 @@ CREATE INDEX "wh_operation_transactions_timestamp_idx"
 
 -- create table wormholescan.wh_operation_transactions_processed
 CREATE TABLE wormholescan.wh_operation_transactions_processed (
-    "id" varchar not null,
     "message_id" varchar not null,
+    "tx_hash" varchar not null,
+    "attestation_vaas_id" varchar not null,
+    "type" varchar not null,
     "processed" bool not null,
     "created_at" timestamptz not null,
     "updated_at" timestamptz not null,
-    PRIMARY KEY (id)
+    PRIMARY KEY ("message_id", "tx_hash")
 );
-CREATE INDEX "wh_operation_transactions_processed_message_id_idx"
-    ON wormholescan.wh_operation_transactions_processed ("message_id");
+CREATE INDEX "wh_operation_transactions_processed_attestation_vaas_id_idx"
+    ON wormholescan.wh_operation_transactions_processed ("attestation_vaas_id");
 
 -- create table wormholescan.wh_governor_status
 CREATE TABLE wormholescan.wh_governor_status (
@@ -222,7 +224,7 @@ CREATE TABLE wormholescan.wh_operation_prices (
     "coingecko_id" varchar not null,
     "symbol" varchar not null,
     "token_usd_price" decimal(20,8) not null,
-    "total_token" decimal(20,8) not null,
+    "total_token" decimal(30,8) not null,
     "total_usd" decimal(20,8) not null,
     "timestamp" timestamptz not null,
     "created_at" timestamptz not null,
