@@ -11,20 +11,23 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/repository/vaa"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
+	"go.uber.org/zap"
 )
 
 type PostgreSQLRepository struct {
 	dbClient      *db.DB
 	vaaRepository *vaa.RepositoryPostreSQL
 	metrics       metrics.Metrics
+	logger        *zap.Logger
 }
 
 func NewPostgreSQLRepository(postreSQLClient *db.DB, vaaRepository *vaa.RepositoryPostreSQL,
-	metrics metrics.Metrics) *PostgreSQLRepository {
+	metrics metrics.Metrics, logger *zap.Logger) *PostgreSQLRepository {
 	return &PostgreSQLRepository{
 		metrics:       metrics,
 		dbClient:      postreSQLClient,
 		vaaRepository: vaaRepository,
+		logger:        logger,
 	}
 }
 
@@ -115,7 +118,12 @@ func (p *PostgreSQLRepository) upsertOriginTx(ctx context.Context, params *Upser
 		return err
 	}
 
-	return p.registerProcessedVaa(ctx, params.Id, params.VaaId)
+	if nativeTxHash == nil {
+		p.logger.Warn("nativeTxHash is nil", zap.String("id", params.Id), zap.String("vaaId", params.VaaId))
+		return nil
+	}
+
+	return p.registerProcessedVaa(ctx, params.Id, params.VaaId, *nativeTxHash, "source-tx")
 }
 
 func (p *PostgreSQLRepository) UpsertTargetTx(ctx context.Context, params *TargetTxUpdate) error {
@@ -201,20 +209,20 @@ func (p *PostgreSQLRepository) GetTxStatus(ctx context.Context, targetTxUpdate *
 	return status, err
 }
 
-func (p *PostgreSQLRepository) AlreadyProcessed(ctx context.Context, vaaId string, digest string) (bool, error) {
+func (p *PostgreSQLRepository) AlreadyProcessed(ctx context.Context, vaaId string, txhash string) (bool, error) {
 	var count int
-	err := p.dbClient.SelectOne(ctx, &count, `SELECT COUNT(*) FROM wormholescan.wh_operation_transactions_processed WHERE id = $1`, digest)
+	err := p.dbClient.SelectOne(ctx, &count, `SELECT COUNT(*) FROM wormholescan.wh_operation_transactions_processed WHERE message_id = $1 and tx_hash = $2`, vaaId, txhash)
 	return count > 0, err
 }
 
-func (p *PostgreSQLRepository) registerProcessedVaa(ctx context.Context, vaaDigest, vaaId string) error {
+func (p *PostgreSQLRepository) registerProcessedVaa(ctx context.Context, vaaDigest, vaaId, txHash, txType string) error {
 	now := time.Now()
 	_, err := p.dbClient.Exec(ctx,
-		`INSERT INTO wormholescan.wh_operation_transactions_processed (id,message_id,processed,created_at,updated_at)
-			VALUES ($1,$2,true,$3,$4)
-			ON CONFLICT (id) DO UPDATE
+		`INSERT INTO wormholescan.wh_operation_transactions_processed (message_id,tx_hash,attestation_vaas_id,"type", processed,created_at,updated_at)
+			VALUES ($1,$2,$3,$4,true,$5,$6)
+			ON CONFLICT (message_id, tx_hash) DO UPDATE
 				SET updated_at = EXCLUDED.updated_at`,
-		vaaDigest, vaaId, now, now)
+		vaaId, txHash, vaaDigest, txType, now, now)
 	return err
 }
 
