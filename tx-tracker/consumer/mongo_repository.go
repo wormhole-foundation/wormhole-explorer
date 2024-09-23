@@ -150,7 +150,7 @@ func (r *MongoRepository) UpsertOriginTx(ctx context.Context, originTx, _ *Upser
 }
 
 // AlreadyProcessed returns true if the given VAA ID has already been processed.
-func (r *MongoRepository) AlreadyProcessed(ctx context.Context, vaaId string, digest string) (bool, error) {
+func (r *MongoRepository) AlreadyProcessed(ctx context.Context, vaaId string, _ string) (bool, error) {
 	result := r.
 		globalTransactions.
 		FindOne(ctx, bson.D{
