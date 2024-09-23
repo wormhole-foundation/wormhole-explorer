@@ -1,6 +1,5 @@
 import { StatRepository } from "../repositories";
-import { JobDefinition } from "../entities";
-import winston from "winston";
+import { Repos } from "../../infrastructure/repositories";
 
 const DEFAULT_INTERVAL = 1_000;
 
@@ -11,8 +10,8 @@ export abstract class RunPoolRpcs {
   protected abstract set(): Promise<void>;
   protected abstract report(): void;
 
-  constructor(repositories: Map<string | string[], any>, interval: number = DEFAULT_INTERVAL) {
-    this.statRepo = repositories.get("stats-repo");
+  constructor(repositories: Repos, interval: number = DEFAULT_INTERVAL) {
+    this.statRepo = repositories.statsRepo;
     this.interval = interval;
   }
 

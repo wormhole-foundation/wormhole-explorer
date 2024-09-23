@@ -4,6 +4,7 @@ import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvide
 import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
 import { EvmBlockRepository } from "../../../domain/repositories";
 import { HttpClientError } from "../../errors/HttpClientError";
+import { ProviderHeight } from "../../../domain/actions/poolRpcs/PoolRpcs";
 import winston from "../../log";
 import {
   ReceiptTransaction,
@@ -36,20 +37,16 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     this.logger.info(`Created for ${Object.keys(this.cfg.chains)}`);
   }
 
-  /**
-   * Set the providers for a chain. This process run every five minutes
-   * to validate the health of the providers
-   */
-  async setProviders(
-    chain: string,
-    finality: EvmTag,
-    blockHeightCursor: bigint | undefined
-  ): Promise<void> {
-    const provider = this.pool[chain];
-    const providers = provider.getProviders();
+  async getPool(chain: string): Promise<ProviderPoolDecorator<InstrumentedHttpProvider>> {
+    return this.pool[chain];
+  }
 
+  async getAllBlockHeight(
+    providers: InstrumentedHttpProvider[],
+    finality: EvmTag
+  ): Promise<ProviderHeight[]> {
     let response: { result?: EvmBlock; error?: ErrorBlock };
-    const providersHeight: { url: string; height: bigint }[] = [];
+    const providersHeight: ProviderHeight[] = [];
 
     for (const provider of providers) {
       try {
@@ -64,7 +61,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         provider.setProviderOffline();
       }
     }
-    provider.setProviders(providers, providersHeight, blockHeightCursor);
+    return providersHeight;
   }
 
   async getBlockHeight(chain: string, finality: EvmTag): Promise<bigint> {

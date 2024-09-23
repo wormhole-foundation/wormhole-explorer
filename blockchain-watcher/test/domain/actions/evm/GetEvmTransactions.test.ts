@@ -1,4 +1,8 @@
+import { mockRpcPool } from "../../../mocks/mockRpcPool";
+mockRpcPool();
+
 import { afterAll, afterEach, describe, it, expect, jest } from "@jest/globals";
+import { InstrumentedHttpProvider } from "../../../../src/infrastructure/rpc/http/InstrumentedHttpProvider";
 import { GetEvmTransactions } from "../../../../src/domain/actions/evm/GetEvmTransactions";
 import { EvmBlockRepository } from "../../../../src/domain/repositories";
 import { randomBytes } from "crypto";
@@ -39,7 +43,6 @@ describe("GetEvmTransactions", () => {
         {
           addresses: [],
           topics: [],
-          strategy: "GetTransactionsByLogFiltersStrategy",
         },
       ],
     };
@@ -66,9 +69,8 @@ describe("GetEvmTransactions", () => {
       environment: "testnet",
       filters: [
         {
-          addresses: [],
-          topics: [],
-          strategy: "GetTransactionsByLogFiltersStrategy",
+          addresses: ["0x3ee18b123123123000d974cf647e7c347e8fa585"],
+          topics: ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
         },
       ],
     };
@@ -106,7 +108,6 @@ describe("GetEvmTransactions", () => {
         {
           addresses: [],
           topics: ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
-          strategy: "GetTransactionsByLogFiltersStrategy",
         },
       ],
     };
@@ -153,7 +154,6 @@ describe("GetEvmTransactions", () => {
         {
           addresses: [],
           topics: ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
-          strategy: "GetTransactionsByLogFiltersStrategy",
         },
       ],
     };
@@ -243,7 +243,6 @@ describe("GetEvmTransactions", () => {
         {
           addresses: [],
           topics: ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
-          strategy: "GetTransactionsByLogFiltersStrategy",
         },
       ],
     };
@@ -347,12 +346,18 @@ const givenEvmBlockRepository = (
     }
   }
 
+  const provider = {
+    ethereum: { get: () => new InstrumentedHttpProvider({ url: "", chain: "ethereum" }) },
+  } as any;
+
   evmBlockRepo = {
     getBlocks: () => Promise.resolve(blocks || {}),
     getBlockHeight: () => Promise.resolve(height ? height + (blocksAhead ?? 10n) : 10n),
     getFilteredLogs: () => Promise.resolve(logsResponse),
     getTransactionReceipt: () => Promise.resolve(receiptResponse),
     getBlock: () => Promise.resolve(blocks ? blocks[`0x01`] : new BlockBuilder().create()),
+    getPool: () => Promise.resolve(provider),
+    getAllBlockHeight: () => Promise.resolve([]),
   };
 
   getBlocksSpy = jest.spyOn(evmBlockRepo, "getBlocks");

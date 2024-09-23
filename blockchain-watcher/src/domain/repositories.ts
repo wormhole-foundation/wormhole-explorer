@@ -1,12 +1,15 @@
 import { IbcTransaction, WormchainBlockLogs, CosmosRedeem } from "./entities/wormchain";
 import { AptosEvent, AptosTransaction } from "./entities/aptos";
 import { SuiTransactionBlockReceipt } from "./entities/sui";
+import { InstrumentedHttpProvider } from "../infrastructure/rpc/http/InstrumentedHttpProvider";
 import { Fallible, SolanaFailure } from "./errors";
 import { ConfirmedSignatureInfo } from "./entities/solana";
+import { ProviderPoolDecorator } from "../infrastructure/rpc/http/ProviderPoolDecorator";
 import { AlgorandTransaction } from "./entities/algorand";
 import { TransactionFilter } from "./actions/aptos/PollAptos";
 import { CosmosTransaction } from "./entities/cosmos";
 import { NearTransaction } from "./entities/near";
+import { ProviderHeight } from "./actions/poolRpcs/PoolRpcs";
 import { Filter } from "./actions/cosmos/types";
 import {
   TransactionFilter as SuiTransactionFilter,
@@ -40,11 +43,11 @@ export interface EvmBlockRepository {
     blockNumberOrTag: EvmTag | bigint,
     isTransactionsPresent: boolean
   ): Promise<EvmBlock>;
-  setProviders(
-    chain: string,
-    finality: string,
-    blockHeightCursor: bigint | undefined
-  ): Promise<void>;
+  getAllBlockHeight(
+    providers: InstrumentedHttpProvider[],
+    finality: EvmTag
+  ): Promise<ProviderHeight[]>;
+  getPool(chain: string): Promise<ProviderPoolDecorator<InstrumentedHttpProvider>>;
 }
 
 export interface SolanaSlotRepository {

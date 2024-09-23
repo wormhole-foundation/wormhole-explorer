@@ -45,6 +45,7 @@ data:
         "chain": "optimism-sepolia",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -83,6 +84,7 @@ data:
         "chain": "base-sepolia",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -121,6 +123,7 @@ data:
         "chain": "celo",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -159,6 +162,7 @@ data:
         "chain": "oasis",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -197,6 +201,7 @@ data:
         "chain": "klaytn",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -235,6 +240,7 @@ data:
         "chain": "polygon-sepolia",
         "source": {
           "action": "PollEvm",
+          "repository": "polygon-evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -273,6 +279,7 @@ data:
         "chain": "scroll",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -311,6 +318,7 @@ data:
         "chain": "wormchain",
         "source": {
           "action": "PollWormchain",
+          "repository": "wormchain-repo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -339,6 +347,7 @@ data:
         "chain": "blast",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -377,6 +386,7 @@ data:
         "chain": "mantle",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -415,6 +425,7 @@ data:
         "chain": "xlayer",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 4,
             "commitment": "latest",
@@ -456,6 +467,7 @@ data:
         "chain": "optimism",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -494,6 +506,7 @@ data:
         "chain": "base",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -532,6 +545,7 @@ data:
         "chain": "celo",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -570,6 +584,7 @@ data:
         "chain": "oasis",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -608,6 +623,7 @@ data:
         "chain": "klaytn",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -646,6 +662,7 @@ data:
         "chain": "polygon",
         "source": {
           "action": "PollEvm",
+          "repository": "polygon-evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -684,6 +701,7 @@ data:
         "chain": "wormchain",
         "source": {
           "action": "PollWormchain",
+          "repository": "wormchain-repo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -718,6 +736,7 @@ data:
         "chain": "blast",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -756,6 +775,7 @@ data:
         "chain": "scroll",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -794,6 +814,7 @@ data:
         "chain": "xlayer",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -832,6 +853,7 @@ data:
         "chain": "mantle",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",

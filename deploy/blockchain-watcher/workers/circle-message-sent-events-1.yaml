@@ -46,6 +46,7 @@ data:
         "source": {
           "action": "PollEvm",
           "records": "GetEvmTransactions",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "finalized",
@@ -54,8 +55,7 @@ data:
               {
                 "addresses": ["0x7865fAfC2db2093669d92c0F33AeEF291086BEFD"],
                 "type": "CCTP",
-                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"],
-                "strategy": "GetTransactionsByLogFiltersStrategy"
+                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"]
               }
             ],
             "chain": "ethereum-sepolia",
@@ -87,6 +87,7 @@ data:
         "source": {
           "action": "PollEvm",
           "records": "GetEvmTransactions",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "finalized",
@@ -95,8 +96,7 @@ data:
               {
                 "addresses": ["0xa9fb1b3009dcb79e2fe346c16a604b8fa8ae0a79"],
                 "type": "CCTP",
-                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"],
-                "strategy": "GetTransactionsByLogFiltersStrategy"
+                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"]
               }
             ],
             "chain": "avalanche",
@@ -128,6 +128,7 @@ data:
         "source": {
           "action": "PollEvm",
           "records": "GetEvmTransactions",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "finalized",
@@ -136,8 +137,7 @@ data:
               {
                 "addresses": ["0x7865fAfC2db2093669d92c0F33AeEF291086BEFD"],
                 "type": "CCTP",
-                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"],
-                "strategy": "GetTransactionsByLogFiltersStrategy"
+                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"]
               }
             ],
             "chain": "optimism-sepolia",
@@ -169,6 +169,7 @@ data:
         "source": {
           "action": "PollEvm",
           "records": "GetEvmTransactions",
+          "repository": "arbitrum-evmRepo",
           "config": {
             "blockBatchSize": 1000,
             "commitment": "finalized",
@@ -177,8 +178,7 @@ data:
               {
                 "addresses": ["0xaCF1ceeF35caAc005e15888dDb8A3515C41B4872"],
                 "type": "CCTP",
-                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"],
-                "strategy": "GetTransactionsByLogFiltersStrategy"
+                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"]
               }
             ],
             "chain": "arbitrum-sepolia",
@@ -210,6 +210,7 @@ data:
         "source": {
           "action": "PollEvm",
           "records": "GetEvmTransactions",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "finalized",
@@ -218,8 +219,7 @@ data:
               {
                 "addresses": ["0x7865fAfC2db2093669d92c0F33AeEF291086BEFD"],
                 "type": "CCTP",
-                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"],
-                "strategy": "GetTransactionsByLogFiltersStrategy"
+                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"]
               }
             ],
             "chain": "base-sepolia",
@@ -251,6 +251,7 @@ data:
         "source": {
           "action": "PollEvm",
           "records": "GetEvmTransactions",
+          "repository": "polygon-evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "finalized",
@@ -259,8 +260,7 @@ data:
               {
                 "addresses": ["0x7865fAfC2db2093669d92c0F33AeEF291086BEFD"],
                 "type": "CCTP",
-                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"],
-                "strategy": "GetTransactionsByLogFiltersStrategy"
+                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"]
               }
             ],
             "chain": "polygon-sepolia",
@@ -295,6 +295,7 @@ data:
         "source": {
           "action": "PollEvm",
           "records": "GetEvmTransactions",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "finalized",
@@ -303,8 +304,7 @@ data:
               {
                 "addresses": ["0x0a992d191deec32afe36203ad87d7d289a738f81"],
                 "type": "CCTP",
-                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"],
-                "strategy": "GetTransactionsByLogFiltersStrategy"
+                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"]
               }
             ],
             "chain": "ethereum",
@@ -336,6 +336,7 @@ data:
         "source": {
           "action": "PollEvm",
           "records": "GetEvmTransactions",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "finalized",
@@ -344,8 +345,7 @@ data:
               {
                 "addresses": ["0x8186359af5f57fbb40c6b14a588d2a59c0c29880"],
                 "type": "CCTP",
-                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"],
-                "strategy": "GetTransactionsByLogFiltersStrategy"
+                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"]
               }
             ],
             "chain": "avalanche",
@@ -377,6 +377,7 @@ data:
         "source": {
           "action": "PollEvm",
           "records": "GetEvmTransactions",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "finalized",
@@ -385,8 +386,7 @@ data:
               {
                 "addresses": ["0x4d41f22c5a0e5c74090899e5a8fb597a8842b3e8"],
                 "type": "CCTP",
-                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"],
-                "strategy": "GetTransactionsByLogFiltersStrategy"
+                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"]
               }
             ],
             "chain": "optimism",
@@ -418,6 +418,7 @@ data:
         "source": {
           "action": "PollEvm",
           "records": "GetEvmTransactions",
+          "repository": "arbitrum-evmRepo",
           "config": {
             "blockBatchSize": 1000,
             "commitment": "finalized",
@@ -426,8 +427,7 @@ data:
               {
                 "addresses": ["0xC30362313FBBA5cf9163F0bb16a0e01f01A896ca"],
                 "type": "CCTP",
-                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"],
-                "strategy": "GetTransactionsByLogFiltersStrategy"
+                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"]
               }
             ],
             "chain": "arbitrum",
@@ -459,6 +459,7 @@ data:
         "source": {
           "action": "PollEvm",
           "records": "GetEvmTransactions",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "finalized",
@@ -467,8 +468,7 @@ data:
               {
                 "addresses": ["0xAD09780d193884d503182aD4588450C416D6F9D4"],
                 "type": "CCTP",
-                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"],
-                "strategy": "GetTransactionsByLogFiltersStrategy"
+                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"]
               }
             ],
             "chain": "base",
@@ -500,6 +500,7 @@ data:
         "source": {
           "action": "PollEvm",
           "records": "GetEvmTransactions",
+          "repository": "polygon-evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "finalized",
@@ -508,8 +509,7 @@ data:
               {
                 "addresses": ["0xF3be9355363857F3e001be68856A2f96b4C39Ba9"],
                 "type": "CCTP",
-                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"],
-                "strategy": "GetTransactionsByLogFiltersStrategy"
+                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"]
               }
             ],
             "chain": "polygon",

@@ -45,6 +45,7 @@ data:
         "chain": "solana",
         "source": {
           "action": "PollSolanaTransactions",
+          "repository": "solanaSlotRepo",
           "config": {
             "slotBatchSize": 1000,
             "commitment": "finalized",
@@ -76,6 +77,7 @@ data:
         "chain": "solana",
         "source": {
           "action": "PollSolanaTransactions",
+          "repository": "solanaSlotRepo",
           "config": {
             "slotBatchSize": 1000,
             "commitment": "finalized",

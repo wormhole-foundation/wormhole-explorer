@@ -40,7 +40,7 @@ export class GetEvmTransactions {
       filters.map(async (filter) => {
         await Promise.all(
           this.strategies.map(async (strategy) => {
-            if (strategy.appliesTo(filter.strategy!)) {
+            if (strategy.appliesTo(filter.addresses, filter.topics)) {
               const result = await strategy.execute(filter, fromBlock, toBlock, opts);
               populatedTransactions.push(...result);
             }
@@ -85,7 +85,7 @@ export function populateTransaction(
 
 // Interface for strategy pattern
 export interface GetTransactions {
-  appliesTo(strategy: string): boolean;
+  appliesTo(addresses: string[], topics: string[]): boolean;
   execute(
     filter: Filter,
     fromBlock: bigint,

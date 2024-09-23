@@ -1,4 +1,3 @@
-import { InstrumentedSuiClient, ProviderPool, RpcConfig } from "@xlabs/rpc-pool";
 import { RateLimitedWormchainJsonRPCBlockRepository } from "./wormchain/RateLimitedWormchainJsonRPCBlockRepository";
 import { RateLimitedAlgorandJsonRPCBlockRepository } from "./algorand/RateLimitedAlgorandJsonRPCBlockRepository";
 import { RateLimitedCosmosJsonRPCBlockRepository } from "./cosmos/RateLimitedCosmosJsonRPCBlockRepository";
@@ -6,6 +5,7 @@ import { RateLimitedAptosJsonRPCBlockRepository } from "./aptos/RateLimitedAptos
 import { RateLimitedNearJsonRPCBlockRepository } from "./near/RateLimitedNearJsonRPCBlockRepository";
 import { RateLimitedEvmJsonRPCBlockRepository } from "./evm/RateLimitedEvmJsonRPCBlockRepository";
 import { RateLimitedSuiJsonRPCBlockRepository } from "./sui/RateLimitedSuiJsonRPCBlockRepository";
+import { InstrumentedSuiClient, RpcConfig } from "@xlabs/rpc-pool";
 import { WormchainJsonRPCBlockRepository } from "./wormchain/WormchainJsonRPCBlockRepository";
 import { AlgorandJsonRPCBlockRepository } from "./algorand/AlgorandJsonRPCBlockRepository";
 import { InstrumentedConnectionWrapper } from "../rpc/http/InstrumentedConnectionWrapper";
@@ -17,13 +17,13 @@ import { InstrumentedHttpProvider } from "../rpc/http/InstrumentedHttpProvider";
 import { ChainRPCConfig, Config } from "../config";
 import { InfluxEventRepository } from "./target/InfluxEventRepository";
 import { InfluxDB } from "@influxdata/influxdb-client";
+import { Job } from "../../domain/jobs";
 import {
   WormchainRepository,
   AlgorandRepository,
   CosmosRepository,
   AptosRepository,
   NearRepository,
-  JobRepository,
   SuiRepository,
 } from "../../domain/repositories";
 import {
@@ -131,26 +131,20 @@ export class RepositoriesBuilder {
 
     this.repositories.set(
       "jobs",
-      new StaticJob(
-        this.cfg.environment,
-        this.cfg.jobs.dir,
-        this.cfg.dryRun,
-        (chain: string) => this.getEvmBlockRepository(chain),
-        {
-          metadataRepo: this.getMetadataRepository(),
-          statsRepo: this.getStatsRepository(),
-          snsRepo: this.getSnsEventRepository(),
-          influxRepo: this.getInfluxEventRepository(),
-          solanaSlotRepo: this.getSolanaSlotRepository(),
-          suiRepo: this.getSuiRepository(),
-          aptosRepo: this.getAptosRepository(),
-          wormchainRepo: this.getWormchainRepository(),
-          cosmosRepo: this.getCosmosRepository(),
-          algorandRepo: this.getAlgorandRepository(),
-          nearRepo: this.getNearRepository(),
-          repositories: this.repositories,
-        }
-      )
+      new StaticJob(this.cfg.environment, this.cfg.jobs.dir, this.cfg.dryRun, {
+        evmRepo: (chain: string) => this.getEvmBlockRepository(chain),
+        metadataRepo: this.getMetadataRepository(),
+        statsRepo: this.getStatsRepository(),
+        snsRepo: this.getSnsEventRepository(),
+        influxRepo: this.getInfluxEventRepository(),
+        solanaSlotRepo: this.getSolanaSlotRepository(),
+        suiRepo: this.getSuiRepository(),
+        aptosRepo: this.getAptosRepository(),
+        wormchainRepo: this.getWormchainRepository(),
+        cosmosRepo: this.getCosmosRepository(),
+        algorandRepo: this.getAlgorandRepository(),
+        nearRepo: this.getNearRepository(),
+      })
     );
   }
 
@@ -187,7 +181,7 @@ export class RepositoriesBuilder {
     return this.getRepo("metrics");
   }
 
-  public getJobsRepository(): JobRepository {
+  public getJobsRepository(): Job {
     return this.getRepo("jobs");
   }
 

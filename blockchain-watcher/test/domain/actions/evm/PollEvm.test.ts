@@ -1,3 +1,6 @@
+import { mockRpcPool } from "../../../mocks/mockRpcPool";
+mockRpcPool();
+
 import { afterEach, describe, it, expect, jest } from "@jest/globals";
 import { PollEvmLogsMetadata, PollEvm, PollEvmLogsConfig } from "../../../../src/domain/actions";
 import {
@@ -7,6 +10,7 @@ import {
 } from "../../../../src/domain/repositories";
 import { EvmBlock, EvmLog, ReceiptTransaction } from "../../../../src/domain/entities";
 import { thenWaitForAssertion } from "../../../waitAssertion";
+import { InstrumentedHttpProvider } from "../../../../src/infrastructure/rpc/http/InstrumentedHttpProvider";
 
 let cfg = PollEvmLogsConfig.fromBlock("acala", 0n);
 
@@ -144,12 +148,18 @@ const givenEvmBlockRepository = (height?: bigint, blocksAhead?: bigint) => {
     }
   }
 
+  const provider = {
+    ethereum: { get: () => new InstrumentedHttpProvider({ url: "", chain: "ethereum" }) },
+  } as any;
+
   evmBlockRepo = {
     getBlocks: () => Promise.resolve(blocksResponse),
     getBlockHeight: () => Promise.resolve(height ? height + (blocksAhead ?? 10n) : 10n),
     getFilteredLogs: () => Promise.resolve(logsResponse),
     getTransactionReceipt: () => Promise.resolve(receiptResponse),
     getBlock: () => Promise.resolve(blocksResponse[0]),
+    getPool: () => Promise.resolve(provider),
+    getAllBlockHeight: () => Promise.resolve([]),
   };
 
   getBlocksSpy = jest.spyOn(evmBlockRepo, "getBlocks");

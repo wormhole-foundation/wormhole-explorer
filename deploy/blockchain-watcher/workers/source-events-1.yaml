@@ -45,6 +45,7 @@ data:
         "chain": "karura",
         "source": {
             "action": "PollEvm",
+            "repository": "evmRepo",
             "config": {
                 "blockBatchSize": 100,
                 "commitment": "finalized",
@@ -83,6 +84,7 @@ data:
         "chain": "fantom",
         "source": {
             "action": "PollEvm",
+            "repository": "evmRepo",
             "config": {
                 "blockBatchSize": 100,
                 "commitment": "latest",
@@ -121,6 +123,7 @@ data:
         "chain": "acala",
         "source": {
             "action": "PollEvm",
+            "repository": "evmRepo",
             "config": {
                 "blockBatchSize": 100,
                 "commitment": "finalized",
@@ -159,6 +162,7 @@ data:
         "chain": "avalanche",
         "source": {
             "action": "PollEvm",
+            "repository": "evmRepo",
             "config": {
                 "blockBatchSize": 100,
                 "commitment": "finalized",
@@ -198,6 +202,7 @@ data:
         "chain": "bsc",
         "source": {
           "action": "PollEvm",
+          "repository": "bsc-evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -236,6 +241,7 @@ data:
         "chain": "moonbeam",
         "source": {
           "action": "PollEvm",
+          "repository": "moonbeam-evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -274,6 +280,7 @@ data:
         "chain": "arbitrum-sepolia",
         "source": {
           "action": "PollEvm",
+          "repository": "arbitrum-evmRepo",
           "config": {
             "blockBatchSize": 1000,
             "commitment": "latest",
@@ -312,6 +319,7 @@ data:
         "chain": "ethereum-sepolia",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -350,6 +358,7 @@ data:
         "chain": "ethereum-holesky",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -391,6 +400,7 @@ data:
         "chain": "karura",
         "source": {
             "action": "PollEvm",
+            "repository": "evmRepo",
             "config": {
                 "blockBatchSize": 100,
                 "commitment": "finalized",
@@ -429,6 +439,7 @@ data:
         "chain": "fantom",
         "source": {
             "action": "PollEvm",
+            "repository": "evmRepo",
             "config": {
                 "blockBatchSize": 100,
                 "commitment": "latest",
@@ -467,6 +478,7 @@ data:
         "chain": "acala",
         "source": {
             "action": "PollEvm",
+            "repository": "evmRepo",
             "config": {
                 "blockBatchSize": 100,
                 "commitment": "finalized",
@@ -505,6 +517,7 @@ data:
         "chain": "avalanche",
         "source": {
             "action": "PollEvm",
+            "repository": "evmRepo",
             "config": {
                 "blockBatchSize": 100,
                 "commitment": "finalized",
@@ -544,6 +557,7 @@ data:
         "chain": "bsc",
         "source": {
           "action": "PollEvm",
+          "repository": "bsc-evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -582,6 +596,7 @@ data:
         "chain": "moonbeam",
         "source": {
           "action": "PollEvm",
+          "repository": "moonbeam-evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -620,6 +635,7 @@ data:
         "chain": "arbitrum",
         "source": {
           "action": "PollEvm",
+          "repository": "arbitrum-evmRepo",
           "config": {
             "blockBatchSize": 1000,
             "commitment": "latest",
@@ -658,6 +674,7 @@ data:
         "chain": "ethereum",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",

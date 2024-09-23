@@ -45,14 +45,6 @@ export class PollEvm extends RunPollingJob {
     this.getEvm = new this.getEvmRecords[getEvm ?? "GetEvmLogs"](blockRepo);
   }
 
-  protected async setProviders(): Promise<void> {
-    await this.blockRepo.setProviders(
-      this.cfg.chain,
-      this.cfg.getCommitment(),
-      this.blockHeightCursor
-    );
-  }
-
   protected async preHook(): Promise<void> {
     const metadata = await this.metadataRepo.get(this.cfg.id);
     if (metadata) {
@@ -230,7 +222,6 @@ export class PollEvmLogsConfig {
     return this.props.filters.map((filter) => {
       return {
         addresses: filter.addresses.map((address) => address.toLowerCase()),
-        strategy: filter.strategy,
         topics: filter.topics.map((topic) => topic.toLowerCase()),
       };
     });
@@ -256,7 +247,7 @@ export class PollEvmLogsConfig {
     return new PollEvmLogsConfig({
       chain,
       fromBlock,
-      filters: [{ addresses: [], topics: [], strategy: "" }],
+      filters: [{ addresses: [], topics: [] }],
       environment: "",
       chainId: 0,
     });
