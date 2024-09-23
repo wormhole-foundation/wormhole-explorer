@@ -24,13 +24,27 @@ const (
 	P2pDevNet  = "devnet"
 )
 
+// supported db layers.
+const (
+	DBLayerMongo    = "mongo"
+	DBLayerPostgres = "postgres"
+	DBLayerDual     = "dual"
+)
+
 // AppConfig defines the configuration for the app.
 type AppConfig struct {
 	DB struct {
 		URL string
 		// database name
 		Name string
+		// db layer (mongo, postgres, dual)
+		Layer string
+		// postgres url
+		PostgresURL string
+		// postgres log enabled
+		PostgresLogEnabled bool
 	}
+
 	Cache struct {
 		URL                      string
 		TvlKey                   string
