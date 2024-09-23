@@ -53,7 +53,7 @@ func NewStorageLayer(ctx context.Context, metrics metrics.Metrics,
 		}
 		vaaRepository := vaa.NewVaaRepositoryPostreSQL(postgresDb, logger)
 		storageLayer.postgresDB = postgresDb
-		storageLayer.repository = consumer.NewPostgreSQLRepository(postgresDb, vaaRepository, metrics)
+		storageLayer.repository = consumer.NewPostgreSQLRepository(postgresDb, vaaRepository, metrics, logger)
 		storageLayer.vaaRepository = vaaRepository
 	case config.DbLayerDual:
 		mongoDb, err = dbutil.Connect(ctx, logger, params.MongodbUri, params.MongodbDatabase, false)
@@ -69,7 +69,7 @@ func NewStorageLayer(ctx context.Context, metrics metrics.Metrics,
 		}
 		storageLayer.postgresDB = postgresDb
 		postgresVaaRepository := vaa.NewVaaRepositoryPostreSQL(postgresDb, logger)
-		postgresRepository := consumer.NewPostgreSQLRepository(postgresDb, postgresVaaRepository, metrics)
+		postgresRepository := consumer.NewPostgreSQLRepository(postgresDb, postgresVaaRepository, metrics, logger)
 		// create dual vaa repository
 		storageLayer.vaaRepository = vaa.NewDualVaaRepository(mongoVaaRepository, postgresVaaRepository)
 		// create dual repository

@@ -17,15 +17,15 @@ func NewDualRepository(mongoRepository *MongoRepository,
 	}
 }
 
-func (r *DualRepository) AlreadyProcessed(ctx context.Context, vaaId string, digest string) (bool, error) {
-	processed, err := r.mongoRepository.AlreadyProcessed(ctx, vaaId, digest)
+func (r *DualRepository) AlreadyProcessed(ctx context.Context, vaaId string, txHash string) (bool, error) {
+	processed, err := r.mongoRepository.AlreadyProcessed(ctx, vaaId, txHash)
 	if err != nil {
 		return false, err
 	}
 	if !processed {
 		return false, nil
 	}
-	processed, err = r.postgresRepository.AlreadyProcessed(ctx, vaaId, digest)
+	processed, err = r.postgresRepository.AlreadyProcessed(ctx, vaaId, txHash)
 	if err != nil {
 		return false, err
 	}

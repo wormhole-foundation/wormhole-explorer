@@ -65,7 +65,7 @@ func ProcessSourceTx(
 		// In those cases, when we fetch the message for the second time,
 		// we don't want to hit the RPC nodes again for performance reasons.
 
-		processed, err := repository.AlreadyProcessed(ctx, params.VaaId, params.ID)
+		processed, err := repository.AlreadyProcessed(ctx, params.VaaId, params.TxHash)
 		if err != nil {
 			return nil, err
 		}
