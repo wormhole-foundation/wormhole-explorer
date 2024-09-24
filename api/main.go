@@ -154,7 +154,7 @@ func main() {
 	rootLogger.Info("initializing repositories")
 	addressRepo := address.NewRepository(storage.mongoDB.Database, rootLogger)
 	vaaRepo := vaa.NewRepository(storage.mongoDB.Database, rootLogger)
-	obsRepo := observations.NewRepository(storage.mongoDB.Database, rootLogger)
+	obsRepo := observations.NewMongoRepository(storage.mongoDB.Database, rootLogger)
 	governorRepo := governor.NewRepository(storage.mongoDB.Database, rootLogger)
 	infrastructureRepo := infrastructure.NewRepository(storage.mongoDB.Database, rootLogger)
 	heartbeatsRepo := heartbeats.NewRepository(storage.mongoDB.Database, rootLogger)

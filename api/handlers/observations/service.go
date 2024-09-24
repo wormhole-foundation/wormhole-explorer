@@ -12,12 +12,12 @@ import (
 
 // Service definition.
 type Service struct {
-	repo   *Repository
+	repo   *MongoRepository
 	logger *zap.Logger
 }
 
 // NewService create a new Service.
-func NewService(dao *Repository, logger *zap.Logger) *Service {
+func NewService(dao *MongoRepository, logger *zap.Logger) *Service {
 	return &Service{repo: dao, logger: logger.With(zap.String("module", "ObservationsService"))}
 }
 
