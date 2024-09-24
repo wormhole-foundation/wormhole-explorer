@@ -34,20 +34,13 @@ export class PoolRpcs extends RunPoolRpcs {
       } catch (e) {
         this.logger.error(`Error setting providers: ${e}`);
       }
-    }, 10 * 1000); // }, 1 * 60 * 60 * 1000); // 1 hour
+    }, 1 * 60 * 60 * 1000); // 1 hour
   }
 
   protected report(): void {}
 
   private normalizeCursor(blockHeight: { [key: string]: any }): string {
-    const keys = [
-      "lastBlock",
-      "blockHeight",
-      "latestBlock",
-      "currentBlock",
-      "lastFrom",
-      "lastSlot",
-    ];
+    const keys = ["lastBlock", "lastFrom", "lastSlot", "lastCursor"];
     let height;
 
     for (const key of keys) {

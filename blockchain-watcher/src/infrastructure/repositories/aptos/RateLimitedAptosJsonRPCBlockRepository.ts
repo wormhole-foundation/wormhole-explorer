@@ -3,7 +3,6 @@ import { Range, TransactionFilter } from "../../../domain/actions/aptos/PollApto
 import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
 import { AptosRepository } from "../../../domain/repositories";
 import { Options } from "../common/rateLimitedOptions";
-import { EvmTag } from "../../../domain/entities";
 import winston from "winston";
 
 export class RateLimitedAptosJsonRPCBlockRepository
@@ -19,7 +18,7 @@ export class RateLimitedAptosJsonRPCBlockRepository
     this.logger = winston.child({ module: "RateLimitedAptosJsonRPCBlockRepository" });
   }
 
-  healthCheck(chain: string, finality: EvmTag, cursor: bigint): Promise<void> {
+  healthCheck(chain: string, finality: string, cursor: bigint): Promise<void> {
     return this.breaker.fn(() => this.delegate.healthCheck(chain, finality, cursor)).execute();
   }
 

@@ -1,18 +1,14 @@
 import { StatRepository } from "../repositories";
 import { Repos } from "../../infrastructure/repositories";
 
-const DEFAULT_INTERVAL = 1_000;
-
 export abstract class RunPoolRpcs {
   private statRepo?: StatRepository;
-  private interval: number;
 
   protected abstract set(): Promise<void>;
   protected abstract report(): void;
 
-  constructor(repositories: Repos, interval: number = DEFAULT_INTERVAL) {
+  constructor(repositories: Repos) {
     this.statRepo = repositories.statsRepo;
-    this.interval = interval;
   }
 
   public async run(): Promise<void> {

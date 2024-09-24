@@ -1,8 +1,8 @@
-import { InstrumentedSuiClient, ProviderPool } from "@xlabs/rpc-pool";
+import { InstrumentedSuiClient } from "@xlabs/rpc-pool";
 import { SuiTransactionBlockReceipt } from "../../../domain/entities/sui";
 import { divideIntoBatches } from "../common/utils";
 import { SuiRepository } from "../../../domain/repositories";
-import { EvmTag, Range } from "../../../domain/entities";
+import { Range } from "../../../domain/entities";
 import { ProviderHealthCheck } from "../../../domain/actions/poolRpcs/PoolRpcs";
 import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
 import winston from "winston";

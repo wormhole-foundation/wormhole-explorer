@@ -3,7 +3,6 @@ import { CosmosTransaction } from "../../../domain/entities/cosmos";
 import { CosmosRepository } from "../../../domain/repositories";
 import { Options } from "../common/rateLimitedOptions";
 import { Filter } from "../../../domain/actions/cosmos/types";
-import { EvmTag } from "../../../domain/entities";
 import winston from "winston";
 
 export class RateLimitedCosmosJsonRPCBlockRepository
@@ -19,7 +18,7 @@ export class RateLimitedCosmosJsonRPCBlockRepository
     this.logger = winston.child({ module: "RateLimitedCosmosJsonRPCBlockRepository" });
   }
 
-  healthCheck(chain: string, finality: EvmTag, cursor: bigint): Promise<void> {
+  healthCheck(chain: string, finality: string, cursor: bigint): Promise<void> {
     return this.breaker.fn(() => this.delegate.healthCheck(chain, finality, cursor)).execute();
   }
 

@@ -3,7 +3,7 @@ import { Fallible, SolanaFailure } from "../../../domain/errors";
 import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
 import { SolanaSlotRepository } from "../../../domain/repositories";
 import { ProviderHealthCheck } from "../../../domain/actions/poolRpcs/PoolRpcs";
-import { EvmTag, solana } from "../../../domain/entities";
+import { solana } from "../../../domain/entities";
 import winston from "../../log";
 import {
   VersionedTransactionResponse,
@@ -18,10 +18,6 @@ export class Web3SolanaSlotRepository implements SolanaSlotRepository {
 
   constructor(private readonly pool: ProviderPoolDecorator<InstrumentedConnectionWrapper>) {
     this.logger = winston.child({ module: "Web3SolanaSlotRepository" });
-  }
-
-  async getPool(): Promise<ProviderPoolDecorator<InstrumentedConnectionWrapper>> {
-    return this.pool;
   }
 
   async healthCheck(_: string, finality: string, cursor: bigint): Promise<void> {

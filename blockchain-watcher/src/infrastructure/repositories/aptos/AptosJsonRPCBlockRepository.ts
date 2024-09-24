@@ -3,7 +3,6 @@ import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvide
 import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
 import { AptosRepository } from "../../../domain/repositories";
 import { ProviderHealthCheck } from "../../../domain/actions/poolRpcs/PoolRpcs";
-import { EvmTag } from "../../../domain/entities";
 import winston from "winston";
 import {
   AptosTransactionByVersion,

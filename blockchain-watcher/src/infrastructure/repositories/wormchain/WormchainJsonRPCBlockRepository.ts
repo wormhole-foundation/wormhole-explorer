@@ -4,7 +4,6 @@ import { WormchainRepository } from "../../../domain/repositories";
 import { ProviderHealthCheck } from "../../../domain/actions/poolRpcs/PoolRpcs";
 import { setTimeout } from "timers/promises";
 import { mapChain } from "../../../common/wormchain";
-import { EvmTag } from "../../../domain/entities";
 import winston from "winston";
 import {
   WormchainTransaction,
@@ -32,7 +31,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
     this.cfg = cfg;
   }
 
-  async healthCheck(chain: string, finality: EvmTag, cursor: bigint): Promise<void> {
+  async healthCheck(chain: string, finality: string, cursor: bigint): Promise<void> {
     const result: ProviderHealthCheck[] = [];
     let reponse: ResultBlockHeight;
     const pool = this.pool[chain];

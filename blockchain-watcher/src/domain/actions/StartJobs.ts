@@ -44,9 +44,9 @@ export class StartJobs {
   }
 
   public async runPool(jobs: JobDefinition[]): Promise<RunPoolRpcs> {
-    const runPoolRpcs = this.job.getRunPoolRpcs(jobs);
-    this.runnables.set(POOL_RPCS, () => runPoolRpcs.run());
+    const runPool = this.job.getRunPoolRpcs(jobs);
+    this.runnables.set(POOL_RPCS, () => runPool.run());
     this.runnables.get(POOL_RPCS)!();
-    return runPoolRpcs;
+    return runPool;
   }
 }

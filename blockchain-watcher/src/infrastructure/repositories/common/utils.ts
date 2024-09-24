@@ -35,14 +35,3 @@ export function getChainProvider(
   }
   return selectedPool.get();
 }
-
-export function getProviders(
-  chain: string,
-  pool: Record<string, ProviderPoolDecorator<InstrumentedHttpProvider>>
-) {
-  const selectedPool = pool[chain];
-  if (!selectedPool) {
-    throw new Error(`No provider pool configured for chain ${chain}`);
-  }
-  return selectedPool.getProviders();
-}

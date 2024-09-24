@@ -1,8 +1,8 @@
 import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
 import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
+import { ProviderHealthCheck } from "../../../domain/actions/poolRpcs/PoolRpcs";
 import { AlgorandTransaction } from "../../../domain/entities/algorand";
 import { AlgorandRepository } from "../../../domain/repositories";
-import { ProviderHealthCheck } from "../../../domain/actions/poolRpcs/PoolRpcs";
 import winston from "winston";
 
 type ProviderPoolMap = ProviderPoolDecorator<InstrumentedHttpProvider>;

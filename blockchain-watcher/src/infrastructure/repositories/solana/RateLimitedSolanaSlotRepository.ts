@@ -3,7 +3,7 @@ import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
 import { SolanaSlotRepository } from "../../../domain/repositories";
 import { RatelimitError } from "mollitia";
 import { Options } from "../common/rateLimitedOptions";
-import { EvmTag, solana } from "../../../domain/entities";
+import { solana } from "../../../domain/entities";
 import winston from "../../../infrastructure/log";
 
 export class RateLimitedSolanaSlotRepository
@@ -19,7 +19,7 @@ export class RateLimitedSolanaSlotRepository
     this.logger = winston.child({ module: "RateLimitedSolanaSlotRepository" });
   }
 
-  healthCheck(chain: string, finality: EvmTag, cursor: bigint): Promise<void> {
+  healthCheck(chain: string, finality: string, cursor: bigint): Promise<void> {
     return this.breaker.fn(() => this.delegate.healthCheck(chain, finality, cursor)).execute();
   }
 

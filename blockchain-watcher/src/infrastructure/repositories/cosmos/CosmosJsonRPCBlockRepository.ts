@@ -4,7 +4,6 @@ import { CosmosRepository } from "../../../domain/repositories";
 import { getChainProvider } from "../common/utils";
 import { Filter } from "../../../domain/actions/cosmos/types";
 import winston from "winston";
-import { EvmTag } from "../../../domain/entities";
 import { ProviderHealthCheck } from "../../../domain/actions/poolRpcs/PoolRpcs";
 
 const TRANSACTION_SEARCH_ENDPOINT = "/tx_search";

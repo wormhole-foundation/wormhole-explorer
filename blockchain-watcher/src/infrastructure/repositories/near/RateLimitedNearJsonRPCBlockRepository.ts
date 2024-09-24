@@ -2,7 +2,6 @@ import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
 import { NearTransaction } from "../../../domain/entities/near";
 import { NearRepository } from "../../../domain/repositories";
 import { Options } from "../common/rateLimitedOptions";
-import { EvmTag } from "../../../domain/entities";
 import winston from "winston";
 
 export class RateLimitedNearJsonRPCBlockRepository
@@ -18,7 +17,7 @@ export class RateLimitedNearJsonRPCBlockRepository
     this.logger = winston.child({ module: "RateLimitedNearJsonRPCBlockRepository" });
   }
 
-  healthCheck(chain: string, finality: EvmTag, cursor: bigint): Promise<void> {
+  healthCheck(chain: string, finality: string, cursor: bigint): Promise<void> {
     return this.breaker.fn(() => this.delegate.healthCheck(chain, finality, cursor)).execute();
   }
 

@@ -54,7 +54,7 @@ export interface SolanaSlotRepository {
     finality?: string
   ): Promise<ConfirmedSignatureInfo[]>;
   getTransactions(sigs: ConfirmedSignatureInfo[], finality?: string): Promise<solana.Transaction[]>;
-  healthCheck(chain: string, finality: EvmTag, cursor: bigint): Promise<void>;
+  healthCheck(chain: string, finality: string, cursor: bigint): Promise<void>;
 }
 
 export interface SuiRepository {
@@ -71,7 +71,7 @@ export interface SuiRepository {
     filter: SuiEventFilter,
     cursor?: string
   ): Promise<SuiTransactionBlockReceipt[]>;
-  healthCheck(chain: string, finality: EvmTag, cursor: bigint): Promise<void>;
+  healthCheck(chain: string, finality: string, cursor: bigint): Promise<void>;
 }
 
 export interface AptosRepository {
@@ -83,7 +83,7 @@ export interface AptosRepository {
     filter: TransactionFilter
   ): Promise<AptosEvent[]>;
   getTransactionsByVersion(records: AptosEvent[] | AptosTransaction[]): Promise<AptosTransaction[]>;
-  healthCheck(chain: string, finality: EvmTag, cursor: bigint): Promise<void>;
+  healthCheck(chain: string, finality: string, cursor: bigint): Promise<void>;
 }
 
 export interface WormchainRepository {
@@ -94,7 +94,7 @@ export interface WormchainRepository {
     attributesTypes: string[]
   ): Promise<WormchainBlockLogs>;
   getRedeems(ibcTransaction: IbcTransaction): Promise<CosmosRedeem[]>;
-  healthCheck(chain: string, finality: EvmTag, cursor: bigint): Promise<void>;
+  healthCheck(chain: string, finality: string, cursor: bigint): Promise<void>;
 }
 
 export interface CosmosRepository {
@@ -104,7 +104,7 @@ export interface CosmosRepository {
     chain: string
   ): Promise<CosmosTransaction[]>;
   getBlockTimestamp(blockNumber: bigint, chain: string): Promise<number | undefined>;
-  healthCheck(chain: string, finality: EvmTag, cursor: bigint): Promise<void>;
+  healthCheck(chain: string, finality: string, cursor: bigint): Promise<void>;
 }
 
 export interface AlgorandRepository {
@@ -114,13 +114,13 @@ export interface AlgorandRepository {
     toBlock: bigint
   ): Promise<AlgorandTransaction[]>;
   getBlockHeight(): Promise<bigint | undefined>;
-  healthCheck(chain: string, finality: EvmTag, cursor: bigint): Promise<void>;
+  healthCheck(chain: string, finality: string, cursor: bigint): Promise<void>;
 }
 
 export interface NearRepository {
   getTransactions(contract: string, fromBlock: bigint, toBlock: bigint): Promise<NearTransaction[]>;
   getBlockHeight(commitment: string): Promise<bigint | undefined>;
-  healthCheck(chain: string, finality: EvmTag, cursor: bigint): Promise<void>;
+  healthCheck(chain: string, finality: string, cursor: bigint): Promise<void>;
 }
 
 export interface MetadataRepository<Metadata> {
