@@ -62,7 +62,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         result.push({ url: provider.getUrl(), height: undefined, isLive: false });
       }
     }
-    pool.setProviders(providers, result, cursor);
+    pool.setProviders(chain, providers, result, cursor);
   }
 
   async getBlockHeight(chain: string, finality: EvmTag): Promise<bigint> {

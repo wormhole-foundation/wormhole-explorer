@@ -52,6 +52,7 @@ export class HealthyProvidersPool<
   }
 
   setProviders(
+    chain: string,
     providers: InstrumentedHttpProvider[],
     providersHealthCheck: ProviderHealthCheck[],
     cursor: bigint | undefined
@@ -70,6 +71,9 @@ export class HealthyProvidersPool<
     const sort = this.sort(filter);
     const healthy = this.remove(auxProvider, sort);
 
+    logger.info(
+      `[${chain}] Healthy providers: ${healthy.map((provider) => provider.getUrl()).join(", ")}`
+    );
     this.providers =
       healthy.length > 0 ? (healthy as unknown as T[]) : (providers as unknown as T[]);
   }

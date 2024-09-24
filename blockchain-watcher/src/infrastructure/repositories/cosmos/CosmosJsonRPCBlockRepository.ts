@@ -47,7 +47,7 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
         resultHeight.push({ url: provider.getUrl(), height: undefined, isLive: false });
       }
     }
-    pool.setProviders(providers, resultHeight, cursor);
+    pool.setProviders(chain, providers, resultHeight, cursor);
   }
 
   async getTransactions(

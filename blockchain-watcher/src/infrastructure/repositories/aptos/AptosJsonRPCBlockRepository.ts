@@ -53,7 +53,7 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
         result.push({ url: provider.getUrl(), height: undefined, isLive: false });
       }
     }
-    this.pool.setProviders(providers, result, cursor);
+    this.pool.setProviders(chain, providers, result, cursor);
   }
 
   async getEventsByEventHandle(

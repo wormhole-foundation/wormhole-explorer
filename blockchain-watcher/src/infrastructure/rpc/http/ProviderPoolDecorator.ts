@@ -16,6 +16,7 @@ import {
 export interface ProviderPoolDecorator<T extends InstrumentedRpc> extends ProviderPool<T> {
   getProviders(): T[];
   setProviders(
+    chain: string,
     providers:
       | InstrumentedHttpProvider[]
       | InstrumentedConnectionWrapper[]

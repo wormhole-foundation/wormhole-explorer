@@ -19,7 +19,7 @@ export class NearJsonRPCBlockRepository implements NearRepository {
     this.pool = pool;
   }
 
-  async healthCheck(_: string, finality: string, cursor: bigint): Promise<void> {
+  async healthCheck(chain: string, finality: string, cursor: bigint): Promise<void> {
     const providers = this.pool.getProviders();
     const result: ProviderHealthCheck[] = [];
     let response;
@@ -40,7 +40,7 @@ export class NearJsonRPCBlockRepository implements NearRepository {
         result.push({ url: provider.getUrl(), height: undefined, isLive: false });
       }
     }
-    this.pool.setProviders(providers, result, cursor);
+    this.pool.setProviders(chain, providers, result, cursor);
   }
 
   async getBlockHeight(commitment: string): Promise<bigint | undefined> {

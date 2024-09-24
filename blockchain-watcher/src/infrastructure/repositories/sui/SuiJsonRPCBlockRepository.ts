@@ -44,7 +44,7 @@ export class SuiJsonRPCBlockRepository implements SuiRepository {
         result.push({ url: provider.url, height: undefined, isLive: false });
       }
     }
-    this.pool.setProviders(providers, result, cursor);
+    this.pool.setProviders(chain, providers, result, cursor);
   }
 
   async getLastCheckpointNumber(): Promise<bigint> {

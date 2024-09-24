@@ -50,7 +50,7 @@ export class AlgorandJsonRPCBlockRepository implements AlgorandRepository {
         result.push({ url: url, height: undefined, isLive: false });
       }
     }
-    this.algoV2Pools.setProviders(providers, result, cursor);
+    this.algoV2Pools.setProviders(chain, providers, result, cursor);
   }
 
   async getBlockHeight(): Promise<bigint | undefined> {
