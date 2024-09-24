@@ -31,7 +31,7 @@ func manualMainnetTokenList() []TokenMetadata {
 
 		{TokenChain: sdk.ChainIDSolana, TokenAddress: "067fc27abcad2df07cc40437330da4fe8851680ae2b242c2ea1d86e2cfa10064", Symbol: "SNS", CoingeckoID: "synesis-one", Decimals: 9}, // Addr: SNSNkV9zfG5ZKWQs6x4hxvBRV6s8SqMfSGCtECDvdMd
 
-		{TokenChain: sdk.ChainIDSolana, TokenAddress: "000000000000000000000000455e53cbb86018ac2b8092fdcd39d8444affc3f6", Symbol: "POL", CoingeckoID: "polygon-ecosystem-token", Decimals: 18}, // Addr: 0x455e53CBB86018Ac2B8092FdCd39d8444aFFC3F6
+		{TokenChain: sdk.ChainIDEthereum, TokenAddress: "000000000000000000000000455e53cbb86018ac2b8092fdcd39d8444affc3f6", Symbol: "POL", CoingeckoID: "polygon-ecosystem-token", Decimals: 18}, // Addr: 0x455e53CBB86018Ac2B8092FdCd39d8444aFFC3F6
 
 		{TokenChain: sdk.ChainIDSolana, TokenAddress: "e23fb17c7d654ebaf63b3b8caeca39a82bc78159bb9cebba8dbeeff90b4190c3", Symbol: "LITT", CoingeckoID: "litlab-games", Decimals: 9}, // Addr: GEBUHM7o5T1Ws2rAWjRijtYeh9XFxKrD3B4b9HV7dxLz
 		{TokenChain: sdk.ChainIDBSC, TokenAddress: "000000000000000000000000cebef3df1f3c5bfd90fde603e71f31a53b11944d", Symbol: "LITT", CoingeckoID: "litlab-games", Decimals: 18},   // Addr: 0xCEbEf3DF1F3C5Bfd90FDE603E71F31a53B11944D
