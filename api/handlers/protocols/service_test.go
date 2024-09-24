@@ -248,7 +248,7 @@ func TestService_GetProtocolsTotalValues_CacheHit(t *testing.T) {
 
 }
 
-func TestService_GetCCTP_Stats(t *testing.T) {
+func TestService_GetPortalTokenBridge_Stats(t *testing.T) {
 	var errNil error
 
 	totalStartOfCurrentDay := &mockQueryTableResult{}
