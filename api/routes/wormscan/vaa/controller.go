@@ -40,6 +40,10 @@ func NewController(serv *vaa.Service, logger *zap.Logger) *Controller {
 // @Failure 500
 // @Router /api/v1/vaas/ [get]
 func (c *Controller) FindAll(ctx *fiber.Ctx) error {
+	dbLayer, err := middleware.ExtractDBLayer(ctx)
+	if err != nil {
+		return err
+	}
 
 	pagination, err := middleware.ExtractPagination(ctx)
 	if err != nil {

@@ -5,6 +5,10 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/config"
 )
 
-func extractDBLayer(ctx *fiber.Ctx) string {
-	return ctx.Get("DB_LAYER", config.DBLayerMongo)
+func ExtractDBLayer(ctx *fiber.Ctx) (string, error) {
+	dbLayer := ctx.Get("DB_LAYER", config.DBLayerMongo)
+	if dbLayer != config.DBLayerMongo && dbLayer != config.DBLayerPostgres {
+		return "", fiber.NewError(fiber.StatusBadRequest, "invalid db layer")
+	}
+	return dbLayer, nil
 }
