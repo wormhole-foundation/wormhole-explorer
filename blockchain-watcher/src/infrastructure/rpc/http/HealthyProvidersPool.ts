@@ -100,7 +100,7 @@ export class HealthyProvidersPool<
       const nextMaxHeight = Math.max(...heights.filter((h) => h < maxHeight));
 
       // Filter out the maximum height if it's significantly ahead
-      if (nextMaxHeight && maxHeight - nextMaxHeight > THRESHOLD) {
+      if (!nextMaxHeight && maxHeight - nextMaxHeight > THRESHOLD) {
         providers = providerWithHeight.filter(
           (item) => parseFloat(String(item.height)) < maxHeight
         );
