@@ -1,14 +1,15 @@
 import { StatRepository } from "../repositories";
-import { Repos } from "../../infrastructure/repositories";
+import winston from "winston";
 
 export abstract class RunPoolRpcs {
   private statRepo?: StatRepository;
 
+  protected abstract logger: winston.Logger;
   protected abstract set(): Promise<void>;
   protected abstract report(): void;
 
-  constructor(repositories: Repos) {
-    this.statRepo = repositories.statsRepo;
+  constructor(statsRepo: StatRepository) {
+    this.statRepo = statsRepo;
   }
 
   public async run(): Promise<void> {
@@ -24,6 +25,9 @@ export abstract class RunPoolRpcs {
 
         this.statRepo?.measure("pool_execution_time", poolExecutionTime, { job: "pool-rpcs" });
       }, 1 * 60 * 60 * 1000); // 1 hour
-    } catch (e: Error | any) {}
+    } catch (e: Error | any) {
+      this.logger.error("[run] Error processing pool providers", e);
+      this.statRepo?.count("pool_runs_total", { id: "pool-rpcs", status: "error" });
+    }
   }
 }

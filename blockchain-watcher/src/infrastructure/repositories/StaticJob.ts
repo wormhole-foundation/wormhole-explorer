@@ -256,7 +256,8 @@ export class StaticJob implements Job {
 
     const poolRpcs = (jobsDef: JobDefinition[]) =>
       new PoolRpcs(
-        this.repos,
+        statsRepo,
+        metadataRepo,
         new PoolRpcsConfig(
           jobsDef.map((jobDef) => ({
             repository:

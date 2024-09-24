@@ -1,18 +1,21 @@
+import { StatRepository } from "../../repositories";
 import { RunPoolRpcs } from "../RunPoolRpcs";
-import { Repos } from "../../../infrastructure/repositories";
 import winston from "winston";
 
 export class PoolRpcs extends RunPoolRpcs {
   protected readonly logger: winston.Logger;
 
-  private repositories: Repos;
   private cfg: PoolRpcsConfig;
-  private reportValues: any;
+  private reportValues: any[] = [];
 
-  constructor(repositories: Repos, cfg: PoolRpcsConfig) {
-    super(repositories);
+  private readonly statsRepo: StatRepository;
+  private readonly metadataRepo: any;
+
+  constructor(statsRepo: StatRepository, metadataRepo: any, cfg: PoolRpcsConfig) {
+    super(statsRepo);
     this.logger = winston.child({ module: "PoolRpcs", label: "pool-rpcs" });
-    this.repositories = repositories;
+    this.statsRepo = statsRepo;
+    this.metadataRepo = metadataRepo;
     this.cfg = cfg;
   }
 
@@ -21,7 +24,7 @@ export class PoolRpcs extends RunPoolRpcs {
       for (const cfg of this.cfg.getProps()) {
         const { id, repository, chain, commitment } = cfg;
 
-        const metadata = await this.repositories.metadataRepo.get(id);
+        const metadata = await this.metadataRepo.get(id);
         const cursor = this.normalizeCursor(metadata);
 
         if (!repository) {
@@ -30,12 +33,12 @@ export class PoolRpcs extends RunPoolRpcs {
         }
 
         const result = await repository.healthCheck(chain, commitment, cursor);
-        this.reportValues = {
-          id,
-          chain,
+        this.reportValues.push({
+          rpcs: result,
           commitment,
-          ...result,
-        };
+          chain,
+          id,
+        });
       }
     } catch (e) {
       this.logger.error(`Error setting providers: ${e}`);
@@ -43,11 +46,24 @@ export class PoolRpcs extends RunPoolRpcs {
   }
 
   protected report(): void {
-    const labels = {
-      job: `pool-rpcs-${this.reportValues.id}`,
-      chain: this.reportValues.chain,
-      commitment: this.reportValues.commitment,
-    };
+    for (const report of this.reportValues) {
+      let labels: Label = {
+        job: `pool-rpcs-${report.id}`,
+        chain: report.chain,
+        commitment: report.commitment,
+      };
+
+      for (const rpc of report.rpcs) {
+        labels.rpc = rpc.url;
+        this.statsRepo.measure("pool_rpc_latency", rpc.latency, {
+          ...labels,
+        });
+
+        this.statsRepo.measure("pool_rpc_height", rpc.height, {
+          ...labels,
+        });
+      }
+    }
   }
 
   private normalizeCursor(blockHeight: { [key: string]: any }): string {
@@ -63,6 +79,13 @@ export class PoolRpcs extends RunPoolRpcs {
     return height;
   }
 }
+
+type Label = {
+  commitment: string;
+  chain: string;
+  job: string;
+  rpc?: string;
+};
 
 export type ProviderHealthCheck = {
   latency?: number;
