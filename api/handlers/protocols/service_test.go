@@ -93,6 +93,101 @@ func TestService_GetProtocolsTotalValues_Allbridge(t *testing.T) {
 
 }
 
+func TestService_GetProtocolsTotalValues_Allbridge_FailedFetchingActivity(t *testing.T) {
+	const allbridge = "allbridge"
+	var errNil error
+	respStatsLatest := &mockQueryTableResult{}
+	respStatsLatest.On("Next").Return(true)
+	respStatsLatest.On("Err").Return(errNil)
+	respStatsLatest.On("Close").Return(errNil)
+	respStatsLatest.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
+		"protocol":           allbridge,
+		"total_messages":     uint64(7),
+		"total_value_locked": float64(5),
+	}))
+
+	respStatsLastDay := &mockQueryTableResult{}
+	respStatsLastDay.On("Next").Return(true)
+	respStatsLastDay.On("Err").Return(errNil)
+	respStatsLastDay.On("Close").Return(errNil)
+	respStatsLastDay.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
+		"protocol":           allbridge,
+		"total_messages":     uint64(4),
+		"total_value_locked": float64(5),
+	}))
+
+	ctx := context.Background()
+	queryAPI := &mockQueryAPI{}
+	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateProtocolStatsNow, "bucket30d", dbconsts.ProtocolsStatsMeasurementHourly, allbridge)).Return(respStatsLatest, nil)
+	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateProtocolStats24HrAgo, "bucket30d", dbconsts.ProtocolsStatsMeasurementHourly, allbridge)).Return(respStatsLastDay, nil)
+	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateProtocolActivity, "bucketInfinite", "1970-01-01T00:00:00Z", dbconsts.ProtocolsActivityMeasurementDaily, allbridge)).Return(&mockQueryTableResult{}, errors.New("mocked_error"))
+
+	repository := protocols.NewRepository(queryAPI, "bucketInfinite", "bucket30d", "bucket24hr", zap.NewNop())
+	service := protocols.NewService([]string{protocols.ALLBRIDGE}, repository, zap.NewNop(), cache.NewDummyCacheClient(), "WORMSCAN:PROTOCOLS", 0, metrics.NewNoOpMetrics(), &mockTvl{})
+
+	values := service.GetProtocolsTotalValues(ctx)
+	assert.Equal(t, 1, len(values))
+	assert.Equal(t, allbridge, values[0].Protocol)
+	assert.NotNil(t, values[0].Error)
+	assert.Equal(t, "mocked_error", values[0].Error)
+}
+
+func TestService_GetProtocolsTotalValues_FailedFetchingStats(t *testing.T) {
+	const allbridge = "allbridge"
+	var errNil error
+
+	respStatsLastDay := &mockQueryTableResult{}
+	respStatsLastDay.On("Next").Return(true)
+	respStatsLastDay.On("Err").Return(errNil)
+	respStatsLastDay.On("Close").Return(errNil)
+	respStatsLastDay.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
+		"protocol":           allbridge,
+		"total_messages":     uint64(4),
+		"total_value_locked": float64(5),
+	}))
+
+	respActivityLast := &mockQueryTableResult{}
+	respActivityLast.On("Next").Return(true)
+	respActivityLast.On("Err").Return(errNil)
+	respActivityLast.On("Close").Return(errNil)
+	ts := time.Now().UTC()
+	respActivityLast.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
+		"protocol":                allbridge,
+		"total_messages":          uint64(4),
+		"total_value_transferred": float64(7),
+		"total_volume_secure":     float64(9),
+		"_time":                   ts,
+	}))
+
+	respActivity2 := &mockQueryTableResult{}
+	respActivity2.On("Next").Return(true)
+	respActivity2.On("Err").Return(errNil)
+	respActivity2.On("Close").Return(errNil)
+	respActivity2.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
+		"protocol":                allbridge,
+		"total_messages":          uint64(4),
+		"total_value_transferred": float64(7),
+		"total_value_secure":      float64(9),
+	}))
+
+	ctx := context.Background()
+	queryAPI := &mockQueryAPI{}
+	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateProtocolStatsNow, "bucket30d", dbconsts.ProtocolsStatsMeasurementHourly, allbridge)).Return(&mockQueryTableResult{}, errors.New("mocked_error"))
+	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateProtocolStats24HrAgo, "bucket30d", dbconsts.ProtocolsStatsMeasurementHourly, allbridge)).Return(respStatsLastDay, nil)
+	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateProtocolActivity, "bucketInfinite", "1970-01-01T00:00:00Z", dbconsts.ProtocolsActivityMeasurementDaily, allbridge)).Return(respActivityLast, nil)
+	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateProtocolActivity, "bucket30d", ts.Format(time.RFC3339), dbconsts.ProtocolsActivityMeasurementHourly, allbridge)).Return(respActivity2, nil)
+	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryLast24HrActivity, "bucketInfinite", dbconsts.ProtocolsActivityMeasurementDaily, allbridge)).Return(respActivity2, nil)
+
+	repository := protocols.NewRepository(queryAPI, "bucketInfinite", "bucket30d", "bucket24hr", zap.NewNop())
+	service := protocols.NewService([]string{protocols.ALLBRIDGE}, repository, zap.NewNop(), cache.NewDummyCacheClient(), "WORMSCAN:PROTOCOLS", 0, metrics.NewNoOpMetrics(), &mockTvl{})
+
+	values := service.GetProtocolsTotalValues(ctx)
+	assert.Equal(t, 1, len(values))
+	assert.Equal(t, allbridge, values[0].Protocol)
+	assert.NotNil(t, values[0].Error)
+	assert.Equal(t, "mocked_error", values[0].Error)
+}
+
 func TestService_GetProtocolsTotalValues_Mayan(t *testing.T) {
 	const mayan = "mayan"
 	var errNil error
@@ -133,99 +228,6 @@ func TestService_GetProtocolsTotalValues_Mayan(t *testing.T) {
 	assert.Equal(t, "75.00%", values[0].LastDayDiffPercentage)
 	assert.Equal(t, float64(5), values[0].Last24HourVolume)
 
-}
-
-func TestService_GetProtocolsTotalValues_FailedFetchingActivity(t *testing.T) {
-	var errNil error
-	respStatsLatest := &mockQueryTableResult{}
-	respStatsLatest.On("Next").Return(true)
-	respStatsLatest.On("Err").Return(errNil)
-	respStatsLatest.On("Close").Return(errNil)
-	respStatsLatest.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
-		"protocol":           "protocol1",
-		"total_messages":     uint64(7),
-		"total_value_locked": float64(5),
-	}))
-
-	respStatsLastDay := &mockQueryTableResult{}
-	respStatsLastDay.On("Next").Return(true)
-	respStatsLastDay.On("Err").Return(errNil)
-	respStatsLastDay.On("Close").Return(errNil)
-	respStatsLastDay.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
-		"protocol":           "protocol1",
-		"total_messages":     uint64(4),
-		"total_value_locked": float64(5),
-	}))
-
-	ctx := context.Background()
-	queryAPI := &mockQueryAPI{}
-	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateProtocolStatsNow, "bucket30d", dbconsts.ProtocolsStatsMeasurementHourly, "protocol1")).Return(respStatsLatest, nil)
-	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateProtocolStats24HrAgo, "bucket30d", dbconsts.ProtocolsStatsMeasurementHourly, "protocol1")).Return(respStatsLastDay, nil)
-	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateProtocolActivity, "bucketInfinite", "1970-01-01T00:00:00Z", dbconsts.ProtocolsActivityMeasurementDaily, "protocol1")).Return(&mockQueryTableResult{}, errors.New("mocked_error"))
-
-	repository := protocols.NewRepository(queryAPI, "bucketInfinite", "bucket30d", "bucket24hr", zap.NewNop())
-	service := protocols.NewService([]string{"protocol1"}, repository, zap.NewNop(), cache.NewDummyCacheClient(), "WORMSCAN:PROTOCOLS", 0, metrics.NewNoOpMetrics(), &mockTvl{})
-
-	values := service.GetProtocolsTotalValues(ctx)
-	assert.Equal(t, 1, len(values))
-	assert.Equal(t, "protocol1", values[0].Protocol)
-	assert.NotNil(t, values[0].Error)
-	assert.Equal(t, "mocked_error", values[0].Error)
-}
-
-func TestService_GetProtocolsTotalValues_FailedFetchingStats(t *testing.T) {
-	var errNil error
-
-	respStatsLastDay := &mockQueryTableResult{}
-	respStatsLastDay.On("Next").Return(true)
-	respStatsLastDay.On("Err").Return(errNil)
-	respStatsLastDay.On("Close").Return(errNil)
-	respStatsLastDay.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
-		"protocol":           "protocol1",
-		"total_messages":     uint64(4),
-		"total_value_locked": float64(5),
-	}))
-
-	respActivityLast := &mockQueryTableResult{}
-	respActivityLast.On("Next").Return(true)
-	respActivityLast.On("Err").Return(errNil)
-	respActivityLast.On("Close").Return(errNil)
-	ts := time.Now().UTC()
-	respActivityLast.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
-		"protocol":                "protocol1",
-		"total_messages":          uint64(4),
-		"total_value_transferred": float64(7),
-		"total_volume_secure":     float64(9),
-		"_time":                   ts,
-	}))
-
-	respActivity2 := &mockQueryTableResult{}
-	respActivity2.On("Next").Return(true)
-	respActivity2.On("Err").Return(errNil)
-	respActivity2.On("Close").Return(errNil)
-	respActivity2.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
-		"protocol":                "protocol1",
-		"total_messages":          uint64(4),
-		"total_value_transferred": float64(7),
-		"total_value_secure":      float64(9),
-	}))
-
-	ctx := context.Background()
-	queryAPI := &mockQueryAPI{}
-	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateProtocolStatsNow, "bucket30d", dbconsts.ProtocolsStatsMeasurementHourly, "protocol1")).Return(&mockQueryTableResult{}, errors.New("mocked_error"))
-	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateProtocolStats24HrAgo, "bucket30d", dbconsts.ProtocolsStatsMeasurementHourly, "protocol1")).Return(respStatsLastDay, nil)
-	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateProtocolActivity, "bucketInfinite", "1970-01-01T00:00:00Z", dbconsts.ProtocolsActivityMeasurementDaily, "protocol1")).Return(respActivityLast, nil)
-	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateProtocolActivity, "bucket30d", ts.Format(time.RFC3339), dbconsts.ProtocolsActivityMeasurementHourly, "protocol1")).Return(respActivity2, nil)
-	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryLast24HrActivity, "bucketInfinite", dbconsts.ProtocolsActivityMeasurementDaily, "protocol1")).Return(respActivity2, nil)
-
-	repository := protocols.NewRepository(queryAPI, "bucketInfinite", "bucket30d", "bucket24hr", zap.NewNop())
-	service := protocols.NewService([]string{"protocol1"}, repository, zap.NewNop(), cache.NewDummyCacheClient(), "WORMSCAN:PROTOCOLS", 0, metrics.NewNoOpMetrics(), &mockTvl{})
-
-	values := service.GetProtocolsTotalValues(ctx)
-	assert.Equal(t, 1, len(values))
-	assert.Equal(t, "protocol1", values[0].Protocol)
-	assert.NotNil(t, values[0].Error)
-	assert.Equal(t, "mocked_error", values[0].Error)
 }
 
 func TestService_GetProtocolsTotalValues_CacheHit(t *testing.T) {
