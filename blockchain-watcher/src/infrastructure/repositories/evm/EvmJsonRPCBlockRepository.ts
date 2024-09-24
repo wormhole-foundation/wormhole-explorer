@@ -37,10 +37,14 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     this.logger.info(`Created for ${Object.keys(this.cfg.chains)}`);
   }
 
-  async healthCheck(chain: string, finality: EvmTag, cursor: bigint): Promise<void> {
+  async healthCheck(
+    chain: string,
+    finality: EvmTag,
+    cursor: bigint
+  ): Promise<ProviderHealthCheck[]> {
     const pool = this.pool[chain];
     const providers = pool.getProviders();
-    const result: ProviderHealthCheck[] = [];
+    const providersHealthCheck: ProviderHealthCheck[] = [];
 
     for (const provider of providers) {
       try {
@@ -52,17 +56,18 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         );
         const requestEndTime = performance.now();
 
-        result.push({
+        providersHealthCheck.push({
           url: provider.getUrl(),
           height: BigInt(response.result?.number!),
           isLive: true,
           latency: Number(((requestEndTime - requestStartTime) / 1000).toFixed(2)),
         });
       } catch (e) {
-        result.push({ url: provider.getUrl(), height: undefined, isLive: false });
+        providersHealthCheck.push({ url: provider.getUrl(), height: undefined, isLive: false });
       }
     }
-    pool.setProviders(chain, providers, result, cursor);
+    pool.setProviders(chain, providers, providersHealthCheck, cursor);
+    return providersHealthCheck;
   }
 
   async getBlockHeight(chain: string, finality: EvmTag): Promise<bigint> {

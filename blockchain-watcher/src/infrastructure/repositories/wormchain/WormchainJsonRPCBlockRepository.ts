@@ -31,8 +31,12 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
     this.cfg = cfg;
   }
 
-  async healthCheck(chain: string, finality: string, cursor: bigint): Promise<void> {
-    const result: ProviderHealthCheck[] = [];
+  async healthCheck(
+    chain: string,
+    finality: string,
+    cursor: bigint
+  ): Promise<ProviderHealthCheck[]> {
+    const providersHealthCheck: ProviderHealthCheck[] = [];
     let reponse: ResultBlockHeight;
     const pool = this.pool[chain];
     const providers = pool.getProviders();
@@ -50,7 +54,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
           reponse.result.response.last_block_height
         ) {
           const blockHeight = reponse.result.response.last_block_height;
-          result.push({
+          providersHealthCheck.push({
             url: provider.getUrl(),
             height: BigInt(blockHeight),
             isLive: true,
@@ -58,10 +62,11 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
           });
         }
       } catch (e) {
-        result.push({ url: provider.getUrl(), height: undefined, isLive: false });
+        providersHealthCheck.push({ url: provider.getUrl(), height: undefined, isLive: false });
       }
     }
-    pool.setProviders(chain, providers, result, cursor);
+    pool.setProviders(chain, providers, providersHealthCheck, cursor);
+    return providersHealthCheck;
   }
 
   async getBlockHeight(chain: string): Promise<bigint | undefined> {

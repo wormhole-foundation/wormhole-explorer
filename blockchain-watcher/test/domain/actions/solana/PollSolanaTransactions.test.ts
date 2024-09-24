@@ -248,7 +248,7 @@ const givenSolanaSlotRepository = (
     getBlock: () => Promise.resolve(Fallible.ok(block)),
     getSignaturesForAddress: () => Promise.resolve(sigs),
     getTransactions: () => Promise.resolve(txs),
-    healthCheck: () => Promise.resolve(),
+    healthCheck: () => Promise.resolve([]),
   };
   getBlockSpy = jest.spyOn(solanaSlotRepo, "getBlock");
   getLatestSlotSpy = jest.spyOn(solanaSlotRepo, "getLatestSlot");

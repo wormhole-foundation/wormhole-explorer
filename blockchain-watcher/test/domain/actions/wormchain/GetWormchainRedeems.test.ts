@@ -184,7 +184,7 @@ const givenWormchainBlockRepository = (blockHeigh: bigint, log: any = {}) => {
     getBlockHeight: () => Promise.resolve(blockHeigh),
     getBlockLogs: () => Promise.resolve(log),
     getRedeems: () => Promise.resolve([]),
-    healthCheck: () => Promise.resolve(),
+    healthCheck: () => Promise.resolve([]),
   };
 
   getBlockHeightSpy = jest.spyOn(wormchainRepo, "getBlockHeight");

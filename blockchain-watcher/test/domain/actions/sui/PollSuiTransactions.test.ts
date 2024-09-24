@@ -201,7 +201,7 @@ const givenSuiRepository = () => {
       Promise.resolve(createTransactions(checkpoints, cursor).slice(0, 50)),
     getTransactionBlockReceipts: () => Promise.resolve([]),
     getCheckpoints: () => Promise.resolve([]),
-    healthCheck: () => Promise.resolve(),
+    healthCheck: () => Promise.resolve([]),
   };
 
   queryTransactionsSpy = jest.spyOn(suiRepo, "queryTransactions");

@@ -13,16 +13,17 @@ export abstract class RunPoolRpcs {
 
   public async run(): Promise<void> {
     try {
-      this.report();
+      setInterval(async () => {
+        const poolStartTime = performance.now();
 
-      const poolStartTime = performance.now();
+        await this.set();
+        this.report();
 
-      await this.set();
+        const poolEndTime = performance.now();
+        const poolExecutionTime = Number(((poolEndTime - poolStartTime) / 1000).toFixed(2));
 
-      const poolEndTime = performance.now();
-      const poolExecutionTime = Number(((poolEndTime - poolStartTime) / 1000).toFixed(2));
-
-      this.statRepo?.measure("pool_execution_time", poolExecutionTime, { job: "pool-rpcs" });
+        this.statRepo?.measure("pool_execution_time", poolExecutionTime, { job: "pool-rpcs" });
+      }, 1 * 60 * 60 * 1000); // 1 hour
     } catch (e: Error | any) {}
   }
 }

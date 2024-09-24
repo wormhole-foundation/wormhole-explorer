@@ -80,7 +80,7 @@ const givenAlgorandRepository = (height?: bigint, txs: any = []) => {
   algorandRepo = {
     getBlockHeight: () => Promise.resolve(height),
     getTransactions: () => Promise.resolve(txs),
-    healthCheck: () => Promise.resolve(),
+    healthCheck: () => Promise.resolve([]),
   };
 
   getBlockHeightSpy = jest.spyOn(algorandRepo, "getBlockHeight");

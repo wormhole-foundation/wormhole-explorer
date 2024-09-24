@@ -361,7 +361,7 @@ const givenEvmBlockRepository = (
     getFilteredLogs: () => Promise.resolve(logsResponse),
     getTransactionReceipt: () => Promise.resolve(receiptResponse),
     getBlock: () => Promise.resolve(blocks ? blocks[`0x01`] : new BlockBuilder().create()),
-    healthCheck: () => Promise.resolve(),
+    healthCheck: () => Promise.resolve([]),
   };
 
   getBlocksSpy = jest.spyOn(evmBlockRepo, "getBlocks");

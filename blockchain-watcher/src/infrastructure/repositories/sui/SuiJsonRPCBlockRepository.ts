@@ -23,8 +23,12 @@ export class SuiJsonRPCBlockRepository implements SuiRepository {
     this.logger = winston.child({ module: "SuiJsonRPCBlockRepository" });
   }
 
-  async healthCheck(chain: string, finality: string, cursor: bigint): Promise<void> {
-    const result: ProviderHealthCheck[] = [];
+  async healthCheck(
+    chain: string,
+    finality: string,
+    cursor: bigint
+  ): Promise<ProviderHealthCheck[]> {
+    const providersHealthCheck: ProviderHealthCheck[] = [];
     const providers = this.pool.getProviders();
     let response;
 
@@ -34,17 +38,18 @@ export class SuiJsonRPCBlockRepository implements SuiRepository {
         response = await this.pool.get().getLatestCheckpointSequenceNumber();
         const requestEndTime = performance.now();
 
-        result.push({
+        providersHealthCheck.push({
           url: provider.url,
           height: BigInt(response),
           isLive: true,
           latency: Number(((requestEndTime - requestStartTime) / 1000).toFixed(2)),
         });
       } catch (e) {
-        result.push({ url: provider.url, height: undefined, isLive: false });
+        providersHealthCheck.push({ url: provider.url, height: undefined, isLive: false });
       }
     }
-    this.pool.setProviders(chain, providers, result, cursor);
+    this.pool.setProviders(chain, providers, providersHealthCheck, cursor);
+    return providersHealthCheck;
   }
 
   async getLastCheckpointNumber(): Promise<bigint> {

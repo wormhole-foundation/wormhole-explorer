@@ -27,15 +27,19 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
     this.pool = pool;
   }
 
-  async healthCheck(chain: string, finality: string, cursor: bigint): Promise<void> {
+  async healthCheck(
+    chain: string,
+    finality: string,
+    cursor: bigint
+  ): Promise<ProviderHealthCheck[]> {
     // If the cursor is not set yet, we try again later
     if (!cursor) {
-      return;
+      return [];
     }
     const blockEndpoint = `${BLOCK_BY_VERSION_ENDPOINT}/${Number(cursor)}`;
     const providers = this.pool.getProviders();
     let blockResult: AptosBlockByVersion = {};
-    const result: ProviderHealthCheck[] = [];
+    const providersHealthCheck: ProviderHealthCheck[] = [];
 
     for (const provider of providers) {
       try {
@@ -43,17 +47,18 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
         blockResult = await this.pool.get().get<typeof blockResult>(blockEndpoint);
         const requestEndTime = performance.now();
 
-        result.push({
+        providersHealthCheck.push({
           url: provider.getUrl(),
           height: BigInt(blockResult.block_height!),
           isLive: true,
           latency: Number(((requestEndTime - requestStartTime) / 1000).toFixed(2)),
         });
       } catch (e) {
-        result.push({ url: provider.getUrl(), height: undefined, isLive: false });
+        providersHealthCheck.push({ url: provider.getUrl(), height: undefined, isLive: false });
       }
     }
-    this.pool.setProviders(chain, providers, result, cursor);
+    this.pool.setProviders(chain, providers, providersHealthCheck, cursor);
+    return providersHealthCheck;
   }
 
   async getEventsByEventHandle(

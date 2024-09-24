@@ -7,6 +7,7 @@ export class PoolRpcs extends RunPoolRpcs {
 
   private repositories: Repos;
   private cfg: PoolRpcsConfig;
+  private reportValues: any;
 
   constructor(repositories: Repos, cfg: PoolRpcsConfig) {
     super(repositories);
@@ -16,28 +17,38 @@ export class PoolRpcs extends RunPoolRpcs {
   }
 
   protected async set(): Promise<void> {
-    setInterval(async () => {
-      try {
-        for (const cfg of this.cfg.getProps()) {
-          const { id, repository, chain, commitment } = cfg;
+    try {
+      for (const cfg of this.cfg.getProps()) {
+        const { id, repository, chain, commitment } = cfg;
 
-          const metadata = await this.repositories.metadataRepo.get(id);
-          const cursor = this.normalizeCursor(metadata);
+        const metadata = await this.repositories.metadataRepo.get(id);
+        const cursor = this.normalizeCursor(metadata);
 
-          if (!repository) {
-            this.logger.error(`Repository not found: ${repository}`);
-            continue;
-          }
-
-          await repository.healthCheck(chain, commitment, cursor);
+        if (!repository) {
+          this.logger.error(`Repository not found: ${repository}`);
+          continue;
         }
-      } catch (e) {
-        this.logger.error(`Error setting providers: ${e}`);
+
+        const result = await repository.healthCheck(chain, commitment, cursor);
+        this.reportValues = {
+          id,
+          chain,
+          commitment,
+          ...result,
+        };
       }
-    }, 1 * 60 * 60 * 1000); // 1 hour
+    } catch (e) {
+      this.logger.error(`Error setting providers: ${e}`);
+    }
   }
 
-  protected report(): void {}
+  protected report(): void {
+    const labels = {
+      job: `pool-rpcs-${this.reportValues.id}`,
+      chain: this.reportValues.chain,
+      commitment: this.reportValues.commitment,
+    };
+  }
 
   private normalizeCursor(blockHeight: { [key: string]: any }): string {
     const keys = ["lastBlock", "lastFrom", "lastSlot", "lastCursor"];

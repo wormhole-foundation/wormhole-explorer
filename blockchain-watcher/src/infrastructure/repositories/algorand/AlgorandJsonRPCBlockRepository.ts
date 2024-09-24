@@ -24,9 +24,13 @@ export class AlgorandJsonRPCBlockRepository implements AlgorandRepository {
     this.algoIndexerPools = algoIndexerPools;
   }
 
-  async healthCheck(chain: string, finality: string, cursor: bigint): Promise<void> {
+  async healthCheck(
+    chain: string,
+    finality: string,
+    cursor: bigint
+  ): Promise<ProviderHealthCheck[]> {
     const providers = this.algoV2Pools.getProviders();
-    const result: ProviderHealthCheck[] = [];
+    const providersHealthCheck: ProviderHealthCheck[] = [];
     let response: ResultStatus;
 
     for (const provider of providers) {
@@ -39,7 +43,7 @@ export class AlgorandJsonRPCBlockRepository implements AlgorandRepository {
         const lastRound = response["last-round"] ? BigInt(response["last-round"]) : undefined;
         const isLive = lastRound !== undefined;
 
-        result.push({
+        providersHealthCheck.push({
           url: url,
           height: lastRound,
           isLive: isLive,
@@ -47,10 +51,11 @@ export class AlgorandJsonRPCBlockRepository implements AlgorandRepository {
         });
       } catch (e) {
         console.error(`Error fetching status from ${url}:`, e);
-        result.push({ url: url, height: undefined, isLive: false });
+        providersHealthCheck.push({ url: url, height: undefined, isLive: false });
       }
     }
-    this.algoV2Pools.setProviders(chain, providers, result, cursor);
+    this.algoV2Pools.setProviders(chain, providers, providersHealthCheck, cursor);
+    return providersHealthCheck;
   }
 
   async getBlockHeight(): Promise<bigint | undefined> {

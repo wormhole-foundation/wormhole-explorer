@@ -1,4 +1,5 @@
 import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
+import { ProviderHealthCheck } from "../../../domain/actions/poolRpcs/PoolRpcs";
 import { NearTransaction } from "../../../domain/entities/near";
 import { NearRepository } from "../../../domain/repositories";
 import { Options } from "../common/rateLimitedOptions";
@@ -17,7 +18,7 @@ export class RateLimitedNearJsonRPCBlockRepository
     this.logger = winston.child({ module: "RateLimitedNearJsonRPCBlockRepository" });
   }
 
-  healthCheck(chain: string, finality: string, cursor: bigint): Promise<void> {
+  healthCheck(chain: string, finality: string, cursor: bigint): Promise<ProviderHealthCheck[]> {
     return this.breaker.fn(() => this.delegate.healthCheck(chain, finality, cursor)).execute();
   }
 

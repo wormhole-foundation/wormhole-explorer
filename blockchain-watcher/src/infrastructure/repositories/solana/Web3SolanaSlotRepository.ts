@@ -20,9 +20,13 @@ export class Web3SolanaSlotRepository implements SolanaSlotRepository {
     this.logger = winston.child({ module: "Web3SolanaSlotRepository" });
   }
 
-  async healthCheck(chain: string, finality: string, cursor: bigint): Promise<void> {
+  async healthCheck(
+    chain: string,
+    finality: string,
+    cursor: bigint
+  ): Promise<ProviderHealthCheck[]> {
     const providers = this.pool.getProviders();
-    const result: ProviderHealthCheck[] = [];
+    const providersHealthCheck: ProviderHealthCheck[] = [];
 
     for (const provider of providers) {
       try {
@@ -30,17 +34,18 @@ export class Web3SolanaSlotRepository implements SolanaSlotRepository {
         const response = await this.pool.get().getSlot(finality as Commitment);
         const requestEndTime = performance.now();
 
-        result.push({
+        providersHealthCheck.push({
           url: provider.getUrl(),
           height: BigInt(response),
           isLive: true,
           latency: Number(((requestEndTime - requestStartTime) / 1000).toFixed(2)),
         });
       } catch (e) {
-        result.push({ url: provider.getUrl(), height: undefined, isLive: false });
+        providersHealthCheck.push({ url: provider.getUrl(), height: undefined, isLive: false });
       }
     }
-    this.pool.setProviders(chain, providers, result, cursor);
+    this.pool.setProviders(chain, providers, providersHealthCheck, cursor);
+    return providersHealthCheck;
   }
 
   getLatestSlot(commitment: string): Promise<number> {

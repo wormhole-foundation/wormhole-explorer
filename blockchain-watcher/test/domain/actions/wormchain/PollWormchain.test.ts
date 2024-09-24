@@ -116,7 +116,7 @@ const givenEvmBlockRepository = (height?: bigint, logs: any = []) => {
     getBlockHeight: () => Promise.resolve(height),
     getBlockLogs: () => Promise.resolve(logs),
     getRedeems: () => Promise.resolve([]),
-    healthCheck: () => Promise.resolve(),
+    healthCheck: () => Promise.resolve([]),
   };
 
   getBlockHeightSpy = jest.spyOn(wormchainBlockRepo, "getBlockHeight");
