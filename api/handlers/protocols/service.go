@@ -237,13 +237,13 @@ func (s *Service) getAllbridgeStats(ctx context.Context, _ string) (ProtocolStat
 
 	activity, err := s.repo.getAllbridgeActivity(ctx)
 	if err != nil {
-		s.logger.Error("error fetching allbridge activity", zap.Error(err), zap.String("allbridge", allbridge))
+		s.logger.Error("error fetching allbridge activity", zap.Error(err), zap.String("protocol", allbridge))
 		return ProtocolStats{Protocol: allbridge}, err
 	}
 
 	rStats := <-statsRes
 	if rStats.Err != nil {
-		s.logger.Error("error fetching allbridge stats", zap.Error(rStats.Err), zap.String("allbridge", allbridge))
+		s.logger.Error("error fetching allbridge stats", zap.Error(rStats.Err), zap.String("protocol", allbridge))
 		return ProtocolStats{Protocol: allbridge}, rStats.Err
 	}
 
