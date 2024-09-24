@@ -24,17 +24,21 @@ export class Web3SolanaSlotRepository implements SolanaSlotRepository {
     return this.pool;
   }
 
-  async healthCheck(_: string, finality: EvmTag, cursor: bigint): Promise<void> {
+  async healthCheck(_: string, finality: string, cursor: bigint): Promise<void> {
     const providers = this.pool.getProviders();
     const result: ProviderHealthCheck[] = [];
 
     for (const provider of providers) {
       try {
+        const requestStartTime = performance.now();
         const response = await this.pool.get().getSlot(finality as Commitment);
+        const requestEndTime = performance.now();
+
         result.push({
           url: provider.getUrl(),
           height: BigInt(response),
           isLive: true,
+          latency: Number(((requestEndTime - requestStartTime) / 1000).toFixed(2)),
         });
       } catch (e) {
         result.push({ url: provider.getUrl(), height: undefined, isLive: false });

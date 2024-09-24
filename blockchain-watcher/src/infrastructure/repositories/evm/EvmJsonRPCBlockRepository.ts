@@ -44,16 +44,19 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
 
     for (const provider of providers) {
       try {
+        const requestStartTime = performance.now();
         const response = await this.getBlockByNumber(
           provider,
           finality,
           false // isTransactionsPresent
         );
+        const requestEndTime = performance.now();
 
         result.push({
           url: provider.getUrl(),
           height: BigInt(response.result?.number!),
           isLive: true,
+          latency: Number(((requestEndTime - requestStartTime) / 1000).toFixed(2)),
         });
       } catch (e) {
         result.push({ url: provider.getUrl(), height: undefined, isLive: false });
@@ -105,6 +108,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
           retries: chainCfg.retries,
         });
       } catch (e: HttpClientError | any) {
+        provider.setProviderOffline();
         throw e;
       }
 

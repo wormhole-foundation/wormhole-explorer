@@ -53,64 +53,89 @@ export class HealthyProvidersPool<
 
   setProviders(
     providers: InstrumentedHttpProvider[],
-    providerHealthCheck: ProviderHealthCheck[],
-    blockHeightCursor: bigint | undefined
+    providersHealthCheck: ProviderHealthCheck[],
+    cursor: bigint | undefined
   ): void {
+    if (providers?.length === 0 || providersHealthCheck?.length === 0) {
+      return;
+    }
     const auxProvider = providers;
 
-    // If there are no providers or cursor, we dont need to do anything
-    if (!blockHeightCursor || !providerHealthCheck || providerHealthCheck.length === 0) {
+    const providersLive = this.isLive(providersHealthCheck);
+    if (providersLive.length === 0) {
       return;
     }
 
-    const filteredProviders = this.filterProviders(providerHealthCheck, blockHeightCursor);
-    if (filteredProviders.length === 0) {
-      return;
-    }
+    const filter = this.filterByHeight(providersLive, cursor);
+    const sort = this.sort(filter);
+    const healthy = this.remove(auxProvider, sort);
 
-    const sortedProviders = this.sortResponsesByHeight(filteredProviders);
-    const averageProviders = this.calculateAverageHeight(filteredProviders);
-    const healthyProviders = this.removeInvalidProviders(auxProvider, sortedProviders);
-
-    this.providers = (healthyProviders as unknown as T[]) ?? providers;
+    this.providers =
+      healthy.length > 0 ? (healthy as unknown as T[]) : (providers as unknown as T[]);
   }
 
-  private filterProviders(providers: ProviderHealthCheck[], blockHeightCursor: bigint) {
+  private isLive(providers: ProviderHealthCheck[]) {
+    return providers.filter((provider) => provider.isLive);
+  }
+
+  private filterByHeight(
+    providers: ProviderHealthCheck[],
+    cursor: bigint | undefined
+  ): ProviderHealthCheck[] {
     // Filter out providers that are behind the cursor
-    let providersToFilter = providers.filter((provider) => provider.height! >= blockHeightCursor);
-    const heights = providersToFilter.map((item) => parseFloat(String(item.height)));
-
-    // Determine the maximum height and the next maximum height
-    const maxHeight = Math.max(...heights);
-    const nextMaxHeight = Math.max(...heights.filter((h) => h < maxHeight)); // TODO: This is not working as expected
-
-    // Filter out the maximum height if it's significantly ahead
-    if (!nextMaxHeight && maxHeight - nextMaxHeight > THRESHOLD) {
-      providersToFilter = providersToFilter.filter(
-        (item) => parseFloat(String(item.height)) < nextMaxHeight + 1
-      );
+    if (cursor) {
+      providers = providers.filter((provider) => provider.height && provider.height >= cursor);
     }
-    return providersToFilter;
+
+    const providerWithHeight = providers.filter((provider) => provider.height);
+    if (providerWithHeight?.length > 0) {
+      const heights = providerWithHeight.map((item) => parseFloat(String(item.height)));
+
+      // Determine the maximum height and the next maximum height
+      const maxHeight = Math.max(...heights);
+      const nextMaxHeight = Math.max(...heights.filter((h) => h < maxHeight));
+
+      // Filter out the maximum height if it's significantly ahead
+      if (nextMaxHeight && maxHeight - nextMaxHeight > THRESHOLD) {
+        providers = providerWithHeight.filter(
+          (item) => parseFloat(String(item.height)) < maxHeight
+        );
+      }
+    }
+
+    return providers;
   }
 
-  private sortResponsesByHeight(providerHealthCheck: ProviderHealthCheck[]): ProviderHealthCheck[] {
-    return providerHealthCheck.sort((a, b) => Number(b.height) - Number(a.height));
+  private sort(providers: ProviderHealthCheck[]): ProviderHealthCheck[] {
+    return providers.sort((a, b) => {
+      const heightDifference = Number(b.height) - Number(a.height);
+      if (heightDifference !== 0) {
+        return heightDifference;
+      }
+      // Handle cases where latency might be undefined
+      const latencyA = a.latency ?? Infinity;
+      const latencyB = b.latency ?? Infinity;
+      return latencyA - latencyB;
+    });
   }
 
-  private calculateAverageHeight(filteredProviders: ProviderHealthCheck[]): bigint {
-    const totalHeight = filteredProviders.reduce(
-      (sum, provider) => sum + provider.height!,
-      BigInt(0)
-    );
-    const a = totalHeight / BigInt(filteredProviders.length);
-    return a;
-  }
-
-  private removeInvalidProviders(
+  private remove(
     auxProvider: InstrumentedHttpProvider[],
-    filteredProviders: ProviderHealthCheck[]
+    providers: ProviderHealthCheck[]
   ): InstrumentedHttpProvider[] {
-    const filteredUrls = new Set(filteredProviders.map((provider) => provider.url));
-    return auxProvider.filter((provider) => filteredUrls.has(provider.getUrl()));
+    // Create a map for quick lookup of the index of each provider URL in filteredProviders
+    const filteredUrlIndexMap = new Map<string, number>();
+    providers.forEach((provider, index) => {
+      filteredUrlIndexMap.set(provider.url, index);
+    });
+
+    // Filter and sort auxProvider based on the order in filteredProviders
+    return auxProvider
+      .filter((provider) => filteredUrlIndexMap.has(provider.getUrl()))
+      .sort((a, b) => {
+        const indexA = filteredUrlIndexMap.get(a.getUrl())!;
+        const indexB = filteredUrlIndexMap.get(b.getUrl())!;
+        return indexA - indexB;
+      });
   }
 }

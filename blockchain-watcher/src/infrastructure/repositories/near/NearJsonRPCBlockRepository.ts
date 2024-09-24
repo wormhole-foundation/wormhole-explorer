@@ -26,11 +26,15 @@ export class NearJsonRPCBlockRepository implements NearRepository {
 
     for (const provider of providers) {
       try {
+        const requestStartTime = performance.now();
         response = await this.getBlockByHeight(provider, finality);
+        const requestEndTime = performance.now();
+
         result.push({
           url: provider.getUrl(),
           height: response,
           isLive: true,
+          latency: Number(((requestEndTime - requestStartTime) / 1000).toFixed(2)),
         });
       } catch (e) {
         result.push({ url: provider.getUrl(), height: undefined, isLive: false });

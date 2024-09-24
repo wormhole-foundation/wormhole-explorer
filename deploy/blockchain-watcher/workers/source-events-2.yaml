@@ -48,6 +48,7 @@ data:
           "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -87,6 +88,7 @@ data:
           "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -126,6 +128,7 @@ data:
           "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -165,6 +168,7 @@ data:
           "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -204,6 +208,7 @@ data:
           "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -240,9 +245,10 @@ data:
         "chain": "polygon-sepolia",
         "source": {
           "action": "PollEvm",
-          "repository": "polygon-evmRepo",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -282,6 +288,7 @@ data:
           "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -318,9 +325,10 @@ data:
         "chain": "wormchain",
         "source": {
           "action": "PollWormchain",
-          "repository": "wormchain-repo",
+          "repository": "wormchainRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 5000,
             "addresses": ["wormhole16jzpxp0e8550c9aht6q9svcux30vtyyyyxv5w2l2djjra46580wsazcjwp"],
@@ -350,6 +358,7 @@ data:
           "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 5000,
             "filters": [
@@ -389,6 +398,7 @@ data:
           "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 5000,
             "filters": [
@@ -428,6 +438,7 @@ data:
           "repository": "evmRepo",
           "config": {
             "blockBatchSize": 4,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 5000,
             "filters": [
@@ -470,6 +481,7 @@ data:
           "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 5000,
             "filters": [
@@ -509,6 +521,7 @@ data:
           "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 5000,
             "filters": [
@@ -548,6 +561,7 @@ data:
           "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 5000,
             "filters": [
@@ -587,6 +601,7 @@ data:
           "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 5000,
             "filters": [
@@ -626,6 +641,7 @@ data:
           "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 5000,
             "filters": [
@@ -662,9 +678,10 @@ data:
         "chain": "polygon",
         "source": {
           "action": "PollEvm",
-          "repository": "polygon-evmRepo",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 5000,
             "filters": [
@@ -701,9 +718,10 @@ data:
         "chain": "wormchain",
         "source": {
           "action": "PollWormchain",
-          "repository": "wormchain-repo",
+          "repository": "wormchainRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 5000,
             "addresses": [
@@ -739,6 +757,7 @@ data:
           "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 5000,
             "filters": [
@@ -778,6 +797,7 @@ data:
           "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -817,6 +837,7 @@ data:
           "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 5000,
             "filters": [
@@ -856,6 +877,7 @@ data:
           "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 5000,
             "filters": [

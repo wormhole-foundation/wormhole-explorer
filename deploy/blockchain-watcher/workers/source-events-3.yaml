@@ -45,9 +45,10 @@ data:
         "chain": "sui",
         "source": {
           "action": "PollSuiTransactions",
-          "repository": "sui-repo",
+          "repository": "suiRepo",
           "config": {
             "interval": 5000,
+            "environment": "testnet",
             "chain": "sui",
             "filter": {
               "MoveFunction": {
@@ -77,10 +78,11 @@ data:
         "chain": "aptos",
         "source": {
           "action": "PollAptos",
-          "repository": "aptos-repo",
+          "repository": "aptosRepo",
           "config": {
             "limitBatchSize": 100,
             "commitment": "finalized",
+            "environment": "testnet",
             "interval": 25000,
             "addresses": ["0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625"],
             "chain": "aptos",
@@ -123,10 +125,11 @@ data:
         "chain": "algorand",
         "source": {
           "action": "PollAlgorand",
-          "repository": "algorand-repo",
+          "repository": "algorandRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
+            "environment": "testnet",
             "interval": 25000,
             "applicationIds": ["86525623"],
             "chain": "algorand",
@@ -159,39 +162,40 @@ data:
         "id": "poll-log-message-published-snaxchain",
         "chain": "snaxchain",
         "source": {
-          "action": "PollEvm",
-          "repository": "evmRepo",
-          "config": {
-              "blockBatchSize": 100,
-              "commitment": "latest",
-              "interval": 15000,
-              "filters": [
-                {
-                  "addresses": ["0xBB73cB66C26740F31d1FabDC6b7A46a038A300dd"],
-                  "type": "Portal Token Bridge",
-                  "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-                }
-              ],
-              "chain": "snaxchain",
-              "chainId": 43
-          }
+            "action": "PollEvm",
+            "repository": "evmRepo",
+            "config": {
+                "blockBatchSize": 100,
+                "commitment": "latest",
+                "environment": "testnet",
+                "interval": 15000,
+                "filters": [
+                  {
+                    "addresses": ["0xBB73cB66C26740F31d1FabDC6b7A46a038A300dd"],
+                    "type": "Portal Token Bridge",
+                    "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+                  }
+                ],
+                "chain": "snaxchain",
+                "chainId": 43
+            }
         },
         "handlers": [
-          {
-              "action": "HandleEvmLogs",
-              "target": "sns",
-              "mapper": "evmLogMessagePublishedMapper",
-              "config": {
-            "abis": [
-              {
-                "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-                "topic": "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2",
-                "type": "Portal Token Bridge"
-              }
-            ],
-                  "metricName": "process_source_event"
-              }
-          }
+            {
+                "action": "HandleEvmLogs",
+                "target": "sns",
+                "mapper": "evmLogMessagePublishedMapper",
+                "config": {
+              "abis": [
+                {
+                  "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                  "topic": "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2",
+                  "type": "Portal Token Bridge"
+                }
+              ],
+                    "metricName": "process_source_event"
+                }
+            }
         ]
       }
     ]
@@ -202,10 +206,11 @@ data:
         "chain": "sui",
         "source": {
           "action": "PollSuiTransactions",
-          "repository": "sui-repo",
+          "repository": "suiRepo",
           "config": {
             "interval": 5000,
             "chain": "sui",
+            "environment": "mainnet",
             "filter": {
               "MoveFunction": {
                 "package": "0x5306f64e312b581766351c07af79c72fcb1cd25147157fdc2f8ad76de9a3fb6a",
@@ -239,11 +244,12 @@ data:
         "chain": "aptos",
         "source": {
           "action": "PollAptos",
-          "repository": "aptos-repo",
+          "repository": "aptosRepo",
           "config": {
             "limitBatchSize": 100,
             "commitment": "finalized",
             "interval": 15000,
+            "environment": "mainnet",
             "addresses": ["0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625"],
             "chain": "aptos",
             "chainId": 22,
@@ -285,9 +291,10 @@ data:
         "chain": "algorand",
         "source": {
           "action": "PollAlgorand",
-          "repository": "algorand-repo",
+          "repository": "algorandRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 15000,
             "applicationIds": ["842125965"],
@@ -322,10 +329,11 @@ data:
         "chain": "terra",
         "source": {
           "action": "PollCosmos",
-          "repository": "cosmos-repo",
+          "repository": "cosmosRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "immediate",
+            "environment": "mainnet",
             "interval": 60000,
             "filter": {
               "addresses": [
@@ -362,10 +370,11 @@ data:
         "chain": "terra2",
         "source": {
           "action": "PollCosmos",
-          "repository": "cosmos-repo",
+          "repository": "cosmosRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "immediate",
+            "environment": "mainnet",
             "interval": 60000,
             "filter": {
               "addresses": [
@@ -402,10 +411,11 @@ data:
         "chain": "xpla",
         "source": {
           "action": "PollCosmos",
-          "repository": "cosmos-repo",
+          "repository": "cosmosRepo",
           "config": {
             "blockBatchSize": 50,
             "commitment": "immediate",
+            "environment": "mainnet",
             "interval": 60000,
             "filter": {
               "addresses": [
@@ -441,39 +451,40 @@ data:
         "id": "poll-log-message-published-snaxchain",
         "chain": "snaxchain",
         "source": {
-          "action": "PollEvm",
-          "repository": "evmRepo",
-          "config": {
-              "blockBatchSize": 100,
-              "commitment": "latest",
-              "interval": 5000,
-              "filters": [
-                {
-                  "addresses": ["0xc1BA3CC4bFE724A08FbbFbF64F8db196738665f4"],
-                  "type": "Portal Token Bridge",
-                  "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-                }
-              ],
-              "chain": "snaxchain",
-              "chainId": 43
-          }
+            "action": "PollEvm",
+            "repository": "evmRepo",
+            "config": {
+                "blockBatchSize": 100,
+                "commitment": "latest",
+                "environment": "mainnet",
+                "interval": 5000,
+                "filters": [
+                  {
+                    "addresses": ["0xc1BA3CC4bFE724A08FbbFbF64F8db196738665f4"],
+                    "type": "Portal Token Bridge",
+                    "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+                  }
+                ],
+                "chain": "snaxchain",
+                "chainId": 43
+            }
         },
         "handlers": [
-          {
-              "action": "HandleEvmLogs",
-              "target": "sns",
-              "mapper": "evmLogMessagePublishedMapper",
-              "config": {
-                  "abis": [
-                    {
-                      "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-                      "topic": "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2",
-                      "type": "Portal Token Bridge"
-                    }
-                  ],
-                  "metricName": "process_source_event"
-              }
-          }
+            {
+                "action": "HandleEvmLogs",
+                "target": "sns",
+                "mapper": "evmLogMessagePublishedMapper",
+                "config": {
+                    "abis": [
+                      {
+                        "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                        "topic": "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2",
+                        "type": "Portal Token Bridge"
+                      }
+                    ],
+                    "metricName": "process_source_event"
+                }
+            }
         ]
       }
     ]

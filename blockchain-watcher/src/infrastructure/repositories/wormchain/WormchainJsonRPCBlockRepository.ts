@@ -40,7 +40,9 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
 
     for (const provider of providers) {
       try {
+        const requestStartTime = performance.now();
         reponse = await provider.get<typeof reponse>(BLOCK_HEIGHT_ENDPOINT);
+        const requestEndTime = performance.now();
 
         if (
           reponse &&
@@ -53,6 +55,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
             url: provider.getUrl(),
             height: BigInt(blockHeight),
             isLive: true,
+            latency: Number(((requestEndTime - requestStartTime) / 1000).toFixed(2)),
           });
         }
       } catch (e) {

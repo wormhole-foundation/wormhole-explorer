@@ -1,7 +1,7 @@
-import winston from "winston";
 import { JobDefinition } from "../entities";
-import { Job } from "../jobs";
 import { RunPoolRpcs } from "./RunPoolRpcs";
+import winston from "winston";
+import { Job } from "../jobs";
 
 const POOL_RPCS = "pool-rpcs";
 

@@ -21,7 +21,7 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
     this.cfg = cfg;
   }
 
-  async healthCheck(chain: string, _: EvmTag, cursor: bigint): Promise<void> {
+  async healthCheck(chain: string, finality: string, cursor: bigint): Promise<void> {
     const resultHeight: ProviderHealthCheck[] = [];
     const pool = this.pool[chain];
     const providers = pool.getProviders();
@@ -30,7 +30,10 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
 
     for (const provider of providers) {
       try {
+        const requestStartTime = performance.now();
         resultsBlock = await provider.get<typeof resultsBlock>(blockEndpoint);
+        const requestEndTime = performance.now();
+
         const result = (
           "result" in resultsBlock ? resultsBlock.result : resultsBlock
         ) as ResultBlock;
@@ -39,6 +42,7 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
           url: provider.getUrl(),
           height: BigInt(result.block.header.height),
           isLive: true,
+          latency: Number(((requestEndTime - requestStartTime) / 1000).toFixed(2)),
         });
       } catch (e) {
         resultHeight.push({ url: provider.getUrl(), height: undefined, isLive: false });

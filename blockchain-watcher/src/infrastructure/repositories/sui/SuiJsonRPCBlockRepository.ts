@@ -23,18 +23,22 @@ export class SuiJsonRPCBlockRepository implements SuiRepository {
     this.logger = winston.child({ module: "SuiJsonRPCBlockRepository" });
   }
 
-  async healthCheck(chain: string, finality: EvmTag, cursor: bigint): Promise<void> {
+  async healthCheck(chain: string, finality: string, cursor: bigint): Promise<void> {
     const result: ProviderHealthCheck[] = [];
     const providers = this.pool.getProviders();
     let response;
 
     for (const provider of providers) {
       try {
+        const requestStartTime = performance.now();
         response = await this.pool.get().getLatestCheckpointSequenceNumber();
+        const requestEndTime = performance.now();
+
         result.push({
           url: provider.url,
           height: BigInt(response),
           isLive: true,
+          latency: Number(((requestEndTime - requestStartTime) / 1000).toFixed(2)),
         });
       } catch (e) {
         result.push({ url: provider.url, height: undefined, isLive: false });

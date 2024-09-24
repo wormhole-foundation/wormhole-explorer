@@ -10,8 +10,8 @@ export class GetTransactionsByLogFiltersStrategy implements GetTransactions {
     this.blockRepo = blockRepo;
   }
 
-  appliesTo(addresses: string[], topics: string[]): boolean {
-    return addresses.length == 0 && topics.length > 0; // Process only by topics
+  appliesTo(strategy: string): boolean {
+    return strategy == GetTransactionsByLogFiltersStrategy.name;
   }
 
   async execute(

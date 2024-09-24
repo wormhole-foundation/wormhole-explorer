@@ -32,11 +32,19 @@ export class AlgorandJsonRPCBlockRepository implements AlgorandRepository {
     for (const provider of providers) {
       const url = provider.getUrl();
       try {
+        const requestStartTime = performance.now();
         response = await provider.get<typeof response>(STATUS_ENDPOINT);
+        const requestEndTime = performance.now();
+
         const lastRound = response["last-round"] ? BigInt(response["last-round"]) : undefined;
         const isLive = lastRound !== undefined;
 
-        result.push({ url: url, height: lastRound, isLive: isLive });
+        result.push({
+          url: url,
+          height: lastRound,
+          isLive: isLive,
+          latency: Number(((requestEndTime - requestStartTime) / 1000).toFixed(2)),
+        });
       } catch (e) {
         console.error(`Error fetching status from ${url}:`, e);
         result.push({ url: url, height: undefined, isLive: false });

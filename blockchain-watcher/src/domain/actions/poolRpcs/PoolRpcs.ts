@@ -19,22 +19,17 @@ export class PoolRpcs extends RunPoolRpcs {
     setInterval(async () => {
       try {
         for (const cfg of this.cfg.getProps()) {
-          const metadata = await this.repositories.metadataRepo.get(cfg.id);
+          const { id, repository, chain, commitment } = cfg;
+
+          const metadata = await this.repositories.metadataRepo.get(id);
           const cursor = this.normalizeCursor(metadata);
-          const repository = cfg.repository;
-          const chain = cfg.chain;
 
-          const repo =
-            repository == "evmRepo"
-              ? this.repositories.evmRepo(chain)
-              : (this.repositories[repository as keyof Repos] as any);
-
-          if (!repo) {
+          if (!repository) {
             this.logger.error(`Repository not found: ${repository}`);
             continue;
           }
 
-          await repo.healthCheck(chain, cfg.commitment, cursor);
+          await repository.healthCheck(chain, commitment, cursor);
         }
       } catch (e) {
         this.logger.error(`Error setting providers: ${e}`);
@@ -66,15 +61,16 @@ export class PoolRpcs extends RunPoolRpcs {
 }
 
 export type ProviderHealthCheck = {
-  url: string;
+  latency?: number;
   height: bigint | undefined;
   isLive: boolean;
+  url: string;
 };
 
 export interface PoolRpcsConfigProps {
   environment: string;
   commitment: string;
-  repository: string;
+  repository: any;
   interval?: number;
   chainId: number;
   chain: string;

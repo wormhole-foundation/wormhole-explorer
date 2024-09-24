@@ -45,10 +45,12 @@ data:
         "chain": "aptos",
         "source": {
           "action": "PollAptos",
+          "repository": "aptosRepo",
           "records": "GetAptosTransactions",
           "config": {
             "limitBatchSize": 100,
             "commitment": "finalized",
+            "environment": "testnet",
             "interval": 35000,
             "addresses": [
               "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
@@ -84,6 +86,7 @@ data:
         "chain": "sui",
         "source": {
           "action": "PollSuiTransactions",
+          "repository": "suiRepo",
           "config": {
             "interval": 35000,
             "chain": "sui",
@@ -115,6 +118,7 @@ data:
         "chain": "sui",
         "source": {
           "action": "PollSuiTransactions",
+          "repository": "suiRepo",
           "config": {
             "interval": 35000,
             "chain": "sui",
@@ -146,10 +150,12 @@ data:
         "chain": "wormchain",
         "source": {
           "action": "PollWormchain",
+          "repository": "wormchainRepo",
           "records": "GetWormchainRedeems",
           "config": {
             "blockBatchSize": 50,
             "commitment": "latest",
+            "environment": "testnet",
             "interval": 35000,
             "addresses": ["wormhole1aaf9r6s7nxhysuegqrxv0wpm27ypyv4886medd3mrkrw6t4yfcnst3qpex"],
             "chain": "wormchain",
@@ -175,9 +181,11 @@ data:
         "chain": "algorand",
         "source": {
           "action": "PollAlgorand",
+          "repository": "algorandRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
+            "environment": "testnet",
             "interval": 35000,
             "applicationIds": ["86525641"],
             "chain": "algorand",
@@ -206,16 +214,19 @@ data:
         "chain": "klaytn",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
+            "environment": "testnet",
             "interval": 35000,
             "filters": [
               {
                 "addresses": [],
                 "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
-                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
               }
             ],
             "chain": "klaytn",
@@ -238,16 +249,19 @@ data:
         "chain": "acala",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
             "commitment": "finalized",
+            "environment": "testnet",
             "interval": 60000,
             "filters": [
               {
                 "addresses": [],
                 "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
-                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
               }
             ],
             "chain": "acala",
@@ -273,10 +287,12 @@ data:
         "chain": "aptos",
         "source": {
           "action": "PollAptos",
+          "repository": "aptosRepo",
           "records": "GetAptosTransactions",
           "config": {
             "limitBatchSize": 100,
             "commitment": "finalized",
+            "environment": "mainnet",
             "interval": 3000,
             "addresses": [
               "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
@@ -312,8 +328,10 @@ data:
         "chain": "sui",
         "source": {
           "action": "PollSuiTransactions",
+          "repository": "suiRepo",
           "config": {
             "interval": 5000,
+            "environment": "mainnet",
             "chain": "sui",
             "filter": {
               "MoveFunction": {
@@ -343,8 +361,10 @@ data:
         "chain": "sui",
         "source": {
           "action": "PollSuiTransactions",
+          "repository": "suiRepo",
           "config": {
             "interval": 5000,
+            "environment": "mainnet",
             "chain": "sui",
             "filter": {
               "MoveFunction": {
@@ -374,10 +394,12 @@ data:
         "chain": "wormchain",
         "source": {
           "action": "PollWormchain",
+          "repository": "wormchainRepo",
           "records": "GetWormchainRedeems",
           "config": {
             "blockBatchSize": 50,
             "commitment": "latest",
+            "environment": "mainnet",
             "interval": 15000,
             "addresses": ["wormhole1466nf3zuxpya8q9emxukd7vftaf6h4psr0a07srl5zw74zh84yjq4lyjmh"],
             "chain": "wormchain",
@@ -403,9 +425,11 @@ data:
         "chain": "sei",
         "source": {
           "action": "PollCosmos",
+          "repository": "corsmosRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
+            "environment": "mainnet",
             "interval": 60000,
             "filter": {
               "addresses": [
@@ -437,9 +461,11 @@ data:
         "chain": "algorand",
         "source": {
           "action": "PollAlgorand",
+          "repository": "algorandRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
+            "environment": "mainnet",
             "interval": 15000,
             "applicationIds": ["842126029"],
             "chain": "algorand",
@@ -468,16 +494,19 @@ data:
         "chain": "klaytn",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
+            "environment": "mainnet",
             "interval": 15000,
             "filters": [
               {
                 "addresses": [],
                 "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
-                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
               }
             ],
             "chain": "klaytn",
@@ -500,16 +529,19 @@ data:
         "chain": "acala",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
             "commitment": "finalized",
+            "environment": "mainnet",
             "interval": 60000,
             "filters": [
               {
                 "addresses": [],
                 "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
-                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
               }
             ],
             "chain": "acala",
@@ -532,9 +564,11 @@ data:
         "chain": "terra",
         "source": {
           "action": "PollCosmos",
+          "repository": "cosmosRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "immediate",
+            "environment": "mainnet",
             "interval": 60000,
             "filter": {
               "addresses": [
@@ -566,9 +600,11 @@ data:
         "chain": "terra2",
         "source": {
           "action": "PollCosmos",
+          "repository": "cosmosRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "immediate",
+            "environment": "mainnet",
             "interval": 60000,
             "filter": {
               "addresses": [
@@ -600,9 +636,11 @@ data:
         "chain": "xpla",
         "source": {
           "action": "PollCosmos",
+          "repository": "cosmosRepo",
           "config": {
             "blockBatchSize": 50,
             "commitment": "immediate",
+            "environment": "mainnet",
             "interval": 60000,
             "filter": {
               "addresses": [

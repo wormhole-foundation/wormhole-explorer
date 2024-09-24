@@ -149,10 +149,10 @@ export class RepositoriesBuilder {
   }
 
   public getEvmBlockRepository(chain: string): EvmJsonRPCBlockRepository {
-    const instanceRepoName = EVM_CHAINS.get(chain);
-    if (!instanceRepoName)
+    const instance = EVM_CHAINS.get(chain);
+    if (!instance)
       throw new Error(`[RepositoriesBuilder] Chain ${chain.toLocaleUpperCase()} not supported`);
-    return this.getRepo(instanceRepoName);
+    return this.getRepo(instance);
   }
 
   public getSnsEventRepository(): SnsEventRepository | undefined {
@@ -181,7 +181,7 @@ export class RepositoriesBuilder {
     return this.getRepo("metrics");
   }
 
-  public getJobsRepository(): Job {
+  public getJobs(): Job {
     return this.getRepo("jobs");
   }
 

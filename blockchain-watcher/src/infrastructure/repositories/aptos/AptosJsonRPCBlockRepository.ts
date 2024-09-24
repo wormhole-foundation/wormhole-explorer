@@ -28,7 +28,7 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
     this.pool = pool;
   }
 
-  async healthCheck(chain: string, finality: EvmTag, cursor: bigint): Promise<void> {
+  async healthCheck(chain: string, finality: string, cursor: bigint): Promise<void> {
     // If the cursor is not set yet, we try again later
     if (!cursor) {
       return;
@@ -40,11 +40,15 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
 
     for (const provider of providers) {
       try {
+        const requestStartTime = performance.now();
         blockResult = await this.pool.get().get<typeof blockResult>(blockEndpoint);
+        const requestEndTime = performance.now();
+
         result.push({
           url: provider.getUrl(),
           height: BigInt(blockResult.block_height!),
           isLive: true,
+          latency: Number(((requestEndTime - requestStartTime) / 1000).toFixed(2)),
         });
       } catch (e) {
         result.push({ url: provider.getUrl(), height: undefined, isLive: false });

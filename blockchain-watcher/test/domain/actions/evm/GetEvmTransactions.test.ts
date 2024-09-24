@@ -43,6 +43,7 @@ describe("GetEvmTransactions", () => {
         {
           addresses: [],
           topics: [],
+          strategy: "GetTransactionsByLogFiltersStrategy",
         },
       ],
     };
@@ -69,8 +70,9 @@ describe("GetEvmTransactions", () => {
       environment: "testnet",
       filters: [
         {
-          addresses: ["0x3ee18b123123123000d974cf647e7c347e8fa585"],
-          topics: ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+          addresses: [],
+          topics: [],
+          strategy: "GetTransactionsByLogFiltersStrategy",
         },
       ],
     };
@@ -108,6 +110,7 @@ describe("GetEvmTransactions", () => {
         {
           addresses: [],
           topics: ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+          strategy: "GetTransactionsByLogFiltersStrategy",
         },
       ],
     };
@@ -154,6 +157,7 @@ describe("GetEvmTransactions", () => {
         {
           addresses: [],
           topics: ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+          strategy: "GetTransactionsByLogFiltersStrategy",
         },
       ],
     };
@@ -242,7 +246,8 @@ describe("GetEvmTransactions", () => {
       filters: [
         {
           addresses: [],
-          topics: ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+          topics: [],
+          strategy: "GetTransactionsByLogFiltersStrategy",
         },
       ],
     };
