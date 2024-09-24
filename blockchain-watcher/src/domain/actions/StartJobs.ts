@@ -36,7 +36,7 @@ export class StartJobs {
       throw new Error("No handlers for job");
     }
 
-    const runJob = this.job.getRunPollingJob(job);
+    const runJob = this.job.getPollingJob(job);
 
     this.runnables.set(job.id, () => runJob.run(handlers));
     this.runnables.get(job.id)!();
@@ -44,7 +44,7 @@ export class StartJobs {
   }
 
   public async runPool(jobs: JobDefinition[]): Promise<RunPoolRpcs> {
-    const runPool = this.job.getRunPoolRpcs(jobs);
+    const runPool = this.job.getPoolRpcs(jobs);
     this.runnables.set(POOL_RPCS, () => runPool.run());
     this.runnables.get(POOL_RPCS)!();
     return runPool;

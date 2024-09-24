@@ -22,7 +22,7 @@ export abstract class RunPoolRpcs {
       const poolEndTime = performance.now();
       const poolExecutionTime = Number(((poolEndTime - poolStartTime) / 1000).toFixed(2));
 
-      this.statRepo?.measure("pool_execution_time", poolExecutionTime, { job: "run-pool-config" });
+      this.statRepo?.measure("pool_execution_time", poolExecutionTime, { job: "pool-rpcs" });
     } catch (e: Error | any) {}
   }
 }

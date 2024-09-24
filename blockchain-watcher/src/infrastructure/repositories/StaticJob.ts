@@ -113,7 +113,7 @@ export class StaticJob implements Job {
     return persisted;
   }
 
-  getRunPollingJob(jobDef: JobDefinition): RunPollingJob {
+  getPollingJob(jobDef: JobDefinition): RunPollingJob {
     const action = this.runPollingJob.get(jobDef.source.action);
     if (!action) {
       throw new Error(`Source ${jobDef.source.action} not found`);
@@ -121,7 +121,7 @@ export class StaticJob implements Job {
     return action(jobDef);
   }
 
-  getRunPoolRpcs(jobsDef: JobDefinition[]): RunPoolRpcs {
+  getPoolRpcs(jobsDef: JobDefinition[]): RunPoolRpcs {
     const action = this.runRunPoolConfig.get("PoolRpcs")!;
     return action(jobsDef);
   }

@@ -4,7 +4,7 @@ import { RunPoolRpcs } from "./actions/RunPoolRpcs";
 
 export interface Job {
   getJobDefinitions(): Promise<JobDefinition[]>;
-  getRunPollingJob(jobDef: JobDefinition): RunPollingJob;
-  getRunPoolRpcs(jobsDef: JobDefinition[]): RunPoolRpcs;
+  getPollingJob(jobDef: JobDefinition): RunPollingJob;
+  getPoolRpcs(jobsDef: JobDefinition[]): RunPoolRpcs;
   getHandlers(jobDef: JobDefinition): Promise<Handler[]>;
 }
