@@ -12,3 +12,11 @@ func ExtractDBLayer(ctx *fiber.Ctx) (string, error) {
 	}
 	return dbLayer, nil
 }
+
+func UsePostgres(ctx *fiber.Ctx) bool {
+	dbLayer, err := ExtractDBLayer(ctx)
+	if err != nil {
+		return false
+	}
+	return dbLayer == config.DBLayerPostgres
+}

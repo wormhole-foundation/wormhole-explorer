@@ -154,7 +154,8 @@ func main() {
 	rootLogger.Info("initializing repositories")
 	addressRepo := address.NewRepository(storage.mongoDB.Database, rootLogger)
 	vaaRepo := vaa.NewRepository(storage.mongoDB.Database, rootLogger)
-	obsRepo := observations.NewMongoRepository(storage.mongoDB.Database, rootLogger)
+	obsMongoRepo := observations.NewMongoRepository(storage.mongoDB.Database, rootLogger)
+	obsPostgresRepo := observations.NewPostgresRepository(storage.postgresDB, rootLogger)
 	governorRepo := governor.NewRepository(storage.mongoDB.Database, rootLogger)
 	infrastructureRepo := infrastructure.NewRepository(storage.mongoDB.Database, rootLogger)
 	heartbeatsRepo := heartbeats.NewRepository(storage.mongoDB.Database, rootLogger)
@@ -209,7 +210,7 @@ func main() {
 	expirationTime := time.Duration(cfg.Cache.MetricExpiration) * time.Minute
 	addressService := address.NewService(addressRepo, rootLogger)
 	vaaService := vaa.NewService(vaaRepo, cache.Get, vaaParserFunc, rootLogger)
-	obsService := observations.NewService(obsRepo, rootLogger)
+	obsService := observations.NewService(obsMongoRepo, obsPostgresRepo, rootLogger)
 	governorService := governor.NewService(governorRepo, cache, metrics, rootLogger)
 	infrastructureService := infrastructure.NewService(infrastructureRepo, rootLogger)
 	heartbeatsService := heartbeats.NewService(heartbeatsRepo, rootLogger)
