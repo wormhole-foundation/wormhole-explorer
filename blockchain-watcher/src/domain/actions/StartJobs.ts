@@ -17,10 +17,8 @@ export class StartJobs {
   public async run(): Promise<JobDefinition[]> {
     const jobs = await this.job.getJobDefinitions();
     for (const job of jobs) {
-      // Run jobs
       await this.runJob(job);
     }
-    // Run pool
     await this.runPool(jobs);
     return jobs;
   }

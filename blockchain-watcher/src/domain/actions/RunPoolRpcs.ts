@@ -24,7 +24,7 @@ export abstract class RunPoolRpcs {
         const poolExecutionTime = Number(((poolEndTime - poolStartTime) / 1000).toFixed(2));
 
         this.statRepo?.measure("pool_execution_time", poolExecutionTime, { job: "pool-rpcs" });
-      }, 1 * 60 * 60 * 1000); // 1 hour
+      }, 10 * 60 * 1000); // 10 minutes
     } catch (e: Error | any) {
       this.logger.error("[run] Error processing pool providers", e);
       this.statRepo?.count("pool_runs_total", { id: "pool-rpcs", status: "error" });

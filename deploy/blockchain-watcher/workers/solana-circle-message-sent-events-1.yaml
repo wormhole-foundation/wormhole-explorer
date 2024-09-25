@@ -54,6 +54,7 @@ data:
             "slotBatchSize": 1000,
             "commitment": "finalized",
             "interval": 15000,
+            "environment": "mainnet",
             "signaturesLimit": 200,
             "programIds": [
               "CCTPmbSD7gX1bxKPAmg77w8oFzNFpaQiQUWD43TKaecd"
