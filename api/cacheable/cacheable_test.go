@@ -113,14 +113,13 @@ func Test_GetOrLoad(t *testing.T) {
 			mockCache.On("Get", ctx, tt.key).Return(string(bytes), tt.cacheErr)
 			mockCache.On("Set", mock.Anything, tt.key, mock.Anything, time.Duration(0)).Return(nil)
 
-			// Invoke GetOrLoad with mocked dependencies
 			result, err := cacheable.GetOrLoad[int](
 				ctx,
 				zaptest.NewLogger(t),
 				mockCache,
 				ttl,
 				tt.key,
-				metrics.NewNoOpMetrics(), // Simulate metrics object
+				metrics.NewNoOpMetrics(),
 				tt.load,
 				tt.opts...,
 			)
