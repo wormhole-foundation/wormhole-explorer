@@ -110,7 +110,8 @@ func (c CachedResult[T]) MarshalBinary() ([]byte, error) {
 }
 
 func (c CachedResult[T]) IsExpired(ttl time.Duration) bool {
-	return c.Timestamp.Add(ttl).Before(time.Now())
+	expireTime := c.Timestamp.Add(ttl)
+	return expireTime.Before(time.Now())
 }
 
 type Opts func(opts *cacheableCfg)
