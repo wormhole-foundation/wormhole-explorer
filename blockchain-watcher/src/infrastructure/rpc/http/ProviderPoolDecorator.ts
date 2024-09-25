@@ -1,4 +1,5 @@
 import { InstrumentedConnectionWrapper } from "./InstrumentedConnectionWrapper";
+import { InstrumentedSuiClientWrapper } from "./InstrumentedSuiClientWrapper";
 import { InstrumentedHttpProvider } from "./InstrumentedHttpProvider";
 import { HealthyProvidersPool } from "./HealthyProvidersPool";
 import { ProviderHealthCheck } from "../../../domain/poolRpcs/PoolRpcs";
@@ -6,7 +7,6 @@ import { Logger } from "winston";
 import {
   InstrumentedEthersProvider,
   InstrumentedConnection,
-  InstrumentedSuiClient,
   providerPoolSupplier,
   InstrumentedRpc,
   ProviderPool,
@@ -20,7 +20,7 @@ export interface ProviderPoolDecorator<T extends InstrumentedRpc> extends Provid
     providers:
       | InstrumentedHttpProvider[]
       | InstrumentedConnectionWrapper[]
-      | InstrumentedSuiClient[],
+      | InstrumentedSuiClientWrapper[],
     providersHealthCheck: ProviderHealthCheck[],
     blockHeightCursor: bigint | undefined
   ): void;

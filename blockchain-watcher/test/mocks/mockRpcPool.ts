@@ -43,6 +43,7 @@ export function mockRpcPool(mockHealthyProvider = true) {
   jest.mock("@xlabs/rpc-pool", () => {
     return {
       ProviderHealthInstrumentation: ProviderHealthInstrumentationMock,
+      InstrumentedSuiClient: ProviderHealthInstrumentationMock,
       providerPoolRegistry: new prometheus.Registry(),
       WeightedProvidersPool,
       providerPoolSupplier,

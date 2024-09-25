@@ -5,7 +5,6 @@ import { RateLimitedAptosJsonRPCBlockRepository } from "./aptos/RateLimitedAptos
 import { RateLimitedNearJsonRPCBlockRepository } from "./near/RateLimitedNearJsonRPCBlockRepository";
 import { RateLimitedEvmJsonRPCBlockRepository } from "./evm/RateLimitedEvmJsonRPCBlockRepository";
 import { RateLimitedSuiJsonRPCBlockRepository } from "./sui/RateLimitedSuiJsonRPCBlockRepository";
-import { InstrumentedSuiClient, RpcConfig } from "@xlabs/rpc-pool";
 import { WormchainJsonRPCBlockRepository } from "./wormchain/WormchainJsonRPCBlockRepository";
 import { AlgorandJsonRPCBlockRepository } from "./algorand/AlgorandJsonRPCBlockRepository";
 import { InstrumentedConnectionWrapper } from "../rpc/http/InstrumentedConnectionWrapper";
@@ -16,6 +15,7 @@ import { NearJsonRPCBlockRepository } from "./near/NearJsonRPCBlockRepository";
 import { InstrumentedHttpProvider } from "../rpc/http/InstrumentedHttpProvider";
 import { ChainRPCConfig, Config } from "../config";
 import { InfluxEventRepository } from "./target/InfluxEventRepository";
+import { RpcConfig } from "@xlabs/rpc-pool";
 import { InfluxDB } from "@influxdata/influxdb-client";
 import { Job } from "../../domain/jobs";
 import {
@@ -44,6 +44,7 @@ import {
   extendedProviderPoolSupplier,
   ProviderPoolDecorator,
 } from "../rpc/http/ProviderPoolDecorator";
+import { InstrumentedSuiClientWrapper } from "../rpc/http/InstrumentedSuiClientWrapper";
 
 const WORMCHAIN_CHAIN = "wormchain";
 const ALGORAND_CHAIN = "algorand";
@@ -290,7 +291,7 @@ export class RepositoriesBuilder {
     if (chain == SUI_CHAIN) {
       const suiProviderPool = extendedProviderPoolSupplier(
         this.cfg.chains[chain].rpcs.map((url) => ({ url })),
-        (rpcCfg: RpcConfig) => new InstrumentedSuiClient(rpcCfg.url, 2000),
+        (rpcCfg: RpcConfig) => new InstrumentedSuiClientWrapper(rpcCfg.url, 2000),
         POOL_STRATEGY
       );
 

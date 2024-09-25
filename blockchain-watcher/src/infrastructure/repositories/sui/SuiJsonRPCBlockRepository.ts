@@ -1,4 +1,3 @@
-import { InstrumentedSuiClient } from "@xlabs/rpc-pool";
 import { SuiTransactionBlockReceipt } from "../../../domain/entities/sui";
 import { divideIntoBatches } from "../common/utils";
 import { SuiRepository } from "../../../domain/repositories";
@@ -6,6 +5,7 @@ import { Range } from "../../../domain/entities";
 import { ProviderHealthCheck } from "../../../domain/poolRpcs/PoolRpcs";
 import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
 import winston from "winston";
+import { InstrumentedSuiClientWrapper } from "../../rpc/http/InstrumentedSuiClientWrapper";
 import {
   SuiTransactionBlockResponse,
   TransactionFilter,
@@ -19,7 +19,7 @@ const TX_BATCH_SIZE = 50;
 export class SuiJsonRPCBlockRepository implements SuiRepository {
   private readonly logger: winston.Logger;
 
-  constructor(private readonly pool: ProviderPoolDecorator<InstrumentedSuiClient>) {
+  constructor(private readonly pool: ProviderPoolDecorator<InstrumentedSuiClientWrapper>) {
     this.logger = winston.child({ module: "SuiJsonRPCBlockRepository" });
   }
 

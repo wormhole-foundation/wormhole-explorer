@@ -75,6 +75,9 @@ export class PoolRpcs extends RunPoolRpcs {
     for (const key of keys) {
       if (blockHeight.hasOwnProperty(key)) {
         height = blockHeight[key];
+        if (height && height["checkpoint"]) {
+          height = height["checkpoint"];
+        }
         break;
       }
     }
