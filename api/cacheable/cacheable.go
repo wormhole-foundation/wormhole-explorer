@@ -3,6 +3,7 @@ package cacheable
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/metrics"
@@ -35,7 +36,7 @@ func GetOrLoad[T any](
 	//If the result is not found in the cache or fails, then load the result.
 	if err != nil {
 		foundCache = false
-		if err != cache.ErrNotFound {
+		if !errors.Is(err, cache.ErrNotFound) {
 			log.Warn("getting result from cache", zap.Error(err))
 		}
 	}
@@ -109,7 +110,7 @@ func (c CachedResult[T]) MarshalBinary() ([]byte, error) {
 }
 
 func (c CachedResult[T]) IsExpired(ttl time.Duration) bool {
-	return c.Timestamp.Add(ttl).After(time.Now())
+	return c.Timestamp.Add(ttl).Before(time.Now())
 }
 
 type Opts func(opts *cacheableCfg)
