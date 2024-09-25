@@ -21,7 +21,7 @@ export class PoolRpcs extends RunPoolRpcs {
 
   protected async set(): Promise<void> {
     try {
-      for (const cfg of this.cfg.getProps()) {
+      const promises = this.cfg.getProps().map(async (cfg) => {
         const { id, repository, chain, commitment } = cfg;
 
         const metadata = await this.metadataRepo.get(id);
@@ -29,7 +29,7 @@ export class PoolRpcs extends RunPoolRpcs {
 
         if (!repository) {
           this.logger.error(`Repository not found: ${repository}`);
-          continue;
+          return;
         }
 
         const result = await repository.healthCheck(chain, commitment, cursor);
@@ -39,7 +39,9 @@ export class PoolRpcs extends RunPoolRpcs {
           chain,
           id,
         });
-      }
+      });
+
+      await Promise.all(promises);
     } catch (e) {
       this.logger.error(`Error setting providers: ${e}`);
     }
