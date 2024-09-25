@@ -19,10 +19,15 @@ func GetOrLoad[T any](
 	key string,
 	metrics metrics.Metrics,
 	load func() (T, error),
-	automaticRenew bool,
+	opts ...Opts,
 ) (T, error) {
-	log := logger.With(zap.String("key", key))
 
+	cfg := cacheableCfg{}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+
+	log := logger.With(zap.String("key", key))
 	// Try to get the result from the cache.
 	value, err := cacheClient.Get(ctx, key)
 	foundCache := true
@@ -43,8 +48,8 @@ func GetOrLoad[T any](
 			log.Warn("unmarshal cache", zap.Error(err))
 		} else if !cached.IsExpired(expirations) {
 			return cached.Result, nil
-		} else if automaticRenew && !cached.RenewInProgress {
-			go renewCachedValue(context.WithoutCancel(ctx), cacheClient, log, key, &cached, load)
+		} else if cfg.automaticRenew {
+			go renewCachedValue(context.WithoutCancel(ctx), cacheClient, log, key, load)
 			return cached.Result, nil
 		}
 	}
@@ -78,48 +83,25 @@ func renewCachedValue[T any](
 	cacheClient cache.Cache,
 	log *zap.Logger,
 	key string,
-	cached *CachedResult[T],
 	load func() (T, error),
 ) {
-	cached.RenewInProgress = true
-	err := cacheClient.Set(ctx, key, cached, 0) // save the renewInProgress
-	if err != nil {
-		log.Error("error updating cache value state renewInProgress", zap.Error(err))
-		return
-	}
+
 	newValue, errNewValue := load()
 	if errNewValue != nil {
 		log.Error("error renewing cache value", zap.Error(errNewValue))
-		cleanRenewInProgress(cacheClient, key, cached)
 		return
 	}
-	renewedCacheValue := CachedResult[T]{Timestamp: time.Now(), Result: newValue, RenewInProgress: false}
-	err = cacheClient.Set(ctx, key, renewedCacheValue, 0)
+
+	renewedCacheValue := CachedResult[T]{Timestamp: time.Now(), Result: newValue}
+	err := cacheClient.Set(ctx, key, renewedCacheValue, 0)
 	if err != nil {
 		log.Error("error updating cache value", zap.Error(err))
-		cleanRenewInProgress(cacheClient, key, cached)
-		return
 	}
-}
-
-func cleanRenewInProgress[T any](cacheClient cache.Cache, key string, cached *CachedResult[T]) {
-
-	cached.RenewInProgress = false
-	err := cacheClient.Set(context.Background(), key, cached, 0)
-
-	for err != nil {
-		select {
-		case <-time.After(100 * time.Millisecond):
-			err = cacheClient.Set(context.Background(), key, cached, 0)
-		}
-	}
-
 }
 
 type CachedResult[T any] struct {
-	Timestamp       time.Time `json:"timestamp"`
-	Result          T         `json:"result"`
-	RenewInProgress bool      `json:"renew_in_progress"`
+	Timestamp time.Time `json:"timestamp"`
+	Result    T         `json:"result"`
 }
 
 func (c CachedResult[T]) MarshalBinary() ([]byte, error) {
@@ -128,4 +110,16 @@ func (c CachedResult[T]) MarshalBinary() ([]byte, error) {
 
 func (c CachedResult[T]) IsExpired(ttl time.Duration) bool {
 	return c.Timestamp.Add(ttl).After(time.Now())
+}
+
+type Opts func(opts *cacheableCfg)
+
+func WithAutomaticRenew() Opts {
+	return func(opts *cacheableCfg) {
+		opts.automaticRenew = true
+	}
+}
+
+type cacheableCfg struct {
+	automaticRenew bool
 }
