@@ -1,7 +1,7 @@
 import { divideIntoBatches, getChainProvider, hexToHash } from "../common/utils";
 import { ProviderPoolMap, JsonRPCBlockRepositoryCfg } from "../RepositoriesBuilder";
 import { WormchainRepository } from "../../../domain/repositories";
-import { ProviderHealthCheck } from "../../../domain/actions/poolRpcs/PoolRpcs";
+import { ProviderHealthCheck } from "../../../domain/poolRpcs/PoolRpcs";
 import { setTimeout } from "timers/promises";
 import { mapChain } from "../../../common/wormchain";
 import winston from "winston";

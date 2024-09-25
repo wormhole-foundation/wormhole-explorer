@@ -3,7 +3,7 @@ import { SuiTransactionBlockReceipt } from "../../../domain/entities/sui";
 import { divideIntoBatches } from "../common/utils";
 import { SuiRepository } from "../../../domain/repositories";
 import { Range } from "../../../domain/entities";
-import { ProviderHealthCheck } from "../../../domain/actions/poolRpcs/PoolRpcs";
+import { ProviderHealthCheck } from "../../../domain/poolRpcs/PoolRpcs";
 import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
 import winston from "winston";
 import {

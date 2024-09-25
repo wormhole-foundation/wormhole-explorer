@@ -2,7 +2,7 @@ import { JsonRPCBlockRepositoryCfg, ProviderPoolMap } from "../RepositoriesBuild
 import { divideIntoBatches, getChainProvider } from "../common/utils";
 import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
 import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
-import { ProviderHealthCheck } from "../../../domain/actions/poolRpcs/PoolRpcs";
+import { ProviderHealthCheck } from "../../../domain/poolRpcs/PoolRpcs";
 import { EvmBlockRepository } from "../../../domain/repositories";
 import { HttpClientError } from "../../errors/HttpClientError";
 import winston from "../../log";

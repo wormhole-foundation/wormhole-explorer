@@ -1,7 +1,7 @@
 import { Fallible, SolanaFailure, ErrorType } from "../../../domain/errors";
 import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
 import { SolanaSlotRepository } from "../../../domain/repositories";
-import { ProviderHealthCheck } from "../../../domain/actions/poolRpcs/PoolRpcs";
+import { ProviderHealthCheck } from "../../../domain/poolRpcs/PoolRpcs";
 import { RatelimitError } from "mollitia";
 import { Options } from "../common/rateLimitedOptions";
 import { solana } from "../../../domain/entities";

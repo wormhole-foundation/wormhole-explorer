@@ -2,7 +2,7 @@ import { InstrumentedConnectionWrapper } from "../../rpc/http/InstrumentedConnec
 import { Fallible, SolanaFailure } from "../../../domain/errors";
 import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
 import { SolanaSlotRepository } from "../../../domain/repositories";
-import { ProviderHealthCheck } from "../../../domain/actions/poolRpcs/PoolRpcs";
+import { ProviderHealthCheck } from "../../../domain/poolRpcs/PoolRpcs";
 import { solana } from "../../../domain/entities";
 import winston from "../../log";
 import {

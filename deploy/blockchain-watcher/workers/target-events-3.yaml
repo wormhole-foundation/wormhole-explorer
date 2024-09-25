@@ -425,7 +425,7 @@ data:
         "chain": "sei",
         "source": {
           "action": "PollCosmos",
-          "repository": "corsmosRepo",
+          "repository": "cosmosRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",

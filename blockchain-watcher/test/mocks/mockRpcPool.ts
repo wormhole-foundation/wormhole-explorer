@@ -39,7 +39,7 @@ const providerPoolSupplier: PoolSupplier = <T>(
   };
 };
 
-export function mockRpcPool() {
+export function mockRpcPool(mockHealthyProvider = true) {
   jest.mock("@xlabs/rpc-pool", () => {
     return {
       ProviderHealthInstrumentation: ProviderHealthInstrumentationMock,
@@ -49,9 +49,11 @@ export function mockRpcPool() {
     };
   });
 
-  jest.mock("../../src/infrastructure/rpc/http/HealthyProvidersPool", () => ({
-    HealthyProvidersPool: {
-      fromConfigs: jest.fn().mockReturnValue({}),
-    },
-  }));
+  if (mockHealthyProvider) {
+    jest.mock("../../src/infrastructure/rpc/http/HealthyProvidersPool", () => ({
+      HealthyProvidersPool: {
+        fromConfigs: jest.fn().mockReturnValue({}),
+      },
+    }));
+  }
 }

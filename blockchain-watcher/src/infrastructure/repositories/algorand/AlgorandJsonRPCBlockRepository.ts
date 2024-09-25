@@ -1,6 +1,6 @@
 import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
 import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
-import { ProviderHealthCheck } from "../../../domain/actions/poolRpcs/PoolRpcs";
+import { ProviderHealthCheck } from "../../../domain/poolRpcs/PoolRpcs";
 import { AlgorandTransaction } from "../../../domain/entities/algorand";
 import { AlgorandRepository } from "../../../domain/repositories";
 import winston from "winston";

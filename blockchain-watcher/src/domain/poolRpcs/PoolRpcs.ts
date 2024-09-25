@@ -1,5 +1,5 @@
-import { StatRepository } from "../../repositories";
-import { RunPoolRpcs } from "../RunPoolRpcs";
+import { StatRepository } from "../repositories";
+import { RunPoolRpcs } from "../actions/RunPoolRpcs";
 import winston from "winston";
 
 export class PoolRpcs extends RunPoolRpcs {

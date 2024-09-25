@@ -1,6 +1,6 @@
 import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
 import { WormchainRepository } from "../../../domain/repositories";
-import { ProviderHealthCheck } from "../../../domain/actions/poolRpcs/PoolRpcs";
+import { ProviderHealthCheck } from "../../../domain/poolRpcs/PoolRpcs";
 import { Options } from "../common/rateLimitedOptions";
 import winston from "winston";
 import {

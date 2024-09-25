@@ -1,7 +1,7 @@
 import { InstrumentedConnectionWrapper } from "./InstrumentedConnectionWrapper";
 import { InstrumentedHttpProvider } from "./InstrumentedHttpProvider";
 import { HealthyProvidersPool } from "./HealthyProvidersPool";
-import { ProviderHealthCheck } from "../../../domain/actions/poolRpcs/PoolRpcs";
+import { ProviderHealthCheck } from "../../../domain/poolRpcs/PoolRpcs";
 import { Logger } from "winston";
 import {
   InstrumentedEthersProvider,
@@ -34,13 +34,14 @@ export function extendedProviderPoolSupplier<T extends InstrumentedRpc>(
 ): ProviderPoolDecorator<T> {
   switch (type) {
     case "healthy":
-      return HealthyProvidersPool.fromConfigs(
+      const a = HealthyProvidersPool.fromConfigs(
         rpcs,
         createProvider as unknown as (
           rpc: RpcConfig
         ) => InstrumentedEthersProvider | InstrumentedConnection,
         logger
       ) as unknown as ProviderPoolDecorator<T>;
+      return a;
     default:
       return providerPoolSupplier(
         rpcs,

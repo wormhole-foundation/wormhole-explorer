@@ -1,5 +1,5 @@
 import { InstrumentedHttpProvider } from "./InstrumentedHttpProvider";
-import { ProviderHealthCheck } from "../../../domain/actions/poolRpcs/PoolRpcs";
+import { ProviderHealthCheck } from "../../../domain/poolRpcs/PoolRpcs";
 import { Logger } from "winston";
 import winston from "../../log";
 import {
@@ -134,7 +134,7 @@ export class HealthyProvidersPool<
     return auxProvider
       .map((provider) => {
         // If the provider is not in the filtered list, set it offline
-        if (filteredUrlIndexMap.has(provider.getUrl())) {
+        if (!filteredUrlIndexMap.has(provider.getUrl())) {
           provider.setProviderOffline();
         }
         return provider;

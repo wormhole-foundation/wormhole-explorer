@@ -4,7 +4,7 @@ import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
 import { HttpClientError } from "../../errors/HttpClientError";
 import { NearTransaction } from "../../../domain/entities/near";
 import { NearRepository } from "../../../domain/repositories";
-import { ProviderHealthCheck } from "../../../domain/actions/poolRpcs/PoolRpcs";
+import { ProviderHealthCheck } from "../../../domain/poolRpcs/PoolRpcs";
 import winston from "winston";
 
 type ProviderPoolMap = ProviderPoolDecorator<InstrumentedHttpProvider>;

@@ -1,5 +1,5 @@
 import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
-import { ProviderHealthCheck } from "../../../domain/actions/poolRpcs/PoolRpcs";
+import { ProviderHealthCheck } from "../../../domain/poolRpcs/PoolRpcs";
 import { CosmosTransaction } from "../../../domain/entities/cosmos";
 import { CosmosRepository } from "../../../domain/repositories";
 import { Options } from "../common/rateLimitedOptions";

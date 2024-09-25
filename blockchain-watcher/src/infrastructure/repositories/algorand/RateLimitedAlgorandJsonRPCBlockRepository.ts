@@ -1,6 +1,6 @@
 import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
 import { AlgorandTransaction } from "../../../domain/entities/algorand";
-import { ProviderHealthCheck } from "../../../domain/actions/poolRpcs/PoolRpcs";
+import { ProviderHealthCheck } from "../../../domain/poolRpcs/PoolRpcs";
 import { AlgorandRepository } from "../../../domain/repositories";
 import { Options } from "../common/rateLimitedOptions";
 import winston from "winston";

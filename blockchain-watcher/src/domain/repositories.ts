@@ -4,7 +4,7 @@ import { SuiTransactionBlockReceipt } from "./entities/sui";
 import { Fallible, SolanaFailure } from "./errors";
 import { ConfirmedSignatureInfo } from "./entities/solana";
 import { AlgorandTransaction } from "./entities/algorand";
-import { ProviderHealthCheck } from "./actions/poolRpcs/PoolRpcs";
+import { ProviderHealthCheck } from "./poolRpcs/PoolRpcs";
 import { TransactionFilter } from "./actions/aptos/PollAptos";
 import { CosmosTransaction } from "./entities/cosmos";
 import { NearTransaction } from "./entities/near";

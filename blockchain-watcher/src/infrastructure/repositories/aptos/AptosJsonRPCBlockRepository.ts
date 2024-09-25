@@ -2,7 +2,7 @@ import { Range, TransactionFilter } from "../../../domain/actions/aptos/PollApto
 import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
 import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
 import { AptosRepository } from "../../../domain/repositories";
-import { ProviderHealthCheck } from "../../../domain/actions/poolRpcs/PoolRpcs";
+import { ProviderHealthCheck } from "../../../domain/poolRpcs/PoolRpcs";
 import winston from "winston";
 import {
   AptosTransactionByVersion,

@@ -13,6 +13,21 @@ const rpc = "http://localhost";
 let repo: CosmosJsonRPCBlockRepository;
 
 describe("CosmosJsonRPCBlockRepository", () => {
+  it("should be able to validate rpcs", async () => {
+    // Given
+    givenARepo();
+    givenTransactions();
+
+    // When
+    const result = await repo.healthCheck("sei", "latest", 123123n);
+
+    // Then
+    expect(result).toBeInstanceOf(Array);
+    expect(result[0].isHealthy).toEqual(false);
+    expect(result[0].height).toEqual(undefined);
+    expect(result[0].url).toEqual("http://localhost");
+  });
+
   it("should be able to return cosmos transactions", async () => {
     // Given
     givenARepo();
@@ -60,7 +75,11 @@ const givenARepo = () => {
       environment: "mainnet",
     },
     {
-      sei: { get: () => new InstrumentedHttpProvider({ url: rpc, chain: "sei" }) },
+      sei: {
+        get: () => new InstrumentedHttpProvider({ url: rpc, chain: "sei" }),
+        getProviders: () => [new InstrumentedHttpProvider({ url: rpc, chain: "sei" })],
+        setProviders: () => {},
+      },
       terra2: { get: () => new InstrumentedHttpProvider({ url: rpc, chain: "terra2" }) },
     } as any
   );

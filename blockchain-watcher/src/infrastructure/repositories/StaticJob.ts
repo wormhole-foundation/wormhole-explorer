@@ -22,7 +22,7 @@ import { HandleAlgorandTransactions } from "../../domain/actions/algorand/Handle
 import { HandleSolanaTransactions } from "../../domain/actions/solana/HandleSolanaTransactions";
 import { HandleCosmosTransactions } from "../../domain/actions/cosmos/HandleCosmosTransactions";
 import { evmNttTransferSentMapper } from "../mappers/evm/evmNttTransferSentMapper";
-import { PoolRpcs, PoolRpcsConfig } from "../../domain/actions/poolRpcs/PoolRpcs";
+import { PoolRpcs, PoolRpcsConfig } from "../../domain/poolRpcs/PoolRpcs";
 import { HandleAptosTransactions } from "../../domain/actions/aptos/HandleAptosTransactions";
 import { HandleNearTransactions } from "../../domain/actions/near/HandleNearTransactions";
 import { HandleWormchainRedeems } from "../../domain/actions/wormchain/HandleWormchainRedeems";
@@ -90,7 +90,6 @@ export class StaticJob implements Job {
   private environment: string;
   private dryRun: boolean = false;
   private runPollingJob: Map<string, (jobDef: JobDefinition) => RunPollingJob> = new Map();
-  private runRunPoolConfig: Map<string, (jobsDef: JobDefinition[]) => RunPoolRpcs> = new Map();
   private handlers: Map<string, (cfg: any, target: string, mapper: any) => Promise<Handler>> =
     new Map();
   private mappers: Map<string, any> = new Map();
@@ -122,8 +121,26 @@ export class StaticJob implements Job {
   }
 
   getPoolRpcs(jobsDef: JobDefinition[]): RunPoolRpcs {
-    const action = this.runRunPoolConfig.get("PoolRpcs")!;
-    return action(jobsDef);
+    const poolRpcs = (jobsDef: JobDefinition[]) =>
+      new PoolRpcs(
+        this.repos.statsRepo,
+        this.repos.metadataRepo,
+        new PoolRpcsConfig(
+          jobsDef.map((jobDef) => ({
+            repository:
+              jobDef.source.repository == "evmRepo"
+                ? this.repos.evmRepo(jobDef.chain)
+                : this.repos[jobDef.source.repository as keyof Repos],
+            environment: jobDef.source.config.environment,
+            commitment: jobDef.source.config.commitment,
+            interval: jobDef.source.config.interval,
+            chainId: jobDef.source.config.chainId,
+            chain: jobDef.chain,
+            id: jobDef.id,
+          }))
+        )
+      );
+    return poolRpcs(jobsDef);
   }
 
   async getHandlers(jobDef: JobDefinition): Promise<Handler[]> {
@@ -274,7 +291,6 @@ export class StaticJob implements Job {
         )
       );
 
-    // Polling jobs
     this.runPollingJob.set("PollEvm", pollEvm);
     this.runPollingJob.set("PollSolanaTransactions", pollSolanaTransactions);
     this.runPollingJob.set("PollSuiTransactions", pollSuiTransactions);
@@ -283,8 +299,6 @@ export class StaticJob implements Job {
     this.runPollingJob.set("PollCosmos", pollComsos);
     this.runPollingJob.set("PollAlgorand", pollAlgorand);
     this.runPollingJob.set("PollNear", pollNear);
-    // Pool rpcs
-    this.runRunPoolConfig.set("PoolRpcs", poolRpcs);
   }
 
   private loadMappers(): void {
