@@ -38,14 +38,16 @@ export class SuiJsonRPCBlockRepository implements SuiRepository {
         response = await this.pool.get().getLatestCheckpointSequenceNumber();
         const requestEndTime = performance.now();
 
+        const height = response ? BigInt(response) : undefined;
+
         providersHealthCheck.push({
-          url: provider.url,
-          height: BigInt(response),
-          isLive: true,
+          isHealthy: height !== undefined,
           latency: Number(((requestEndTime - requestStartTime) / 1000).toFixed(2)),
+          height: height,
+          url: provider.url,
         });
       } catch (e) {
-        providersHealthCheck.push({ url: provider.url, height: undefined, isLive: false });
+        providersHealthCheck.push({ url: provider.url, height: undefined, isHealthy: false });
       }
     }
     this.pool.setProviders(chain, providers, providersHealthCheck, cursor);

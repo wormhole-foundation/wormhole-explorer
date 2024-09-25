@@ -53,16 +53,18 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
           reponse.result.response &&
           reponse.result.response.last_block_height
         ) {
-          const blockHeight = reponse.result.response.last_block_height;
+          const height = reponse.result.response
+            ? BigInt(reponse.result.response.last_block_height)
+            : undefined;
           providersHealthCheck.push({
+            isHealthy: height !== undefined,
             url: provider.getUrl(),
-            height: BigInt(blockHeight),
-            isLive: true,
+            height: height,
             latency: Number(((requestEndTime - requestStartTime) / 1000).toFixed(2)),
           });
         }
       } catch (e) {
-        providersHealthCheck.push({ url: provider.getUrl(), height: undefined, isLive: false });
+        providersHealthCheck.push({ url: provider.getUrl(), height: undefined, isHealthy: false });
       }
     }
     pool.setProviders(chain, providers, providersHealthCheck, cursor);

@@ -88,9 +88,9 @@ type Label = {
 };
 
 export type ProviderHealthCheck = {
+  isHealthy: boolean;
   latency?: number;
   height: bigint | undefined;
-  isLive: boolean;
   url: string;
 };
 

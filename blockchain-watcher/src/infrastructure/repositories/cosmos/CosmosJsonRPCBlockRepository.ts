@@ -41,14 +41,16 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
           "result" in resultsBlock ? resultsBlock.result : resultsBlock
         ) as ResultBlock;
 
+        const height = result.block.header.height ? BigInt(result.block.header.height) : undefined;
+
         providersHealthCheck.push({
-          url: provider.getUrl(),
-          height: BigInt(result.block.header.height),
-          isLive: true,
+          isHealthy: height !== undefined,
           latency: Number(((requestEndTime - requestStartTime) / 1000).toFixed(2)),
+          height: height,
+          url: provider.getUrl(),
         });
       } catch (e) {
-        providersHealthCheck.push({ url: provider.getUrl(), height: undefined, isLive: false });
+        providersHealthCheck.push({ url: provider.getUrl(), height: undefined, isHealthy: false });
       }
     }
     pool.setProviders(chain, providers, providersHealthCheck, cursor);

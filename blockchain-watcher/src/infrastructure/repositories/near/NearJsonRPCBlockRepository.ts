@@ -35,13 +35,13 @@ export class NearJsonRPCBlockRepository implements NearRepository {
         const requestEndTime = performance.now();
 
         providersHealthCheck.push({
-          url: provider.getUrl(),
-          height: response,
-          isLive: true,
+          isHealthy: response !== undefined,
           latency: Number(((requestEndTime - requestStartTime) / 1000).toFixed(2)),
+          height: response,
+          url: provider.getUrl(),
         });
       } catch (e) {
-        providersHealthCheck.push({ url: provider.getUrl(), height: undefined, isLive: false });
+        providersHealthCheck.push({ url: provider.getUrl(), height: undefined, isHealthy: false });
       }
     }
     this.pool.setProviders(chain, providers, providersHealthCheck, cursor);

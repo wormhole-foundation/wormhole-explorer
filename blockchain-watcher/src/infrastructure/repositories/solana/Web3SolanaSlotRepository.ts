@@ -34,14 +34,16 @@ export class Web3SolanaSlotRepository implements SolanaSlotRepository {
         const response = await this.pool.get().getSlot(finality as Commitment);
         const requestEndTime = performance.now();
 
+        const height = response ? BigInt(response) : undefined;
+
         providersHealthCheck.push({
-          url: provider.getUrl(),
-          height: BigInt(response),
-          isLive: true,
+          isHealthy: height !== undefined,
           latency: Number(((requestEndTime - requestStartTime) / 1000).toFixed(2)),
+          height: height,
+          url: provider.getUrl(),
         });
       } catch (e) {
-        providersHealthCheck.push({ url: provider.getUrl(), height: undefined, isLive: false });
+        providersHealthCheck.push({ url: provider.getUrl(), height: undefined, isHealthy: false });
       }
     }
     this.pool.setProviders(chain, providers, providersHealthCheck, cursor);

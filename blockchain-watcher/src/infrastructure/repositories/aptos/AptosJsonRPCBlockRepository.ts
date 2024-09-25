@@ -47,14 +47,16 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
         blockResult = await this.pool.get().get<typeof blockResult>(blockEndpoint);
         const requestEndTime = performance.now();
 
+        const height = blockResult.block_height ? BigInt(blockResult.block_height) : undefined;
+
         providersHealthCheck.push({
-          url: provider.getUrl(),
-          height: BigInt(blockResult.block_height!),
-          isLive: true,
+          isHealthy: height !== undefined,
           latency: Number(((requestEndTime - requestStartTime) / 1000).toFixed(2)),
+          height: height,
+          url: provider.getUrl(),
         });
       } catch (e) {
-        providersHealthCheck.push({ url: provider.getUrl(), height: undefined, isLive: false });
+        providersHealthCheck.push({ url: provider.getUrl(), height: undefined, isHealthy: false });
       }
     }
     this.pool.setProviders(chain, providers, providersHealthCheck, cursor);

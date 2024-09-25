@@ -62,27 +62,25 @@ export class HealthyProvidersPool<
     }
     const auxProvider = providers;
 
-    const providersLive = this.isLive(providersHealthCheck);
-    if (providersLive.length === 0) {
+    const providersHealthy = providersHealthCheck.filter((provider) => provider.isHealthy);
+    if (providersHealthy.length === 0) {
       return;
     }
 
-    const filter = this.filterByHeight(providersLive, cursor);
+    const filter = this.filter(providersHealthy, cursor);
     const sort = this.sort(filter);
-    const healthy = this.remove(auxProvider, sort);
+    const healthy = this.setOffline(auxProvider, sort);
 
     logger.info(
-      `[${chain}] Healthy providers: ${healthy.map((provider) => provider.getUrl()).join(", ")}`
+      `[${chain}] Healthy providers: ${healthy
+        .map((provider) => (provider.isHealthy() ? provider.getUrl() : undefined))
+        ?.join(", ")}`
     );
     this.providers =
       healthy.length > 0 ? (healthy as unknown as T[]) : (providers as unknown as T[]);
   }
 
-  private isLive(providers: ProviderHealthCheck[]) {
-    return providers.filter((provider) => provider.isLive);
-  }
-
-  private filterByHeight(
+  private filter(
     providers: ProviderHealthCheck[],
     cursor: bigint | undefined
   ): ProviderHealthCheck[] {
@@ -106,7 +104,6 @@ export class HealthyProvidersPool<
         );
       }
     }
-
     return providers;
   }
 
@@ -123,20 +120,27 @@ export class HealthyProvidersPool<
     });
   }
 
-  private remove(
+  // Only set up offline the providers because we can lose all the providers
+  // and the pool will be empty
+  private setOffline(
     auxProvider: InstrumentedHttpProvider[],
     providers: ProviderHealthCheck[]
   ): InstrumentedHttpProvider[] {
-    // Create a map for quick lookup of the index of each provider URL in filteredProviders
     const filteredUrlIndexMap = new Map<string, number>();
     providers.forEach((provider, index) => {
       filteredUrlIndexMap.set(provider.url, index);
     });
 
-    // Filter and sort auxProvider based on the order in filteredProviders
     return auxProvider
-      .filter((provider) => filteredUrlIndexMap.has(provider.getUrl()))
+      .map((provider) => {
+        // If the provider is not in the filtered list, set it offline
+        if (filteredUrlIndexMap.has(provider.getUrl())) {
+          provider.setProviderOffline();
+        }
+        return provider;
+      })
       .sort((a, b) => {
+        // Sort the providers by the order of the filtered list
         const indexA = filteredUrlIndexMap.get(a.getUrl())!;
         const indexB = filteredUrlIndexMap.get(b.getUrl())!;
         return indexA - indexB;

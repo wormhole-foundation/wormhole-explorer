@@ -52,6 +52,10 @@ export class InstrumentedHttpProvider {
     this.health.serviceOfflineSince = new Date();
   }
 
+  public isHealthy(): boolean {
+    return this.health.isHealthy;
+  }
+
   public getUrl(): string {
     return this.url;
   }

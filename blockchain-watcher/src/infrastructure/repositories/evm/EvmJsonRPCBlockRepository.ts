@@ -56,14 +56,16 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         );
         const requestEndTime = performance.now();
 
+        const height = response.result?.number ? BigInt(response.result.number) : undefined;
+
         providersHealthCheck.push({
-          url: provider.getUrl(),
-          height: BigInt(response.result?.number!),
-          isLive: true,
+          isHealthy: height !== undefined,
           latency: Number(((requestEndTime - requestStartTime) / 1000).toFixed(2)),
+          height: height,
+          url: provider.getUrl(),
         });
       } catch (e) {
-        providersHealthCheck.push({ url: provider.getUrl(), height: undefined, isLive: false });
+        providersHealthCheck.push({ url: provider.getUrl(), height: undefined, isHealthy: false });
       }
     }
     pool.setProviders(chain, providers, providersHealthCheck, cursor);

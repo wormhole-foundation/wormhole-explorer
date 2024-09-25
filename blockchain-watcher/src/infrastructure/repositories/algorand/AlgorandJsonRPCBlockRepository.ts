@@ -41,17 +41,16 @@ export class AlgorandJsonRPCBlockRepository implements AlgorandRepository {
         const requestEndTime = performance.now();
 
         const lastRound = response["last-round"] ? BigInt(response["last-round"]) : undefined;
-        const isLive = lastRound !== undefined;
 
         providersHealthCheck.push({
-          url: url,
-          height: lastRound,
-          isLive: isLive,
+          isHealthy: lastRound !== undefined,
           latency: Number(((requestEndTime - requestStartTime) / 1000).toFixed(2)),
+          height: lastRound,
+          url: url,
         });
       } catch (e) {
         console.error(`Error fetching status from ${url}:`, e);
-        providersHealthCheck.push({ url: url, height: undefined, isLive: false });
+        providersHealthCheck.push({ url: url, height: undefined, isHealthy: false });
       }
     }
     this.algoV2Pools.setProviders(chain, providers, providersHealthCheck, cursor);
