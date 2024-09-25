@@ -49,7 +49,6 @@ export class AlgorandJsonRPCBlockRepository implements AlgorandRepository {
           url: url,
         });
       } catch (e) {
-        console.error(`Error fetching status from ${url}:`, e);
         providersHealthCheck.push({ url: url, height: undefined, isHealthy: false });
       }
     }

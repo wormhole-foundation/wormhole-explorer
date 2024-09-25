@@ -148,10 +148,6 @@ const givenEvmBlockRepository = (height?: bigint, blocksAhead?: bigint) => {
     }
   }
 
-  const provider = {
-    ethereum: { get: () => new InstrumentedHttpProvider({ url: "", chain: "ethereum" }) },
-  } as any;
-
   evmBlockRepo = {
     getBlocks: () => Promise.resolve(blocksResponse),
     getBlockHeight: () => Promise.resolve(height ? height + (blocksAhead ?? 10n) : 10n),

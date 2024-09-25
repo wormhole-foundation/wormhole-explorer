@@ -81,15 +81,17 @@ export class HealthyProvidersPool<
   }
 
   private filter(
-    providers: ProviderHealthCheck[],
+    providersHealthCheck: ProviderHealthCheck[],
     cursor: bigint | undefined
   ): ProviderHealthCheck[] {
     // Filter out providers that are behind the cursor
     if (cursor) {
-      providers = providers.filter((provider) => provider.height && provider.height >= cursor);
+      providersHealthCheck = providersHealthCheck.filter(
+        (provider) => provider.height && provider.height >= cursor
+      );
     }
 
-    const providerWithHeight = providers.filter((provider) => provider.height);
+    const providerWithHeight = providersHealthCheck.filter((provider) => provider.height);
     if (providerWithHeight?.length > 0) {
       const heights = providerWithHeight.map((item) => parseFloat(String(item.height)));
 
@@ -99,16 +101,16 @@ export class HealthyProvidersPool<
 
       // Filter out the maximum height if it's significantly ahead
       if (!nextMaxHeight && maxHeight - nextMaxHeight > THRESHOLD) {
-        providers = providerWithHeight.filter(
+        providersHealthCheck = providerWithHeight.filter(
           (item) => parseFloat(String(item.height)) < maxHeight
         );
       }
     }
-    return providers;
+    return providersHealthCheck;
   }
 
-  private sort(providers: ProviderHealthCheck[]): ProviderHealthCheck[] {
-    return providers.sort((a, b) => {
+  private sort(providersHealthCheck: ProviderHealthCheck[]): ProviderHealthCheck[] {
+    return providersHealthCheck.sort((a, b) => {
       const heightDifference = Number(b.height) - Number(a.height);
       if (heightDifference !== 0) {
         return heightDifference;
@@ -124,10 +126,10 @@ export class HealthyProvidersPool<
   // and the pool will be empty
   private setOffline(
     auxProvider: InstrumentedHttpProvider[],
-    providers: ProviderHealthCheck[]
+    providersHealthCheck: ProviderHealthCheck[]
   ): InstrumentedHttpProvider[] {
     const filteredUrlIndexMap = new Map<string, number>();
-    providers.forEach((provider, index) => {
+    providersHealthCheck.forEach((provider, index) => {
       filteredUrlIndexMap.set(provider.url, index);
     });
 

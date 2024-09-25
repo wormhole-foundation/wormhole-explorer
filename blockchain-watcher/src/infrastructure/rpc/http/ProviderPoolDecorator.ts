@@ -21,7 +21,7 @@ export interface ProviderPoolDecorator<T extends InstrumentedRpc> extends Provid
       | InstrumentedHttpProvider[]
       | InstrumentedConnectionWrapper[]
       | InstrumentedSuiClient[],
-    providerHealthCheck: ProviderHealthCheck[],
+    providersHealthCheck: ProviderHealthCheck[],
     blockHeightCursor: bigint | undefined
   ): void;
 }
@@ -34,14 +34,13 @@ export function extendedProviderPoolSupplier<T extends InstrumentedRpc>(
 ): ProviderPoolDecorator<T> {
   switch (type) {
     case "healthy":
-      const a = HealthyProvidersPool.fromConfigs(
+      return HealthyProvidersPool.fromConfigs(
         rpcs,
         createProvider as unknown as (
           rpc: RpcConfig
         ) => InstrumentedEthersProvider | InstrumentedConnection,
         logger
       ) as unknown as ProviderPoolDecorator<T>;
-      return a;
     default:
       return providerPoolSupplier(
         rpcs,

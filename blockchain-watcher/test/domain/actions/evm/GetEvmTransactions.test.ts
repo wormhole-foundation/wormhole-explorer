@@ -246,7 +246,7 @@ describe("GetEvmTransactions", () => {
       filters: [
         {
           addresses: [],
-          topics: [],
+          topics: ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
           strategy: "GetTransactionsByLogFiltersStrategy",
         },
       ],
@@ -350,10 +350,6 @@ const givenEvmBlockRepository = (
       });
     }
   }
-
-  const provider = {
-    ethereum: { get: () => new InstrumentedHttpProvider({ url: "", chain: "ethereum" }) },
-  } as any;
 
   evmBlockRepo = {
     getBlocks: () => Promise.resolve(blocks || {}),
