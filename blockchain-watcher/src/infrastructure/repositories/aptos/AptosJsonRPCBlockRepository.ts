@@ -36,18 +36,18 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
     if (!cursor) {
       return [];
     }
-    const blockEndpoint = `${BLOCK_BY_VERSION_ENDPOINT}/${Number(cursor)}`;
+    const txEndpoint = `${TRANSACTION_BY_VERSION_ENDPOINT}/${Number(cursor)}`;
     const providers = this.pool.getProviders();
-    let blockResult: AptosBlockByVersion = {};
+    let txResult: AptosTransactionByVersion = {};
     const providersHealthCheck: ProviderHealthCheck[] = [];
 
     for (const provider of providers) {
       try {
         const requestStartTime = performance.now();
-        blockResult = await this.pool.get().get<typeof blockResult>(blockEndpoint);
+        txResult = await this.pool.get().get<typeof txResult>(txEndpoint);
         const requestEndTime = performance.now();
 
-        const height = blockResult.block_height ? BigInt(blockResult.block_height) : undefined;
+        const height = txResult.version ? BigInt(txResult.version) : undefined;
 
         providersHealthCheck.push({
           isHealthy: height !== undefined,

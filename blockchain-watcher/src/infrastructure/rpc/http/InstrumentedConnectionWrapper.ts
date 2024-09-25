@@ -23,4 +23,8 @@ export class InstrumentedConnectionWrapper extends Connection {
   public getUrl(): string {
     return this.url;
   }
+
+  public isHealthy(): boolean {
+    return this.health.isHealthy;
+  }
 }
