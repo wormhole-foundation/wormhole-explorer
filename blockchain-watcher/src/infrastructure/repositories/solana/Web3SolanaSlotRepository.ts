@@ -20,26 +20,17 @@ export class Web3SolanaSlotRepository implements SolanaSlotRepository {
     this.logger = winston.child({ module: "Web3SolanaSlotRepository" });
   }
 
-  async getLatestSlot(commitment: string): Promise<number> {
-    const provider = this.pool.get();
-    return this.withProvider<number>(
-      provider,
-      (provider) => provider.getSlot(commitment as Commitment),
-      "getLatestSlot"
-    );
+  getLatestSlot(commitment: string): Promise<number> {
+    return this.pool.get().getSlot(commitment as Commitment);
   }
 
   async getBlock(slot: number, finality?: string): Promise<Fallible<solana.Block, SolanaFailure>> {
     const provider = this.pool.get();
-    return this.withProvider<VersionedBlockResponse | null>(
-      provider,
-      (provider) =>
-        provider.getBlock(slot, {
-          maxSupportedTransactionVersion: 0,
-          commitment: this.normalizeFinality(finality),
-        }),
-      "getBlock"
-    )
+    return provider
+      .getBlock(slot, {
+        maxSupportedTransactionVersion: 0,
+        commitment: this.normalizeFinality(finality),
+      })
       .then((block) => {
         if (block === null) {
           // In this case we throw and error and we retry the request
@@ -76,20 +67,14 @@ export class Web3SolanaSlotRepository implements SolanaSlotRepository {
     limit: number,
     finality?: string
   ): Promise<solana.ConfirmedSignatureInfo[]> {
-    const provider = this.pool.get();
-    return this.withProvider<solana.ConfirmedSignatureInfo[]>(
-      provider,
-      (provider) =>
-        provider.getSignaturesForAddress(
-          new PublicKey(address),
-          {
-            limit: limit,
-            before: beforeSig,
-            until: afterSig,
-          },
-          this.normalizeFinality(finality)
-        ),
-      "getSignaturesForAddress"
+    return this.pool.get().getSignaturesForAddress(
+      new PublicKey(address),
+      {
+        limit: limit,
+        before: beforeSig,
+        until: afterSig,
+      },
+      this.normalizeFinality(finality)
     );
   }
 
