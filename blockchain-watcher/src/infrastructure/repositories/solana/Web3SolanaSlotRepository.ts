@@ -6,11 +6,11 @@ import { solana } from "../../../domain/entities";
 import winston from "../../log";
 import {
   VersionedTransactionResponse,
+  VersionedBlockResponse,
   SolanaJSONRPCError,
   Commitment,
   PublicKey,
   Finality,
-  VersionedBlockResponse,
 } from "@solana/web3.js";
 
 export class Web3SolanaSlotRepository implements SolanaSlotRepository {
@@ -25,7 +25,7 @@ export class Web3SolanaSlotRepository implements SolanaSlotRepository {
     return this.withProvider<number>(
       provider,
       (provider) => provider.getSlot(commitment as Commitment),
-      "getSlot"
+      "getLatestSlot"
     );
   }
 
