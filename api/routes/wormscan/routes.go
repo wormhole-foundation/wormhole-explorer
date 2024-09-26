@@ -2,10 +2,8 @@ package wormscan
 
 import (
 	"strings"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cache"
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	addrsvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/address"
@@ -32,15 +30,6 @@ import (
 
 	"go.uber.org/zap"
 )
-
-var cacheConfig = cache.Config{
-	Next: func(c *fiber.Ctx) bool {
-		return c.Query("refresh") == "true"
-	},
-	Expiration:           1 * time.Second,
-	CacheControl:         true,
-	StoreResponseHeaders: true,
-}
 
 // RegisterRoutes sets up the handlers for the Wormscan API.
 func RegisterRoutes(
@@ -128,7 +117,6 @@ func RegisterRoutes(
 
 	// vaas resource
 	vaas := api.Group("/vaas")
-	vaas.Use(cache.New(cacheConfig))
 	vaas.Get("/vaa-counts", vaaCtrl.GetVaaCount)
 	vaas.Get("/", vaaCtrl.FindAll)
 	vaas.Get("/:chain", vaaCtrl.FindByChain)
