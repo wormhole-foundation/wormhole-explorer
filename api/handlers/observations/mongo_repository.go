@@ -26,7 +26,7 @@ type MongoRepository struct {
 // NewMongoRepository create a new Repository.
 func NewMongoRepository(db *mongo.Database, logger *zap.Logger) *MongoRepository {
 	return &MongoRepository{db: db,
-		logger:      logger.With(zap.String("module", "ObservationsRepository")),
+		logger:      logger.With(zap.String("module", "MongoObservationsRepository")),
 		collections: struct{ observations *mongo.Collection }{observations: db.Collection("observations")},
 	}
 }

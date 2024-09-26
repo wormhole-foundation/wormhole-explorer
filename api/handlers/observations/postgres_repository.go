@@ -35,7 +35,8 @@ type PostgresRepository struct {
 }
 
 func NewPostgresRepository(db *db.DB, logger *zap.Logger) *PostgresRepository {
-	return &PostgresRepository{db: db, logger: logger}
+	return &PostgresRepository{db: db,
+		logger: logger.With(zap.String("module", "PostgresObservationsRepository"))}
 }
 
 func (r *PostgresRepository) Find(ctx context.Context, q *ObservationQuery) ([]*ObservationDoc, error) {
