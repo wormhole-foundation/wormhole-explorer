@@ -99,7 +99,7 @@ func (p *PostgreSQLRepository) upsertOriginTx(ctx context.Context, params *Upser
 	_, err := p.dbClient.Exec(ctx, query,
 		params.ChainId,
 		nativeTxHash,
-		"source-tx",      // type
+		params.TxType,    // type
 		time.Now(),       // created_at
 		time.Now(),       // updated_at
 		params.Id,        // attestation_vaas_id

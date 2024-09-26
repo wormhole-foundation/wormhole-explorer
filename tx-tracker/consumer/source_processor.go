@@ -142,6 +142,7 @@ func ProcessSourceTx(
 	originTx := UpsertOriginTxParams{
 		Id:        params.ID,
 		VaaId:     params.VaaId,
+		TxType:    "source-tx",
 		TrackID:   params.TrackID,
 		ChainId:   params.ChainId,
 		Timestamp: params.Timestamp,
@@ -180,6 +181,7 @@ func createNestedOriginTx(logger *zap.Logger, nestedTx UpsertOriginTxParams, par
 		nestedTx = UpsertOriginTxParams{
 			Id:        params.ID,
 			VaaId:     params.VaaId,
+			TxType:    "nested-source-tx",
 			TrackID:   params.TrackID,
 			ChainId:   attr.OriginChainID,
 			Timestamp: params.Timestamp,
@@ -216,6 +218,7 @@ func handleFetchTxError(ctx context.Context, logger *zap.Logger, repository Repo
 	e := UpsertOriginTxParams{
 		Id:        params.ID,
 		VaaId:     params.VaaId,
+		TxType:    "source-tx",
 		TrackID:   params.TrackID,
 		ChainId:   params.ChainId,
 		Timestamp: params.Timestamp,
