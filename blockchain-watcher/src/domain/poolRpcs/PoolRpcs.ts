@@ -24,15 +24,19 @@ export class PoolRpcs extends RunPoolRpcs {
       const promises = this.cfg.getProps().map(async (cfg) => {
         const { id, repository, chain, commitment } = cfg;
 
+        let normalizeCursor;
         const metadata = await this.metadataRepo.get(id);
-        const cursor = this.normalizeCursor(metadata);
+
+        if (metadata) {
+          normalizeCursor = this.normalizeCursor(metadata);
+        }
 
         if (!repository) {
-          this.logger.error(`Repository not found: ${repository}`);
+          this.logger.error(`Repository not found: [chain: ${chain} - repository: ${repository}]`);
           return;
         }
 
-        const result = await repository.healthCheck(chain, commitment, cursor);
+        const result = await repository.healthCheck(chain, commitment, normalizeCursor);
         this.reportValues.push({
           rpcs: result,
           commitment,
