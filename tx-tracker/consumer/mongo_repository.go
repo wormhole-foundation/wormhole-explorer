@@ -74,6 +74,7 @@ func NewMongoRepository(logger *zap.Logger, db *mongo.Database, vaaRepository *v
 type UpsertOriginTxParams struct {
 	VaaId     string // {chain/address/sequence}
 	Id        string // digest
+	TxType    string
 	TrackID   string
 	ChainId   sdk.ChainID
 	TxDetail  *chains.TxDetail
