@@ -261,11 +261,27 @@ func buildAttestationVaaProperties(
 		fromChainID = &StandardizedPropsFromChainID
 	}
 
+	// normalize fromAddress.
+	var fromAddress *string
+	if standardizedProperties.FromAddress != "" {
+		normalizedAddress := domain.NormalizeAddressByChainId(
+			StandardizedPropsFromChainID, standardizedProperties.FromAddress)
+		fromAddress = &normalizedAddress
+	}
+
 	// normalize toChainID.
 	var toChainID *sdk.ChainID
 	StandardizedPropsToChainID := sdk.ChainID(standardizedProperties.ToChain)
 	if StandardizedPropsToChainID != sdk.ChainIDUnset {
 		toChainID = &StandardizedPropsToChainID
+	}
+
+	// normalize toAddress.
+	var toAddress *string
+	if standardizedProperties.ToAddress != "" {
+		normalizedAddress := domain.NormalizeAddressByChainId(
+			StandardizedPropsToChainID, standardizedProperties.ToAddress)
+		toAddress = &normalizedAddress
 	}
 
 	// normalize tokenChainID.
@@ -275,11 +291,27 @@ func buildAttestationVaaProperties(
 		tokenChainID = &StandardizedPropsTokenChainID
 	}
 
+	// normalize tokenAddress.
+	var tokenAddress *string
+	if standardizedProperties.TokenAddress != "" {
+		normalizedAddress := domain.NormalizeAddressByChainId(
+			StandardizedPropsTokenChainID, standardizedProperties.TokenAddress)
+		tokenAddress = &normalizedAddress
+	}
+
 	// normalize feeChainID.
 	var feeChainID *sdk.ChainID
 	StandardizedPropsFeeChainID := sdk.ChainID(standardizedProperties.FeeChain)
 	if StandardizedPropsFeeChainID != sdk.ChainIDUnset {
 		feeChainID = &StandardizedPropsFeeChainID
+	}
+
+	// normalize feeAddress.
+	var feeAddress *string
+	if standardizedProperties.FeeAddress != "" {
+		normalizedAddress := domain.NormalizeAddressByChainId(
+			StandardizedPropsFeeChainID, standardizedProperties.FeeAddress)
+		feeAddress = &normalizedAddress
 	}
 
 	// get bit.Int amount
@@ -313,14 +345,14 @@ func buildAttestationVaaProperties(
 		Payload:           rawPayload,
 		RawStandardFields: rawStandardFields,
 		FromChainID:       fromChainID,
-		FromAddress:       &standardizedProperties.FromAddress,
+		FromAddress:       fromAddress,
 		ToChainID:         toChainID,
-		ToAddress:         &standardizedProperties.ToAddress,
+		ToAddress:         toAddress,
 		TokenChainID:      tokenChainID,
-		TokenAddress:      &standardizedProperties.TokenAddress,
+		TokenAddress:      tokenAddress,
 		Amount:            amount,
 		FeeChainID:        feeChainID,
-		FeeAddress:        &standardizedProperties.FeeAddress,
+		FeeAddress:        feeAddress,
 		Fee:               fee,
 		Timestamp:         vaa.Timestamp,
 	}, nil
