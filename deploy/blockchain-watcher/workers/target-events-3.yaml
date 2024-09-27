@@ -41,7 +41,7 @@ data:
   testnet-jobs.json: |-
     [
       {
-        "id": "poll-redeemed-transactions-aptos",
+        "id": "poll-redeemed-transactions-aptos-finalized",
         "chain": "aptos",
         "source": {
           "action": "PollAptos",
@@ -80,7 +80,7 @@ data:
         ]
       },
       {
-        "id": "poll-transfer-redeems-sui",
+        "id": "poll-transfer-redeems-sui-immediate",
         "chain": "sui",
         "source": {
           "action": "PollSuiTransactions",
@@ -111,7 +111,7 @@ data:
         ]
       },
       {
-        "id": "poll-transfer-with-payload-redeems-sui",
+        "id": "poll-transfer-with-payload-redeems-sui-immediate",
         "chain": "sui",
         "source": {
           "action": "PollSuiTransactions",
@@ -142,14 +142,14 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-wormchain", 
+        "id": "poll-redeemed-transactions-wormchain-immediate", 
         "chain": "wormchain",
         "source": {
           "action": "PollWormchain",
           "records": "GetWormchainRedeems",
           "config": {
             "blockBatchSize": 50,
-            "commitment": "latest",
+            "commitment": "immediate",
             "interval": 35000,
             "addresses": ["wormhole1aaf9r6s7nxhysuegqrxv0wpm27ypyv4886medd3mrkrw6t4yfcnst3qpex"],
             "chain": "wormchain",
@@ -171,7 +171,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-algorand", 
+        "id": "poll-redeemed-transactions-algorand-latest", 
         "chain": "algorand",
         "source": {
           "action": "PollAlgorand",
@@ -202,7 +202,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-klaytn",
+        "id": "poll-redeemed-transactions-klaytn-latest",
         "chain": "klaytn",
         "source": {
           "action": "PollEvm",
@@ -235,7 +235,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-acala",
+        "id": "poll-redeemed-transactions-acala-finalized",
         "chain": "acala",
         "source": {
           "action": "PollEvm",
@@ -271,7 +271,7 @@ data:
   mainnet-jobs.json: |-
     [
       {
-        "id": "poll-redeemed-transactions-aptos",
+        "id": "poll-redeemed-transactions-aptos-finalized",
         "chain": "aptos",
         "source": {
           "action": "PollAptos",
@@ -310,7 +310,7 @@ data:
         ]
       },
       {
-        "id": "poll-transfer-redeems-sui",
+        "id": "poll-transfer-redeems-sui-immediate",
         "chain": "sui",
         "source": {
           "action": "PollSuiTransactions",
@@ -341,7 +341,7 @@ data:
         ]
       },
       {
-        "id": "poll-transfer-with-payload-redeems-sui",
+        "id": "poll-transfer-with-payload-redeems-sui-immediate",
         "chain": "sui",
         "source": {
           "action": "PollSuiTransactions",
@@ -372,14 +372,14 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-wormchain", 
+        "id": "poll-redeemed-transactions-wormchain-immediate", 
         "chain": "wormchain",
         "source": {
           "action": "PollWormchain",
           "records": "GetWormchainRedeems",
           "config": {
             "blockBatchSize": 50,
-            "commitment": "latest",
+            "commitment": "immediate",
             "interval": 15000,
             "addresses": ["wormhole1466nf3zuxpya8q9emxukd7vftaf6h4psr0a07srl5zw74zh84yjq4lyjmh"],
             "chain": "wormchain",
@@ -401,13 +401,13 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-sei",
+        "id": "poll-redeemed-transactions-sei-immediate",
         "chain": "sei",
         "source": {
           "action": "PollCosmos",
           "config": {
             "blockBatchSize": 100,
-            "commitment": "latest",
+            "commitment": "immediate",
             "interval": 60000,
             "filter": {
               "addresses": [
@@ -435,7 +435,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-algorand", 
+        "id": "poll-redeemed-transactions-algorand-latest", 
         "chain": "algorand",
         "source": {
           "action": "PollAlgorand",
@@ -466,7 +466,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-klaytn",
+        "id": "poll-redeemed-transactions-klaytn-latest",
         "chain": "klaytn",
         "source": {
           "action": "PollEvm",
@@ -505,7 +505,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-acala",
+        "id": "poll-redeemed-transactions-acala-finalized",
         "chain": "acala",
         "source": {
           "action": "PollEvm",
@@ -538,7 +538,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-terra",
+        "id": "poll-redeemed-transactions-terra-immediate",
         "chain": "terra",
         "source": {
           "action": "PollCosmos",
@@ -572,7 +572,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-terra2",
+        "id": "poll-redeemed-transactions-terra2-immediate",
         "chain": "terra2",
         "source": {
           "action": "PollCosmos",
@@ -606,7 +606,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-xpla",
+        "id": "poll-redeemed-transactions-xpla-immediate",
         "chain": "xpla",
         "source": {
           "action": "PollCosmos",
