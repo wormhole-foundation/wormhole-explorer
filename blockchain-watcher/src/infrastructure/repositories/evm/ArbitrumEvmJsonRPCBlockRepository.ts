@@ -24,7 +24,7 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
   }
 
   async getBlockHeight(chain: string, finality: EvmTag): Promise<bigint> {
-    const metadataFileName = `arbitrum-${finality}`;
+    const metadataFileName = `arbitrum-blocks`;
     const chainCfg = this.getCurrentChain(chain);
     let response: { result: BlockByNumberResult };
 
@@ -123,7 +123,10 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
     }
 
     // If the latestL2Finalized is 0 or the previusLatestL2Finalized is equal to the latestL2Finalized, update the latestL2Finalized
-    if (this.latestL2Finalized == 0 || previusLatestL2Finalized == this.latestL2Finalized) {
+    if (
+      this.latestL2Finalized == 0 ||
+      (previusLatestL2Finalized == this.latestL2Finalized && auxPersistedBlocks.length > 0)
+    ) {
       const l2BlockArbNumber = auxPersistedBlocks[auxPersistedBlocks.length - 1].l2BlockArbNumber;
       this.latestL2Finalized = l2BlockArbNumber;
       auxPersistedBlocks.splice(0, 1);
