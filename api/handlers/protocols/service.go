@@ -2,10 +2,12 @@ package protocols
 
 import (
 	"context"
+	"fmt"
 	"github.com/wormhole-foundation/wormhole-explorer/api/cacheable"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache"
 	"go.uber.org/zap"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -49,7 +51,6 @@ type tvlProvider interface {
 	Get(ctx context.Context) (string, error)
 }
 
-type fetchProtocolStats func(ctx context.Context, protocol string) (intStats, error)
 type fetchProtocolTotalValues func(context.Context, string) (ProtocolStats, error)
 
 func NewService(protocols []string, repo *Repository, logger *zap.Logger, cache cache.Cache, cacheKeyPrefix string, cacheTTL int, metrics metrics.Metrics, tvlProvider tvlProvider) *Service {
@@ -68,20 +69,25 @@ func NewService(protocols []string, repo *Repository, logger *zap.Logger, cache 
 func (s *Service) GetProtocolsTotalValues(ctx context.Context) []ProtocolTotalValuesDTO {
 
 	protocolsQty := len(s.protocols)
-	results := make(chan ProtocolTotalValuesDTO, protocolsQty)
+	results := make(chan ProtocolTotalValuesDTO) // unbuffered
 
 	wg := &sync.WaitGroup{}
 	wg.Add(protocolsQty)
 
 	for _, p := range s.protocols {
 		fetchFn := s.getProtocolTotalValuesFn(p)
-		go s.fetchProtocolValues(ctx, wg, p, results, fetchFn)
+		go s.fetchProtocolValues(ctx, wg, p, results, fetchFn) // fetch protocols which are populated from other sources: CCTP, MAYAN, ALLBRIDGE
 	}
 
-	wg.Wait()
-	close(results)
+	wg.Add(1)
+	go s.fetchAllProtocolValues(ctx, wg, s.protocols, results) // fetch all protocols which are populated from the vaas we received from gossip
 
-	resultsSlice := make([]ProtocolTotalValuesDTO, 0, len(s.protocols))
+	go func() {
+		wg.Wait() // wait for both goroutines to finish
+		close(results)
+	}()
+
+	resultsSlice := make([]ProtocolTotalValuesDTO, 0, protocolsQty)
 	for r := range results {
 		r.Protocol = getProtocolNameDto(r.Protocol)
 		resultsSlice = append(resultsSlice, r)
@@ -118,9 +124,86 @@ func (s *Service) getProtocolTotalValuesFn(protocol string) fetchProtocolTotalVa
 		return s.getMayanStats
 	case ALLBRIDGE:
 		return s.getAllbridgeStats
+	case CCTP:
+		return s.getCCTPStats
 	default:
-		return s.getCoreProtocolStats
+		return func(_ context.Context, _ string) (ProtocolStats, error) {
+			return ProtocolStats{Protocol: protocol}, fmt.Errorf("unsupported protocol %s", protocol)
+		}
 	}
+}
+
+func (s *Service) fetchAllProtocolValues(ctx context.Context, wg *sync.WaitGroup, excludeProtocols []string, results chan<- ProtocolTotalValuesDTO) {
+	defer wg.Done()
+
+	val, err := cacheable.GetOrLoad[[]ProtocolStats](ctx,
+		s.logger,
+		s.cache,
+		time.Duration(s.cacheTTL)*time.Minute,
+		s.cacheKeyPrefix+":ALL_PROTOCOLS",
+		s.metrics,
+		func() ([]ProtocolStats, error) {
+			return s.getAllProtocolStats(ctx, excludeProtocols)
+		},
+	)
+
+	if err != nil {
+		results <- ProtocolTotalValuesDTO{Error: err.Error()}
+		return
+	}
+
+	for _, v := range val {
+		results <- ProtocolTotalValuesDTO{ProtocolStats: v}
+	}
+}
+
+func (s *Service) getAllProtocolStats(ctx context.Context, excludeProtocols []string) ([]ProtocolStats, error) {
+
+	allProtocolsStats, err := s.repo.getAllProtocolStats(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]ProtocolStats, 0, len(allProtocolsStats))
+	for _, protocolStats := range allProtocolsStats {
+
+		protocol := protocolStats.Latest.Protocol
+
+		if slices.Contains(excludeProtocols, protocol) {
+			continue
+		}
+
+		diffLastDay := protocolStats.DeltaLast24hr.TotalMessages
+		val := ProtocolStats{
+			Protocol:              protocol,
+			TotalValueTransferred: protocolStats.Latest.TotalValueTransferred,
+			TotalMessages:         protocolStats.Latest.TotalMessages,
+			LastDayMessages:       diffLastDay,
+			Last24HourVolume:      protocolStats.DeltaLast24hr.TotalValueTransferred,
+		}
+
+		lastDayTotalMessages := protocolStats.Latest.TotalMessages - diffLastDay
+		if lastDayTotalMessages != 0 {
+			percentage := strconv.FormatFloat(float64(diffLastDay)/float64(lastDayTotalMessages)*100, 'f', 2, 64) + "%"
+			val.LastDayDiffPercentage = percentage
+		}
+
+		if PortalTokenBridge == protocol {
+			tvl, errTvl := s.tvl.Get(ctx)
+			if errTvl != nil {
+				s.logger.Error("error fetching tvl", zap.Error(errTvl), zap.String("protocol", protocol))
+				return result, errTvl
+			}
+			tvlFloat, errTvl := strconv.ParseFloat(tvl, 64)
+			if errTvl != nil {
+				s.logger.Error("error parsing tvl value", zap.Error(errTvl), zap.String("protocol", protocol), zap.String("tvl_str", tvl))
+				return result, errTvl
+			}
+			val.TotalValueLocked = tvlFloat
+		}
+		result = append(result, val)
+	}
+	return result, nil
 }
 
 func getProtocolNameDto(protocol string) string {
@@ -129,17 +212,15 @@ func getProtocolNameDto(protocol string) string {
 		return "cctp"
 	case PortalTokenBridge:
 		return "portal_token_bridge"
-	case NTT:
-		return strings.ToLower(NTT)
 	default:
-		return protocol
+		return strings.ToLower(protocol)
 	}
 }
 
 // getProtocolStats fetches stats for PortalTokenBridge and NTT
 func (s *Service) getCoreProtocolStats(ctx context.Context, protocol string) (ProtocolStats, error) {
 
-	protocolStats, err := s.getRepositoryFetchFn(protocol)(ctx, protocol)
+	protocolStats, err := s.repo.getCoreProtocolStats(ctx, protocol)
 	if err != nil {
 		return ProtocolStats{
 			Protocol: protocol,
@@ -178,13 +259,30 @@ func (s *Service) getCoreProtocolStats(ctx context.Context, protocol string) (Pr
 	return val, nil
 }
 
-func (s *Service) getRepositoryFetchFn(protocol string) fetchProtocolStats {
-	switch protocol {
-	case CCTP:
-		return s.repo.getCCTPStats
-	default:
-		return s.repo.getCoreProtocolStats
+func (s *Service) getCCTPStats(ctx context.Context, protocol string) (ProtocolStats, error) {
+	protocolStats, err := s.repo.getCCTPStats(ctx, protocol)
+	if err != nil {
+		return ProtocolStats{
+			Protocol: protocol,
+		}, err
 	}
+
+	diffLastDay := protocolStats.DeltaLast24hr.TotalMessages
+	val := ProtocolStats{
+		Protocol:              protocol,
+		TotalValueTransferred: protocolStats.Latest.TotalValueTransferred,
+		TotalMessages:         protocolStats.Latest.TotalMessages,
+		LastDayMessages:       diffLastDay,
+		Last24HourVolume:      protocolStats.DeltaLast24hr.TotalValueTransferred,
+	}
+
+	lastDayTotalMessages := protocolStats.Latest.TotalMessages - diffLastDay
+	if lastDayTotalMessages != 0 {
+		percentage := strconv.FormatFloat(float64(diffLastDay)/float64(lastDayTotalMessages)*100, 'f', 2, 64) + "%"
+		val.LastDayDiffPercentage = percentage
+	}
+
+	return val, nil
 }
 
 func (s *Service) getMayanStats(ctx context.Context, _ string) (ProtocolStats, error) {

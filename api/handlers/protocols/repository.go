@@ -8,6 +8,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbconsts"
 	"go.uber.org/zap"
+	"golang.org/x/exp/maps"
 	"time"
 )
 
@@ -106,6 +107,106 @@ union(tables:[tvt,totalMsgs])
 		|> set(key:"_time",value:string(v:yesterday))
 		|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
 		|> set(key:"app_id",value:"%s")
+`
+
+const AllProtocolsDeltaLastDay = `
+		import "date"
+		import "types"
+		import "strings"
+
+		ts = date.truncate(t: now(), unit: 1h)
+		yesterday = date.sub(d: 1d, from: ts)
+		
+	data =	from(bucket: "%s")
+		|> range(start: yesterday,stop:ts)
+		|> filter(fn: (r) => r._measurement == "protocols_stats_totals_1h")
+		|> drop(columns: ["emitter_chain","destination_chain"])
+		
+tvt =	data
+			|> filter(fn : (r) => r._field == "total_value_transferred")
+			|> group(columns:["app_id"])
+			|> sum()
+			|> set(key:"_field",value:"total_value_transferred")
+			|> map(fn: (r) => ({r with _value: int(v: r._value)}))
+		
+totalMsgs =	data
+				|> filter(fn : (r) => r._field == "total_messages")
+				|> group(columns:["app_id"])
+				|> sum()
+				|> set(key:"_field",value:"total_messages")
+				|> map(fn: (r) => ({r with _value: int(v: r._value)}))
+		
+union(tables:[tvt,totalMsgs])
+		|> set(key:"_time",value:string(v:yesterday))
+		|> pivot(rowKey:["_time","app_id"], columnKey: ["_field"], valueColumn: "_value")
+		|> map(fn: (r) => ({r with app_id: strings.trimPrefix(v: r.app_id, prefix: "TOTAL_")}))
+`
+
+const AllProtocolStats24HrAgo = `
+	import "date"
+	import "strings"
+
+startOfCurrentDay = date.truncate(t: now(), unit: 1d)
+
+data =	from(bucket: "%s")
+			|> range(start: 1970-01-01T00:00:00Z,stop:startOfCurrentDay)
+			|> filter(fn: (r) => r._measurement == "protocols_stats_totals_1d" and r.version == "v1")
+			|> drop(columns: ["emitter_chain","destination_chain","version"])
+
+tvt = data	
+		|> filter(fn : (r) => r._field == "total_value_transferred")
+		|> group(columns:["app_id"])
+		|> sum()
+		|> set(key:"_field",value:"total_value_transferred")
+		|> map(fn: (r) => ({r with _value: int(v: r._value)}))
+
+totalMsgs =	data	
+				|> filter(fn : (r) => r._field == "total_messages")
+				|> group(columns:["app_id"])
+				|> sum()
+				|> set(key:"_field",value:"total_messages")
+				|> map(fn: (r) => ({r with _value: int(v: r._value)}))
+
+union(tables:[tvt,totalMsgs])		
+	|> set(key:"_time",value:string(v:startOfCurrentDay))
+	|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
+	|> map(fn: (r) => ({r with app_id: strings.trimPrefix(v: r.app_id, prefix: "TOTAL_")}))
+`
+
+const AllProtocolsDeltaSinceStartOfDay = `
+	import "date"
+	import "join"
+	import "influxdata/influxdb/schema"
+	import "array"
+	import "types"
+	import "strings"
+
+ts = date.truncate(t: now(), unit: 1h)
+startOfDay = date.truncate(t: now(), unit: 1d)
+
+data = from(bucket: "%s")
+		|> range(start: startOfDay,stop:ts)
+		|> filter(fn: (r) => r._measurement == "protocols_stats_totals_1h")
+		|> drop(columns: ["emitter_chain","destination_chain","version"])
+
+tvt = data	
+		|> filter(fn : (r) => r._field == "total_value_transferred")
+		|> group(columns:["app_id"])
+		|> sum()
+		|> set(key:"_field",value:"total_value_transferred")
+		|> map(fn: (r) => ({r with _value: int(v: r._value)}))
+
+totalMsgs =	data	
+				|> filter(fn : (r) => r._field == "total_messages")
+				|> group(columns:["app_id"])
+				|> sum()	
+				|> set(key:"_field",value:"total_messages")
+				|> map(fn: (r) => ({r with _value: int(v: r._value)}))
+
+union(tables:[tvt,totalMsgs])
+	|> set(key:"_time",value:string(v:startOfDay))
+	|> pivot(rowKey:["_time","app_id"], columnKey: ["_field"], valueColumn: "_value")
+	|> map(fn: (r) => ({r with app_id: strings.trimPrefix(v: r.app_id, prefix: "TOTAL_")}))
 `
 
 const QueryTemplateProtocolStats24HrAgo = `
@@ -240,33 +341,33 @@ func (q *queryApiWrapper) Query(ctx context.Context, query string) (QueryResult,
 
 func (r *Repository) getProtocolStatsNow(ctx context.Context, protocol string) (rowStat, error) {
 	q := fmt.Sprintf(QueryTemplateProtocolStatsNow, r.bucket30d, dbconsts.ProtocolsStatsMeasurementHourly, protocol)
-	return fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, q, protocol)
+	return fetchSingleRecord[rowStat](ctx, r.logger, r.queryAPI, q, protocol)
 }
 
 func (r *Repository) getProtocolStats24hrAgo(ctx context.Context, protocol string) (rowStat, error) {
 	q := fmt.Sprintf(QueryTemplateProtocolStats24HrAgo, r.bucket30d, dbconsts.ProtocolsStatsMeasurementHourly, protocol)
-	return fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, q, protocol)
+	return fetchSingleRecord[rowStat](ctx, r.logger, r.queryAPI, q, protocol)
 }
 
 func (r *Repository) getAllbridgeActivity(ctx context.Context) (rowActivity, error) {
 
 	const allbridge = "allbridge"
 	q := fmt.Sprintf(QueryTemplateProtocolActivity, r.bucketInfinite, "1970-01-01T00:00:00Z", dbconsts.ProtocolsActivityMeasurementDaily, allbridge)
-	activityDaily, err := fetchSingleRecordData[rowActivity](r.logger, r.queryAPI, ctx, q, allbridge)
+	activityDaily, err := fetchSingleRecord[rowActivity](ctx, r.logger, r.queryAPI, q, allbridge)
 	if err != nil {
 		r.logger.Error("error fetching latest daily activity", zap.Error(err))
 		return rowActivity{}, err
 	}
 
 	q = fmt.Sprintf(QueryTemplateProtocolActivity, r.bucket30d, activityDaily.Time.Format(time.RFC3339), dbconsts.ProtocolsActivityMeasurementHourly, allbridge)
-	activityHourly, err := fetchSingleRecordData[rowActivity](r.logger, r.queryAPI, ctx, q, allbridge)
+	activityHourly, err := fetchSingleRecord[rowActivity](ctx, r.logger, r.queryAPI, q, allbridge)
 	if err != nil {
 		r.logger.Error("error fetching latest hourly activity", zap.Error(err))
 		return rowActivity{}, err
 	}
 
 	q = fmt.Sprintf(QueryLast24HrActivity, r.bucketInfinite, dbconsts.ProtocolsActivityMeasurementDaily, allbridge)
-	last24HrActivity, err := fetchSingleRecordData[rowActivity](r.logger, r.queryAPI, ctx, q, allbridge)
+	last24HrActivity, err := fetchSingleRecord[rowActivity](ctx, r.logger, r.queryAPI, q, allbridge)
 	if err != nil {
 		r.logger.Error("error fetching last 24 hr activity", zap.Error(err))
 		return rowActivity{}, err
@@ -285,14 +386,14 @@ func (r *Repository) getCoreProtocolStats(ctx context.Context, protocol string) 
 
 	// calculate total values till the start of current day
 	totalTillCurrentDayQuery := fmt.Sprintf(QueryCoreProtocolTotalStartOfDay, r.bucketInfinite, r.coreProtocolMeasurement.Daily, protocol, protocol)
-	totalsUntilToday, err := fetchSingleRecordData[intRowStat](r.logger, r.queryAPI, ctx, totalTillCurrentDayQuery, protocol)
+	totalsUntilToday, err := fetchSingleRecord[intRowStat](ctx, r.logger, r.queryAPI, totalTillCurrentDayQuery, protocol)
 	if err != nil {
 		return intStats{}, err
 	}
 
 	// calculate delta since the beginning of current day
 	q2 := fmt.Sprintf(QueryCoreProtocolDeltaSinceStartOfDay, r.bucket30d, r.coreProtocolMeasurement.Hourly, protocol, protocol)
-	currentDayStats, errCD := fetchSingleRecordData[intRowStat](r.logger, r.queryAPI, ctx, q2, protocol)
+	currentDayStats, errCD := fetchSingleRecord[intRowStat](ctx, r.logger, r.queryAPI, q2, protocol)
 	if errCD != nil {
 		return intStats{}, errCD
 	}
@@ -309,7 +410,7 @@ func (r *Repository) getCoreProtocolStats(ctx context.Context, protocol string) 
 
 	// calculate last day delta
 	q3 := fmt.Sprintf(QueryCoreProtocolDeltaLastDay, r.bucket30d, r.coreProtocolMeasurement.Hourly, protocol, protocol)
-	deltaYesterdayStats, errQ3 := fetchSingleRecordData[intRowStat](r.logger, r.queryAPI, ctx, q3, protocol)
+	deltaYesterdayStats, errQ3 := fetchSingleRecord[intRowStat](ctx, r.logger, r.queryAPI, q3, protocol)
 	if errQ3 != nil {
 		return result, errQ3
 	}
@@ -317,6 +418,70 @@ func (r *Repository) getCoreProtocolStats(ctx context.Context, protocol string) 
 
 	result.DeltaLast24hr = deltaYesterdayStats
 	return result, nil
+}
+
+func (r *Repository) getAllProtocolStats(ctx context.Context) ([]intStats, error) {
+	// calculate total values till the start of current day
+	totalTillCurrentDayQuery := fmt.Sprintf(AllProtocolStats24HrAgo, r.bucketInfinite)
+	recordsTillCurrentDay, err := fetchMultipleRecords[intRowStat](ctx, r.logger, r.queryAPI, totalTillCurrentDayQuery)
+	if err != nil {
+		return nil, err
+	}
+
+	// calculate delta since the beginning of current day
+	currentDayStatsQuery := fmt.Sprintf(AllProtocolsDeltaSinceStartOfDay, r.bucket30d)
+	recordsCurrentDay, err := fetchMultipleRecords[intRowStat](ctx, r.logger, r.queryAPI, currentDayStatsQuery)
+	if err != nil {
+		return nil, err
+	}
+
+	latestTotal := mergeStats(recordsTillCurrentDay, recordsCurrentDay)
+
+	q3 := fmt.Sprintf(AllProtocolsDeltaLastDay, r.bucket30d)
+	deltaYesterdayStats, errQ3 := fetchMultipleRecords[intRowStat](ctx, r.logger, r.queryAPI, q3)
+	if errQ3 != nil {
+		return nil, errQ3
+	}
+	for i := 0; i < len(deltaYesterdayStats); i++ {
+		deltaYesterdayStats[i].TotalValueTransferred = deltaYesterdayStats[i].TotalValueTransferred / 1e8
+	}
+
+	result := make(map[string]intStats, len(latestTotal))
+	for _, v := range latestTotal {
+		result[v.Protocol] = intStats{
+			Latest: v,
+		}
+	}
+	for _, v := range deltaYesterdayStats {
+		if total, ok := result[v.Protocol]; ok {
+			total.DeltaLast24hr = v
+			result[v.Protocol] = total
+		}
+	}
+
+	return maps.Values(result), nil
+}
+
+func mergeStats(totalTillStartOfToday []intRowStat, currentDay []intRowStat) []intRowStat {
+	protocolToStats := make(map[string]intRowStat, len(totalTillStartOfToday))
+	for _, total := range totalTillStartOfToday {
+		protocolToStats[total.Protocol] = total
+	}
+	for _, dayStats := range currentDay {
+		if total, ok := protocolToStats[dayStats.Protocol]; ok {
+			total.TotalMessages += dayStats.TotalMessages
+			total.TotalValueTransferred += dayStats.TotalValueTransferred
+			protocolToStats[dayStats.Protocol] = total
+		} else {
+			protocolToStats[dayStats.Protocol] = dayStats
+		}
+	}
+	result := make([]intRowStat, 0, len(protocolToStats))
+	for _, v := range protocolToStats {
+		v.TotalValueTransferred = v.TotalValueTransferred / 1e8
+		result = append(result, v)
+	}
+	return result
 }
 
 func (r *Repository) getCCTPStats(ctx context.Context, protocol string) (intStats, error) {
@@ -330,14 +495,14 @@ func (r *Repository) getCCTPStats(ctx context.Context, protocol string) (intStat
 			|> rename(columns: {txs: "total_messages", volume: "total_value_transferred"})
 	`
 	q := fmt.Sprintf(queryTemplate, r.bucket24Hrs, "|> last()")
-	statsData, err := fetchSingleRecordData[intRowStat](r.logger, r.queryAPI, ctx, q, protocol)
+	statsData, err := fetchSingleRecord[intRowStat](ctx, r.logger, r.queryAPI, q, protocol)
 	if err != nil {
 		r.logger.Error("error fetching cctp totals stats", zap.Error(err))
 		return intStats{}, err
 	}
 
 	q = fmt.Sprintf(queryTemplate, r.bucket24Hrs, "|> first()")
-	totals24HrAgo, err := fetchSingleRecordData[intRowStat](r.logger, r.queryAPI, ctx, q, protocol)
+	totals24HrAgo, err := fetchSingleRecord[intRowStat](ctx, r.logger, r.queryAPI, q, protocol)
 	if err != nil {
 		r.logger.Error("error fetching cctp totals stats", zap.Error(err))
 		return intStats{}, err
@@ -358,7 +523,33 @@ func (r *Repository) getCCTPStats(ctx context.Context, protocol string) (intStat
 
 }
 
-func fetchSingleRecordData[T any](logger *zap.Logger, queryAPI QueryDoer, ctx context.Context, query, protocol string) (T, error) {
+func fetchMultipleRecords[T any](ctx context.Context, logger *zap.Logger, queryAPI QueryDoer, query string) ([]T, error) {
+
+	result := make([]T, 0)
+	resp, err := queryAPI.Query(ctx, query)
+	if err != nil {
+		logger.Error("error executing query to fetch data", zap.Error(err), zap.String("query", query))
+		return result, err
+	}
+	defer resp.Close()
+
+	for resp.Next() {
+		if resp.Err() != nil {
+			logger.Error("error reading query response", zap.Error(resp.Err()), zap.String("query", query))
+			return result, resp.Err()
+		}
+		var res T
+		err = mapstructure.Decode(resp.Record().Values(), &res)
+		if err != nil {
+			logger.Error("error decoding query response", zap.Error(err), zap.String("query", query))
+			return result, err
+		}
+		result = append(result, res)
+	}
+	return result, nil
+}
+
+func fetchSingleRecord[T any](ctx context.Context, logger *zap.Logger, queryAPI QueryDoer, query, protocol string) (T, error) {
 	var res T
 	result, err := queryAPI.Query(ctx, query)
 	if err != nil {
