@@ -9,7 +9,6 @@ import (
 
 	gossipv1 "github.com/certusone/wormhole/node/pkg/proto/gossip/v1"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
-	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson/bsontype"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -60,7 +59,7 @@ type IndexingTimestamps struct {
 type VaaUpdate struct {
 	ID               string      `bson:"_id"`
 	Version          uint8       `bson:"version"`
-	EmitterChain     vaa.ChainID `bson:"emitterChain"`
+	EmitterChain     sdk.ChainID `bson:"emitterChain"`
 	EmitterAddr      string      `bson:"emitterAddr"`
 	Sequence         string      `bson:"sequence"`
 	GuardianSetIndex uint32      `bson:"guardianSetIndex"`
@@ -77,7 +76,7 @@ type AttestationVaa struct {
 	ID               string      `db:"id"`
 	VaaID            string      `db:"vaa_id"`
 	Version          uint8       `db:"version"`
-	EmitterChain     vaa.ChainID `db:"emitter_chain_id"`
+	EmitterChain     sdk.ChainID `db:"emitter_chain_id"`
 	EmitterAddress   string      `db:"emitter_address"`
 	Sequence         Uint64      `db:"sequence"`
 	GuardianSetIdx   uint32      `db:"guardian_set_index"`
@@ -94,7 +93,7 @@ type DuplicateVaaUpdate struct {
 	ID               string      `bson:"_id"`
 	VaaID            string      `bson:"vaaId"`
 	Version          uint8       `bson:"version"`
-	EmitterChain     vaa.ChainID `bson:"emitterChain"`
+	EmitterChain     sdk.ChainID `bson:"emitterChain"`
 	EmitterAddr      string      `bson:"emitterAddr"`
 	Sequence         string      `bson:"sequence"`
 	GuardianSetIndex uint32      `bson:"guardianSetIndex"`
@@ -139,7 +138,7 @@ func (v *VaaUpdate) ToMap() map[string]string {
 
 type ObservationUpdate struct {
 	MessageID    string      `bson:"messageId"`
-	ChainID      vaa.ChainID `bson:"emitterChain"`
+	ChainID      sdk.ChainID `bson:"emitterChain"`
 	Emitter      string      `bson:"emitterAddr"`
 	Sequence     string      `bson:"sequence"`
 	Hash         []byte      `bson:"hash"`
@@ -187,10 +186,10 @@ type MongoConnections struct {
 }
 
 type GovernorStatusUpdate struct {
-	NodeName  string                      `bson:"nodename"`
-	Counter   int64                       `bson:"counter"`
-	Timestamp int64                       `bson:"timestamp"`
-	Chains    []*ChainGovernorStatusChain `bson:"chains"`
+	NodeName  string                      `bson:"nodename" json:"nodeName"`
+	Counter   int64                       `bson:"counter" json:"counter"`
+	Timestamp int64                       `bson:"timestamp" json:"timestamp"`
+	Chains    []*ChainGovernorStatusChain `bson:"chains" json:"chains"`
 }
 
 type ChainGovernorStatusChain struct {
