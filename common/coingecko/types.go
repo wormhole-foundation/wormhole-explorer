@@ -151,6 +151,9 @@ type CoinMarketDataResponse struct {
 		MarketCap struct {
 			Usd *decimal.Decimal `json:"usd"`
 		} `json:"market_cap"`
+		CurrentPrice struct {
+			Usd *decimal.Decimal `json:"usd`
+		} `json:"current_price"`
 		CirculatingSupply *decimal.Decimal `json:"circulating_supply"`
 	} `json:"market_data"`
 }
