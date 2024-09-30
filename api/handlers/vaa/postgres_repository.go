@@ -73,6 +73,14 @@ func (p *PostgresRepository) Find(
 			)
 		}
 
+		timestamp := v.Timestamp.UTC()
+		createdAt := v.CreatedAt.UTC()
+		var updatedAt *time.Time
+		if v.UpdatedAt != nil {
+			updatedAtUTC := v.UpdatedAt.UTC()
+			updatedAt = &updatedAtUTC
+		}
+
 		result = append(result, &VaaDoc{
 			ID:                v.VaaID,
 			Version:           v.Version,
@@ -86,9 +94,9 @@ func (p *PostgresRepository) Find(
 			Digest:            v.ID,
 			IsDuplicated:      v.IsDuplicated,
 			Payload:           v.ParsedPayload, // CHECK THIS IN MONGO
-			Timestamp:         &v.CreatedAt,
-			IndexedAt:         &v.CreatedAt,
-			UpdatedAt:         v.UpdatedAt,
+			Timestamp:         &timestamp,
+			IndexedAt:         &createdAt,
+			UpdatedAt:         updatedAt,
 		})
 	}
 	return result, nil
@@ -236,17 +244,11 @@ func (q *VaaQuery) toQueryByToChain() (string, []any) {
 
 func (q *VaaQuery) toQueryDuplicatedVaaId() (string, []any) {
 	query := `
-	SELECT v.id, v.vaa_id, v.version, v.emitter_chain_id, v.emitter_address, v.sequence, v.guardian_set_index, v.raw, v.timestamp, 
-	v.active, v.is_duplicated, v.created_at, v.updated_at, v.consistency_level, o.tx_hash 
+	SELECT v.id, v.vaa_id, v.version, v.emitter_chain_id, v.emitter_address, v.sequence, v.guardian_set_index, 
+	v.raw, v.timestamp, v.active, v.is_duplicated, v.created_at, v.updated_at, v.consistency_level 
 	FROM wormholescan.wh_attestation_vaas as v
-	INNER JOIN wormholescan.wh_observations as o ON v.id = o.hash
-	WHERE v.vaa_id = $1 AND v.is_duplicated = TRUE
+	WHERE v.vaa_id = $1 AND v.is_duplicated = true
 	`
-	// query := "SELECT v.id, v.vaa_id, v.version, v.emitter_chain_id, v.emitter_address, v.sequence, v.guardian_set_index, v.raw, v.timestamp"
-	// query += ", v.active, v.is_duplicated, v.created_at, v.updated_at, v.consistency_level, o.tx_hash"
-	// query += "FROM wh_attestation_vaas as v \n"
-	// query += "INNER JOIN wh_observations as o ON v.id = o.hash \n"
-	// query += "WHERE v.vaa_id = $1 AND v.is_duplicated = TRUE \n"
 	vaaId := fmt.Sprintf("%d/%s/%s", q.chainId, q.emitter, q.sequence)
 	return query, []any{vaaId}
 }

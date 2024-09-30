@@ -339,7 +339,8 @@ func (s *Service) FindDuplicatedById(
 		query := Query().
 			SetChain(chain).
 			SetEmitter(emitter.Hex()).
-			SetSequence(seq)
+			SetSequence(seq).
+			SetDuplicated(true)
 		vaas, err = s.postgresRepo.Find(ctx, query)
 	} else {
 		vaas, err = s.mongoRepo.FindDuplicatedByID(ctx, chain, emitter, seq)
