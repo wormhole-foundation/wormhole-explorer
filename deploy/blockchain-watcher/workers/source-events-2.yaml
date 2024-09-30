@@ -41,7 +41,7 @@ data:
   testnet-jobs.json: |-
     [
       {
-        "id": "poll-log-message-published-optimism-sepolia",
+        "id": "poll-log-message-published-optimism-sepolia-latest",
         "chain": "optimism-sepolia",
         "source": {
           "action": "PollEvm",
@@ -79,7 +79,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-base-sepolia",
+        "id": "poll-log-message-published-base-sepolia-latest",
         "chain": "base-sepolia",
         "source": {
           "action": "PollEvm",
@@ -117,7 +117,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-celo",
+        "id": "poll-log-message-published-celo-latest",
         "chain": "celo",
         "source": {
           "action": "PollEvm",
@@ -155,7 +155,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-oasis",
+        "id": "poll-log-message-published-oasis-latest",
         "chain": "oasis",
         "source": {
           "action": "PollEvm",
@@ -193,7 +193,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-klaytn",
+        "id": "poll-log-message-published-klaytn-latest",
         "chain": "klaytn",
         "source": {
           "action": "PollEvm",
@@ -231,7 +231,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-polygon-sepolia",
+        "id": "poll-log-message-published-polygon-sepolia-latest",
         "chain": "polygon-sepolia",
         "source": {
           "action": "PollEvm",
@@ -269,7 +269,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-scroll",
+        "id": "poll-log-message-published-scroll-latest",
         "chain": "scroll",
         "source": {
           "action": "PollEvm",
@@ -307,7 +307,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-wormchain",
+        "id": "poll-log-message-published-wormchain-latest",
         "chain": "wormchain",
         "source": {
           "action": "PollWormchain",
@@ -335,7 +335,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-blast",
+        "id": "poll-log-message-published-blast-latest",
         "chain": "blast",
         "source": {
           "action": "PollEvm",
@@ -373,7 +373,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-mantle",
+        "id": "poll-log-message-published-mantle-latest",
         "chain": "mantle",
         "source": {
           "action": "PollEvm",
@@ -411,7 +411,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-xlayer",
+        "id": "poll-log-message-published-xlayer-latest",
         "chain": "xlayer",
         "source": {
           "action": "PollEvm",
@@ -452,7 +452,7 @@ data:
   mainnet-jobs.json: |-
     [
       {
-        "id": "poll-log-message-published-optimism",
+        "id": "poll-log-message-published-optimism-latest",
         "chain": "optimism",
         "source": {
           "action": "PollEvm",
@@ -490,7 +490,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-base",
+        "id": "poll-log-message-published-base-latest",
         "chain": "base",
         "source": {
           "action": "PollEvm",
@@ -528,7 +528,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-celo",
+        "id": "poll-log-message-published-celo-latest",
         "chain": "celo",
         "source": {
           "action": "PollEvm",
@@ -566,7 +566,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-oasis",
+        "id": "poll-log-message-published-oasis-latest",
         "chain": "oasis",
         "source": {
           "action": "PollEvm",
@@ -604,7 +604,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-klaytn",
+        "id": "poll-log-message-published-klaytn-latest",
         "chain": "klaytn",
         "source": {
           "action": "PollEvm",
@@ -642,7 +642,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-polygon",
+        "id": "poll-log-message-published-polygon-latest",
         "chain": "polygon",
         "source": {
           "action": "PollEvm",
@@ -680,13 +680,13 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-wormchain",
+        "id": "poll-log-message-published-wormchain-immediate",
         "chain": "wormchain",
         "source": {
           "action": "PollWormchain",
           "config": {
             "blockBatchSize": 100,
-            "commitment": "latest",
+            "commitment": "immediate",
             "interval": 5000,
             "addresses": [
               "wormhole1ufs3tlq4umljk0qfe8k5ya0x6hpavn897u2cnf9k0en9jr7qarqqaqfk2j",
@@ -714,7 +714,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-blast",
+        "id": "poll-log-message-published-blast-latest",
         "chain": "blast",
         "source": {
           "action": "PollEvm",
@@ -752,7 +752,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-scroll",
+        "id": "poll-log-message-published-scroll-latest",
         "chain": "scroll",
         "source": {
           "action": "PollEvm",
@@ -790,7 +790,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-xlayer",
+        "id": "poll-log-message-published-xlayer-latest",
         "chain": "xlayer",
         "source": {
           "action": "PollEvm",
@@ -828,7 +828,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-mantle",
+        "id": "poll-log-message-published-mantle-latest",
         "chain": "mantle",
         "source": {
           "action": "PollEvm",

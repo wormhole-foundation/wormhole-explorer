@@ -41,7 +41,7 @@ data:
   testnet-jobs.json: |-
     [
       {
-        "id": "poll-log-message-published-sui",
+        "id": "poll-log-message-published-sui-immediate",
         "chain": "sui",
         "source": {
           "action": "PollSuiTransactions",
@@ -72,7 +72,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-aptos",
+        "id": "poll-log-message-published-aptos-finalized",
         "chain": "aptos",
         "source": {
           "action": "PollAptos",
@@ -117,7 +117,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-algorand",
+        "id": "poll-log-message-published-algorand-latest",
         "chain": "algorand",
         "source": {
           "action": "PollAlgorand",
@@ -153,7 +153,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-snaxchain",
+        "id": "poll-log-message-published-snaxchain-latest",
         "chain": "snaxchain",
         "source": {
             "action": "PollEvm",
@@ -194,7 +194,7 @@ data:
   mainnet-jobs.json: |-
     [
       {
-        "id": "poll-log-message-published-sui",
+        "id": "poll-log-message-published-sui-immediate",
         "chain": "sui",
         "source": {
           "action": "PollSuiTransactions",
@@ -230,7 +230,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-aptos",
+        "id": "poll-log-message-published-aptos-finalized",
         "chain": "aptos",
         "source": {
           "action": "PollAptos",
@@ -275,7 +275,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-algorand",
+        "id": "poll-log-message-published-algorand-latest",
         "chain": "algorand",
         "source": {
           "action": "PollAlgorand",
@@ -311,7 +311,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-terra",
+        "id": "poll-log-message-published-terra-immediate",
         "chain": "terra",
         "source": {
           "action": "PollCosmos",
@@ -350,7 +350,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-terra2",
+        "id": "poll-log-message-published-terra2-immediate",
         "chain": "terra2",
         "source": {
           "action": "PollCosmos",
@@ -389,7 +389,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-xpla",
+        "id": "poll-log-message-published-xpla-immediate",
         "chain": "xpla",
         "source": {
           "action": "PollCosmos",
@@ -428,7 +428,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-snaxchain",
+        "id": "poll-log-message-published-snaxchain-latest",
         "chain": "snaxchain",
         "source": {
             "action": "PollEvm",
