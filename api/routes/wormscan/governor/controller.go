@@ -172,7 +172,7 @@ func (c *Controller) GetGovernorLimit(ctx *fiber.Ctx) error {
 		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
 	}
 
-	governorLimit, err := c.srv.GetGovernorLimit(ctx.Context(), p)
+	governorLimit, err := c.srv.GetGovernorLimit(ctx.Context(), middleware.UsePostgres(ctx), p)
 	if err != nil {
 		return err
 	}

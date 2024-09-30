@@ -157,7 +157,8 @@ func main() {
 	vaaPostgresRepo := vaa.NewPostgresRepository(storage.postgresDB, rootLogger)
 	obsMongoRepo := observations.NewMongoRepository(storage.mongoDB.Database, rootLogger)
 	obsPostgresRepo := observations.NewPostgresRepository(storage.postgresDB, rootLogger)
-	governorRepo := governor.NewRepository(storage.mongoDB.Database, rootLogger)
+	mongoGovernorRepo := governor.NewMongoRepository(storage.mongoDB.Database, rootLogger)
+	postgresGovernorRepo := governor.NewPostgresRepository(storage.postgresDB, rootLogger)
 	infrastructureRepo := infrastructure.NewRepository(storage.mongoDB.Database, rootLogger)
 	heartbeatsRepo := heartbeats.NewRepository(storage.mongoDB.Database, rootLogger)
 	transactionsRepo := transactions.NewRepository(
@@ -213,7 +214,7 @@ func main() {
 	addressService := address.NewService(addressRepo, rootLogger)
 	vaaService := vaa.NewService(vaaMongoRepo, vaaPostgresRepo, cache.Get, vaaParserFunc, rootLogger)
 	obsService := observations.NewService(obsMongoRepo, obsPostgresRepo, rootLogger)
-	governorService := governor.NewService(governorRepo, cache, metrics, rootLogger)
+	governorService := governor.NewService(mongoGovernorRepo, postgresGovernorRepo, cache, metrics, rootLogger)
 	infrastructureService := infrastructure.NewService(infrastructureRepo, rootLogger)
 	heartbeatsService := heartbeats.NewService(heartbeatsRepo, rootLogger)
 	transactionsService := transactions.NewService(transactionsRepo, cache, expirationTime, tokenProvider, metrics, rootLogger)

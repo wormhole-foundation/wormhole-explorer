@@ -21,8 +21,8 @@ import (
 
 const minGuardianNum = 13
 
-// Repository definition.
-type Repository struct {
+// MongoRepository definition.
+type MongoRepository struct {
 	db          *mongo.Database
 	logger      *zap.Logger
 	collections struct {
@@ -32,9 +32,9 @@ type Repository struct {
 	}
 }
 
-// NewRepository create a new Repository.
-func NewRepository(db *mongo.Database, logger *zap.Logger) *Repository {
-	return &Repository{db: db,
+// NewMongoRepository create a new Repository.
+func NewMongoRepository(db *mongo.Database, logger *zap.Logger) *MongoRepository {
+	return &MongoRepository{db: db,
 		logger: logger.With(zap.String("module", "GovernorRepository")),
 		collections: struct {
 			governorConfig *mongo.Collection
@@ -91,7 +91,7 @@ func (q *GovernorQuery) toBSON() *bson.D {
 }
 
 // FindGovConfigurations get a list of *GovConfig.
-func (r *Repository) FindGovConfigurations(
+func (r *MongoRepository) FindGovConfigurations(
 	ctx context.Context,
 	q *GovernorQuery,
 ) ([]*GovConfig, error) {
@@ -141,7 +141,7 @@ func (r *Repository) FindGovConfigurations(
 }
 
 // FindGovernorStatus get a list of *GovStatus.
-func (r *Repository) FindGovernorStatus(
+func (r *MongoRepository) FindGovernorStatus(
 	ctx context.Context,
 	q *GovernorQuery,
 ) ([]*GovStatus, error) {
@@ -190,7 +190,7 @@ func (r *Repository) FindGovernorStatus(
 }
 
 // FindOneGovernorStatus get a *GovStatus. The q parameter define the filter to apply to the query.
-func (r *Repository) FindOneGovernorStatus(
+func (r *MongoRepository) FindOneGovernorStatus(
 	ctx context.Context,
 	q *GovernorQuery,
 ) (*GovStatus, error) {
@@ -256,7 +256,7 @@ func (q *NotionalLimitQuery) SetPagination(p *pagination.Pagination) *NotionalLi
 }
 
 // FindNotionalLimit get a list *NotionalLimit.
-func (r *Repository) FindNotionalLimit(
+func (r *MongoRepository) FindNotionalLimit(
 	ctx context.Context,
 	q *NotionalLimitQuery,
 ) ([]*NotionalLimit, error) {
@@ -363,7 +363,7 @@ func (r *Repository) FindNotionalLimit(
 }
 
 // GetNotionalLimitByChainID get a list *NotionalLimitDetail.
-func (r *Repository) GetNotionalLimitByChainID(
+func (r *MongoRepository) GetNotionalLimitByChainID(
 	ctx context.Context,
 	q *NotionalLimitQuery,
 ) ([]*NotionalLimitDetail, error) {
@@ -449,7 +449,7 @@ func (r *Repository) GetNotionalLimitByChainID(
 }
 
 // GetAvailableNotional get a list of *NotionalAvailable.
-func (r *Repository) GetAvailableNotional(
+func (r *MongoRepository) GetAvailableNotional(
 	ctx context.Context,
 	q *NotionalLimitQuery,
 ) ([]*NotionalAvailable, error) {
@@ -567,7 +567,7 @@ func (r *Repository) GetAvailableNotional(
 }
 
 // GetAvailableNotionalByChainID get a list of *NotionalAvailableDetail.
-func (r *Repository) GetAvailableNotionalByChainID(
+func (r *MongoRepository) GetAvailableNotionalByChainID(
 	ctx context.Context,
 	q *NotionalLimitQuery,
 ) ([]*NotionalAvailableDetail, error) {
@@ -670,7 +670,7 @@ func (r *Repository) GetAvailableNotionalByChainID(
 }
 
 // GetMaxNotionalAvailableByChainID get a *MaxNotionalAvailableRecord.
-func (r *Repository) GetMaxNotionalAvailableByChainID(
+func (r *MongoRepository) GetMaxNotionalAvailableByChainID(
 	ctx context.Context,
 	q *NotionalLimitQuery,
 ) (*MaxNotionalAvailableRecord, error) {
@@ -808,7 +808,7 @@ func (q *EnqueuedVaaQuery) SetPagination(p *pagination.Pagination) *EnqueuedVaaQ
 }
 
 // GetEnqueueVass get a list of *EnqueuedVaas.
-func (r *Repository) GetEnqueueVass(ctx context.Context, q *EnqueuedVaaQuery) ([]*EnqueuedVaas, error) {
+func (r *MongoRepository) GetEnqueueVass(ctx context.Context, q *EnqueuedVaaQuery) ([]*EnqueuedVaas, error) {
 
 	// match stage.
 	matchStage1 := bson.D{{Key: "$match", Value: bson.D{}}}
@@ -948,7 +948,7 @@ func (r *Repository) GetEnqueueVass(ctx context.Context, q *EnqueuedVaaQuery) ([
 }
 
 // GetEnqueueVassByChainID get a list of *EnqueuedVaaDetail by chainID.
-func (r *Repository) GetEnqueueVassByChainID(
+func (r *MongoRepository) GetEnqueueVassByChainID(
 	ctx context.Context,
 	q *EnqueuedVaaQuery,
 ) ([]*EnqueuedVaaDetail, error) {
@@ -1086,7 +1086,7 @@ func (r *Repository) GetEnqueueVassByChainID(
 }
 
 // GetGovernorLimit get a list of *GovernorLimit.
-func (r *Repository) GetGovernorLimit(
+func (r *MongoRepository) GetGovernorLimit(
 	ctx context.Context,
 	q *GovernorQuery,
 ) ([]*GovernorLimit, error) {
@@ -1267,7 +1267,7 @@ func (r *Repository) GetGovernorLimit(
 //
 // In this version returns the minimum value of the availableNotional per chainID
 // by analyzing the data of all guardian nodes.
-func (r *Repository) GetAvailNotionByChain(
+func (r *MongoRepository) GetAvailNotionByChain(
 	ctx context.Context,
 ) ([]*AvailableNotionalByChain, error) {
 
@@ -1403,7 +1403,7 @@ func (r *Repository) GetAvailNotionByChain(
 }
 
 // GetTokenList get token lists.
-func (r *Repository) GetTokenList(ctx context.Context) ([]*TokenList, error) {
+func (r *MongoRepository) GetTokenList(ctx context.Context) ([]*TokenList, error) {
 
 	projectStage1 := bson.D{
 		{Key: "$project", Value: bson.D{
@@ -1530,7 +1530,7 @@ func (r *Repository) GetTokenList(ctx context.Context) ([]*TokenList, error) {
 }
 
 // GetEnqueuedVaas get enqueued vaas.
-func (r *Repository) GetEnqueuedVaas(ctx context.Context) ([]*EnqueuedVaaItem, error) {
+func (r *MongoRepository) GetEnqueuedVaas(ctx context.Context) ([]*EnqueuedVaaItem, error) {
 
 	projectStage1 := bson.D{
 		{Key: "$project", Value: bson.D{
@@ -1639,7 +1639,7 @@ type EnqueuedResponse struct {
 }
 
 // IsVaaEnqueued check vaa is enqueued.
-func (r *Repository) IsVaaEnqueued(
+func (r *MongoRepository) IsVaaEnqueued(
 	ctx context.Context,
 	chainID vaa.ChainID,
 	emitter *types.Address,
@@ -1741,7 +1741,7 @@ type GovernorVaaDoc struct {
 	Vaas           []any             `bson:"vaas"`
 }
 
-func (r *Repository) GetGovernorVaas(ctx context.Context) ([]GovernorVaaDoc, error) {
+func (r *MongoRepository) GetGovernorVaas(ctx context.Context) ([]GovernorVaaDoc, error) {
 	// left outer join on the `vaas` collection
 	pipeline := []bson.D{{{Key: "$lookup", Value: bson.D{
 		{Key: "from", Value: "vaas"},
