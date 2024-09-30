@@ -31,7 +31,6 @@ import {
   MoonbeamEvmJsonRPCBlockRepository,
   ArbitrumEvmJsonRPCBlockRepository,
   RateLimitedSolanaSlotRepository,
-  PolygonJsonRPCBlockRepository,
   BscEvmJsonRPCBlockRepository,
   EvmJsonRPCBlockRepository,
   SuiJsonRPCBlockRepository,
@@ -68,10 +67,10 @@ const EVM_CHAINS = new Map([
   ["arbitrum", "arbitrum-evmRepo"],
   ["arbitrum-sepolia", "arbitrum-evmRepo"],
   ["moonbeam", "moonbeam-evmRepo"],
-  ["polygon", "polygon-evmRepo"],
+  ["polygon", "evmRepo"],
   ["ethereum-holesky", "evmRepo"],
   ["scroll", "evmRepo"],
-  ["polygon-sepolia", "polygon-evmRepo"],
+  ["polygon-sepolia", "evmRepo"],
   ["blast", "evmRepo"],
   ["mantle", "evmRepo"],
   ["xlayer", "evmRepo"],
@@ -266,10 +265,6 @@ export class RepositoriesBuilder {
         new ArbitrumEvmJsonRPCBlockRepository(repoCfg, pools, this.getMetadataRepository()),
         "arbitrum"
       );
-      const polygonRepository = new RateLimitedEvmJsonRPCBlockRepository(
-        new PolygonJsonRPCBlockRepository(repoCfg, pools),
-        "polygon"
-      );
       const bscRepository = new RateLimitedEvmJsonRPCBlockRepository(
         new BscEvmJsonRPCBlockRepository(repoCfg, pools),
         "bsc"
@@ -281,7 +276,6 @@ export class RepositoriesBuilder {
 
       this.repositories.set("moonbeam-evmRepo", moonbeamRepository);
       this.repositories.set("arbitrum-evmRepo", arbitrumRepository);
-      this.repositories.set("polygon-evmRepo", polygonRepository);
       this.repositories.set("bsc-evmRepo", bscRepository);
       this.repositories.set("evmRepo", evmRepository);
     }

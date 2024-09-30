@@ -2028,6 +2028,16 @@
               "method": "MethodUpdateWrapped"
             }
           ]
+        },
+        {
+          "addresses": [],
+          "type": "Standard Relayer",
+          "methods": [
+            {
+              "methodId": "0xa60eb4c8",
+              "method": "StandardRelayerDelivery"
+            }
+          ]
         }
       ]
     },
