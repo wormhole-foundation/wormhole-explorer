@@ -41,7 +41,7 @@ data:
   testnet-jobs.json: |-
     [
       {
-        "id": "poll-redeemed-transactions-fantom",
+        "id": "poll-redeemed-transactions-fantom-latest",
         "chain": "fantom",
         "source": {
           "action": "PollEvm",
@@ -82,7 +82,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-oasis",
+        "id": "poll-redeemed-transactions-oasis-latest",
         "chain": "oasis",
         "source": {
           "action": "PollEvm",
@@ -123,7 +123,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-moonbeam",
+        "id": "poll-redeemed-transactions-moonbeam-latest",
         "chain": "moonbeam",
         "source": {
           "action": "PollEvm",
@@ -183,7 +183,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-celo",
+        "id": "poll-redeemed-transactions-celo-latest",
         "chain": "celo",
         "source": {
           "action": "PollEvm",
@@ -243,7 +243,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-scroll",
+        "id": "poll-redeemed-transactions-scroll-latest",
         "chain": "scroll",
         "source": {
           "action": "PollEvm",
@@ -278,7 +278,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-mantle",
+        "id": "poll-redeemed-transactions-mantle-latest",
         "chain": "mantle",
         "source": {
           "action": "PollEvm",
@@ -313,7 +313,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-karura",
+        "id": "poll-redeemed-transactions-karura-finalized",
         "chain": "karura",
         "source": {
           "action": "PollEvm",
@@ -348,7 +348,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-snaxchain",
+        "id": "poll-redeemed-transactions-snaxchain-latest",
         "chain": "snaxchain",
         "source": {
           "action": "PollEvm",
@@ -386,7 +386,7 @@ data:
   mainnet-jobs.json: |-
     [
       {
-        "id": "poll-redeemed-transactions-fantom",
+        "id": "poll-redeemed-transactions-fantom-latest",
         "chain": "fantom",
         "source": {
           "action": "PollEvm",
@@ -446,7 +446,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-oasis",
+        "id": "poll-redeemed-transactions-oasis-latest",
         "chain": "oasis",
         "source": {
           "action": "PollEvm",
@@ -487,7 +487,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-moonbeam",
+        "id": "poll-redeemed-transactions-moonbeam-latest",
         "chain": "moonbeam",
         "source": {
           "action": "PollEvm",
@@ -541,7 +541,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-celo",
+        "id": "poll-redeemed-transactions-celo-latest",
         "chain": "celo",
         "source": {
           "action": "PollEvm",
@@ -595,7 +595,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-scroll",
+        "id": "poll-redeemed-transactions-scroll-latest",
         "chain": "scroll",
         "source": {
           "action": "PollEvm",
@@ -643,7 +643,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-mantle",
+        "id": "poll-redeemed-transactions-mantle-latest",
         "chain": "mantle",
         "source": {
           "action": "PollEvm",
@@ -678,7 +678,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-karura",
+        "id": "poll-redeemed-transactions-karura-finalized",
         "chain": "karura",
         "source": {
           "action": "PollEvm",
@@ -713,7 +713,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-near",
+        "id": "poll-redeemed-transactions-near-final",
         "chain": "near",
         "source": {
           "action": "PollNear",
@@ -740,7 +740,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-snaxchain",
+        "id": "poll-redeemed-transactions-snaxchain-latest",
         "chain": "snaxchain",
         "source": {
           "action": "PollEvm",
@@ -775,6 +775,270 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-redeemed-transactions-base-finalized",
+        "chain": "base",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "finalized",
+            "interval": 15000,
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "CCTP",
+                "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": ["0xF18f923480dC144326e6C65d4F3D47Aa459bb41C"],
+                "type": "MCTP",
+                "topics": ["0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "Standard Relayer",
+                "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "NTT",
+                "topics": ["0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "Mayan with Swift",                
+                "topics": ["0xcc5626df3b699006387b64eca775dbdfecd5ae542e2d6ab22923082e1320dfcb"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": ["0xDA3adC6621B2677BEf9aD26598e6939CF0D92f88"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              }
+            ],
+            "chain": "base",
+            "chainId": 30
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "abis": [
+                {
+                  "abi": "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
+                  "topic": "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
+                  "type": "Standard Relayer"
+                },
+                {
+                  "abi": "fulfillOrder(bytes cctpMsg, bytes cctpSigs, bytes encodedVm, address swapProtocol, bytes swapData)",
+                  "topic": "0xcc5626df3b699006387b64eca775dbdfecd5ae542e2d6ab22923082e1320dfcb",
+                  "type": "Mayan with Swift"
+                },
+                {
+                  "abi": "redeemWithFee(bytes cctpMsg, bytes cctpSigs, bytes encodedVm)",
+                  "topic": "0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d",
+                  "type": "MCTP"
+                }
+              ],
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-redeemed-transactions-arbitrum-finalized",
+        "chain": "arbitrum",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 1000,
+            "commitment": "finalized",
+            "interval": 15000,
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "CCTP",
+                "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": ["0xF18f923480dC144326e6C65d4F3D47Aa459bb41C"],
+                "type": "MCTP",
+                "topics": ["0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "Standard Relayer",
+                "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "NTT",
+                "topics": ["0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "Mayan with Swift",                
+                "topics": ["0xcc5626df3b699006387b64eca775dbdfecd5ae542e2d6ab22923082e1320dfcb"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "Fast Transfer",                
+                "topics": ["0x67cc74e969bff447b6e0f32eea34930545a732749bdcaaf3530c70e311900b06"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": ["0x3dD14D553cFD986EAC8e3bddF629d82073e188c8"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              }
+            ],
+            "chain": "arbitrum",
+            "chainId": 23
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "abis": [
+                {
+                  "abi": "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
+                  "topic": "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
+                  "type": "Standard Relayer"
+                },
+                {
+                  "abi": "fulfillOrder(bytes cctpMsg, bytes cctpSigs, bytes encodedVm, address swapProtocol, bytes swapData)",
+                  "topic": "0xcc5626df3b699006387b64eca775dbdfecd5ae542e2d6ab22923082e1320dfcb",
+                  "type": "Mayan with Swift"
+                },
+                {
+                  "abi": "redeemWithFee(bytes cctpMsg, bytes cctpSigs, bytes encodedVm)",
+                  "topic": "0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d",
+                  "type": "MCTP"
+                }
+              ],
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-redeemed-transactions-optimism-finalized",
+        "chain": "optimism",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "finalized",
+            "interval": 15000,
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "CCTP",
+                "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": ["0xF18f923480dC144326e6C65d4F3D47Aa459bb41C"],
+                "type": "MCTP",
+                "topics": ["0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "NTT",
+                "topics": ["0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "Standard Relayer",
+                "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "Mayan with Swift",                
+                "topics": ["0xcc5626df3b699006387b64eca775dbdfecd5ae542e2d6ab22923082e1320dfcb"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": ["0xfE8cD454b4A1CA468B57D79c0cc77Ef5B6f64585"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              }
+            ],
+            "chain": "optimism",
+            "chainId": 24
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "abis": [
+                {
+                  "abi": "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
+                  "topic": "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
+                  "type": "Standard Relayer"
+                },
+                {
+                  "abi": "fulfillOrder(bytes cctpMsg, bytes cctpSigs, bytes encodedVm, address swapProtocol, bytes swapData)",
+                  "topic": "0xcc5626df3b699006387b64eca775dbdfecd5ae542e2d6ab22923082e1320dfcb",
+                  "type": "Mayan with Swift"
+                },
+                {
+                  "abi": "redeemWithFee(bytes cctpMsg, bytes cctpSigs, bytes encodedVm)",
+                  "topic": "0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d",
+                  "type": "MCTP"
+                }
+              ],
               "metricName": "process_vaa_event"
             }
           }
@@ -882,6 +1146,14 @@ spec:
             {{ if .SNAXCHAIN_RPCS }}
             - name: SNAXCHAIN_RPCS
               value: '{{ .SNAXCHAIN_RPCS }}'
+            {{ end }}
+            {{ if .ARBITRUM_RPCS }}
+            - name: ARBITRUM_RPCS
+              value: '{{ .ARBITRUM_RPCS }}'
+            {{ end }}
+            {{ if .OPTIMISM_RPCS }}
+            - name: ALGORAND_RPCS
+              value: '{{ .ALGORAND_RPCS }}'
             {{ end }}
           resources:
             limits:

@@ -41,7 +41,7 @@ data:
   testnet-jobs.json: |-
     [
       {
-        "id": "poll-log-message-published-karura",
+        "id": "poll-log-message-published-karura-finalized",
         "chain": "karura",
         "source": {
             "action": "PollEvm",
@@ -81,7 +81,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-fantom",
+        "id": "poll-log-message-published-fantom-latest",
         "chain": "fantom",
         "source": {
             "action": "PollEvm",
@@ -121,7 +121,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-acala",
+        "id": "poll-log-message-published-acala-finalized",
         "chain": "acala",
         "source": {
             "action": "PollEvm",
@@ -161,7 +161,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-avalanche",
+        "id": "poll-log-message-published-avalanche-finalized",
         "chain": "avalanche",
         "source": {
             "action": "PollEvm",
@@ -202,7 +202,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-bsc",
+        "id": "poll-log-message-published-bsc-latest",
         "chain": "bsc",
         "source": {
           "action": "PollEvm",
@@ -242,7 +242,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-moonbeam",
+        "id": "poll-log-message-published-moonbeam-latest",
         "chain": "moonbeam",
         "source": {
           "action": "PollEvm",
@@ -282,7 +282,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-arbitrum-sepolia",
+        "id": "poll-log-message-published-arbitrum-sepolia-latest",
         "chain": "arbitrum-sepolia",
         "source": {
           "action": "PollEvm",
@@ -322,7 +322,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-ethereum-sepolia",
+        "id": "poll-log-message-published-ethereum-sepolia-latest",
         "chain": "ethereum-sepolia",
         "source": {
           "action": "PollEvm",
@@ -362,7 +362,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-ethereum-holesky",
+        "id": "poll-log-message-published-ethereum-holesky-latest",
         "chain": "ethereum-holesky",
         "source": {
           "action": "PollEvm",
@@ -405,7 +405,7 @@ data:
   mainnet-jobs.json: |-
     [
       {
-        "id": "poll-log-message-published-karura",
+        "id": "poll-log-message-published-karura-finalized",
         "chain": "karura",
         "source": {
             "action": "PollEvm",
@@ -445,7 +445,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-fantom",
+        "id": "poll-log-message-published-fantom-latest",
         "chain": "fantom",
         "source": {
             "action": "PollEvm",
@@ -485,7 +485,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-acala",
+        "id": "poll-log-message-published-acala-finalized",
         "chain": "acala",
         "source": {
             "action": "PollEvm",
@@ -525,7 +525,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-avalanche",
+        "id": "poll-log-message-published-avalanche-finalized",
         "chain": "avalanche",
         "source": {
             "action": "PollEvm",
@@ -566,7 +566,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-bsc",
+        "id": "poll-log-message-published-bsc-latest",
         "chain": "bsc",
         "source": {
           "action": "PollEvm",
@@ -606,7 +606,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-moonbeam",
+        "id": "poll-log-message-published-moonbeam-latest",
         "chain": "moonbeam",
         "source": {
           "action": "PollEvm",
@@ -646,7 +646,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-arbitrum",
+        "id": "poll-log-message-published-arbitrum-latest",
         "chain": "arbitrum",
         "source": {
           "action": "PollEvm",
@@ -686,7 +686,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-ethereum",
+        "id": "poll-log-message-published-ethereum-latest",
         "chain": "ethereum",
         "source": {
           "action": "PollEvm",

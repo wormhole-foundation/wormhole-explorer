@@ -191,7 +191,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
 
   async getFilteredLogs(chain: string, filter: EvmLogFilter): Promise<EvmLog[]> {
     let parsedFilters: ParsedFilters = {
-      topics: filter.topics,
+      topics: [filter.topics[0]], // We only use the first topic
       fromBlock: `${HEXADECIMAL_PREFIX}${filter.fromBlock.toString(16)}`,
       toBlock: `${HEXADECIMAL_PREFIX}${filter.toBlock.toString(16)}`,
     };
