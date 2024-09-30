@@ -41,7 +41,7 @@ data:
   testnet-jobs.json: |-
     [
       {
-        "id": "poll-redeemed-transactions-aptos",
+        "id": "poll-redeemed-transactions-aptos-finalized",
         "chain": "aptos",
         "source": {
           "action": "PollAptos",
@@ -80,7 +80,7 @@ data:
         ]
       },
       {
-        "id": "poll-transfer-redeems-sui",
+        "id": "poll-transfer-redeems-sui-immediate",
         "chain": "sui",
         "source": {
           "action": "PollSuiTransactions",
@@ -111,7 +111,7 @@ data:
         ]
       },
       {
-        "id": "poll-transfer-with-payload-redeems-sui",
+        "id": "poll-transfer-with-payload-redeems-sui-immediate",
         "chain": "sui",
         "source": {
           "action": "PollSuiTransactions",
@@ -142,14 +142,14 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-wormchain", 
+        "id": "poll-redeemed-transactions-wormchain-immediate", 
         "chain": "wormchain",
         "source": {
           "action": "PollWormchain",
           "records": "GetWormchainRedeems",
           "config": {
             "blockBatchSize": 50,
-            "commitment": "latest",
+            "commitment": "immediate",
             "interval": 35000,
             "addresses": ["wormhole1aaf9r6s7nxhysuegqrxv0wpm27ypyv4886medd3mrkrw6t4yfcnst3qpex"],
             "chain": "wormchain",
@@ -171,7 +171,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-algorand", 
+        "id": "poll-redeemed-transactions-algorand-latest", 
         "chain": "algorand",
         "source": {
           "action": "PollAlgorand",
@@ -202,7 +202,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-klaytn",
+        "id": "poll-redeemed-transactions-klaytn-latest",
         "chain": "klaytn",
         "source": {
           "action": "PollEvm",
@@ -235,7 +235,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-acala",
+        "id": "poll-redeemed-transactions-acala-finalized",
         "chain": "acala",
         "source": {
           "action": "PollEvm",
@@ -271,7 +271,7 @@ data:
   mainnet-jobs.json: |-
     [
       {
-        "id": "poll-redeemed-transactions-aptos",
+        "id": "poll-redeemed-transactions-aptos-finalized",
         "chain": "aptos",
         "source": {
           "action": "PollAptos",
@@ -310,7 +310,7 @@ data:
         ]
       },
       {
-        "id": "poll-transfer-redeems-sui",
+        "id": "poll-transfer-redeems-sui-immediate",
         "chain": "sui",
         "source": {
           "action": "PollSuiTransactions",
@@ -341,7 +341,7 @@ data:
         ]
       },
       {
-        "id": "poll-transfer-with-payload-redeems-sui",
+        "id": "poll-transfer-with-payload-redeems-sui-immediate",
         "chain": "sui",
         "source": {
           "action": "PollSuiTransactions",
@@ -372,14 +372,14 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-wormchain", 
+        "id": "poll-redeemed-transactions-wormchain-immediate", 
         "chain": "wormchain",
         "source": {
           "action": "PollWormchain",
           "records": "GetWormchainRedeems",
           "config": {
             "blockBatchSize": 50,
-            "commitment": "latest",
+            "commitment": "immediate",
             "interval": 15000,
             "addresses": ["wormhole1466nf3zuxpya8q9emxukd7vftaf6h4psr0a07srl5zw74zh84yjq4lyjmh"],
             "chain": "wormchain",
@@ -401,13 +401,13 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-sei",
+        "id": "poll-redeemed-transactions-sei-immediate",
         "chain": "sei",
         "source": {
           "action": "PollCosmos",
           "config": {
             "blockBatchSize": 100,
-            "commitment": "latest",
+            "commitment": "immediate",
             "interval": 60000,
             "filter": {
               "addresses": [
@@ -435,7 +435,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-algorand", 
+        "id": "poll-redeemed-transactions-algorand-latest", 
         "chain": "algorand",
         "source": {
           "action": "PollAlgorand",
@@ -466,7 +466,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-klaytn",
+        "id": "poll-redeemed-transactions-klaytn-latest",
         "chain": "klaytn",
         "source": {
           "action": "PollEvm",
@@ -505,7 +505,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-acala",
+        "id": "poll-redeemed-transactions-acala-finalized",
         "chain": "acala",
         "source": {
           "action": "PollEvm",
@@ -538,7 +538,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-terra",
+        "id": "poll-redeemed-transactions-terra-immediate",
         "chain": "terra",
         "source": {
           "action": "PollCosmos",
@@ -572,7 +572,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-terra2",
+        "id": "poll-redeemed-transactions-terra2-immediate",
         "chain": "terra2",
         "source": {
           "action": "PollCosmos",
@@ -606,7 +606,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-xpla",
+        "id": "poll-redeemed-transactions-xpla-immediate",
         "chain": "xpla",
         "source": {
           "action": "PollCosmos",
@@ -634,6 +634,86 @@ data:
                   "xpla137w0wfch2dfmz7jl2ap8pcmswasj8kg06ay4dtjzw7tzkn77ufxqfw7acv"
                 ]
               },
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-redeemed-transactions-polygon-finalized",
+        "chain": "polygon",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "finalized",
+            "interval": 15000,
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "CCTP",
+                "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": ["0xF18f923480dC144326e6C65d4F3D47Aa459bb41C"],
+                "type": "MCTP",
+                "topics": ["0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "Standard Relayer",
+                "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "Mayan with Swift",                
+                "topics": ["0xcc5626df3b699006387b64eca775dbdfecd5ae542e2d6ab22923082e1320dfcb"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": ["0x90BBd86a6Fe93D3bc3ed6335935447E75fAb7fCf", "0x0C79503A24e6C7f89b0dF2b1Bf6761A01252D4ee"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              }
+            ],
+            "chain": "polygon",
+            "chainId": 5
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "abis": [
+                {
+                  "abi": "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
+                  "topic": "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
+                  "type": "Standard Relayer"
+                },
+                {
+                  "abi": "fulfillOrder(bytes cctpMsg, bytes cctpSigs, bytes encodedVm, address swapProtocol, bytes swapData)",
+                  "topic": "0xcc5626df3b699006387b64eca775dbdfecd5ae542e2d6ab22923082e1320dfcb",
+                  "type": "Mayan with Swift"
+                },
+                {
+                  "abi": "redeemWithFee(bytes cctpMsg, bytes cctpSigs, bytes encodedVm)",
+                  "topic": "0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d",
+                  "type": "MCTP"
+                }
+              ],
               "metricName": "process_vaa_event"
             }
           }
@@ -725,6 +805,14 @@ spec:
             {{ if .ACALA_RPCS }}
             - name: ACALA_RPCS
               value: '{{ .ACALA_RPCS }}'
+            {{ end }}
+            {{ if .KLAYTN_RPCS }}
+            - name: KLAYTN_RPCS
+              value: '{{ .KLAYTN_RPCS }}'
+            {{ end }}
+            {{ if .POLYGON_RPCS }}
+            - name: POLYGON_RPCS
+              value: '{{ .POLYGON_RPCS }}'
             {{ end }}
           resources:
             limits:
