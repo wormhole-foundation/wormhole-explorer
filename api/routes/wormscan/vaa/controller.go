@@ -34,17 +34,11 @@ func NewController(serv *vaa.Service, logger *zap.Logger) *Controller {
 // @Param sortOrder query string false "Sort results in ascending or descending order." Enums(ASC, DESC)
 // @Param txHash query string false "Transaction hash of the VAA"
 // @Param parsedPayload query bool false "include the parsed contents of the VAA, if available"
-// @Param appId query string false "filter by application ID"
 // @Success 200 {object} response.Response[[]vaa.VaaDoc]
 // @Failure 400
 // @Failure 500
 // @Router /api/v1/vaas/ [get]
 func (c *Controller) FindAll(ctx *fiber.Ctx) error {
-	_, err := middleware.ExtractDBLayer(ctx)
-	if err != nil {
-		return err
-	}
-
 	pagination, err := middleware.ExtractPagination(ctx)
 	if err != nil {
 		return err
@@ -65,18 +59,12 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	appId := middleware.ExtractAppId(ctx, c.logger)
-	if appId != "" {
-		includeParsedPayload = true
-	}
-
 	p := vaa.FindAllParams{
 		Pagination:           pagination,
 		TxHash:               txHash,
 		IncludeParsedPayload: includeParsedPayload,
-		AppId:                appId,
 	}
-	vaas, err := c.srv.FindAll(ctx.Context(), &p)
+	vaas, err := c.srv.FindAll(ctx.Context(), middleware.UsePostgres(ctx), &p)
 	if err != nil {
 		return err
 	}
@@ -112,7 +100,7 @@ func (c *Controller) FindByChain(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	vaas, err := c.srv.FindByChain(ctx.Context(), chainID, p)
+	vaas, err := c.srv.FindByChain(ctx.Context(), middleware.UsePostgres(ctx), chainID, p)
 	if err != nil {
 		return err
 	}
@@ -168,7 +156,7 @@ func (c *Controller) FindByEmitter(ctx *fiber.Ctx) error {
 		IncludeParsedPayload: includeParsedPayload,
 		Pagination:           pagination,
 	}
-	vaas, err := c.srv.FindByEmitter(ctx.Context(), &p)
+	vaas, err := c.srv.FindByEmitter(ctx.Context(), middleware.UsePostgres(ctx), &p)
 	if err != nil {
 		return err
 	}
@@ -202,6 +190,7 @@ func (c *Controller) FindById(ctx *fiber.Ctx) error {
 
 	vaa, err := c.srv.FindById(
 		ctx.Context(),
+		middleware.UsePostgres(ctx),
 		chainID,
 		emitter,
 		strconv.FormatUint(seq, 10),
@@ -295,6 +284,7 @@ func (c *Controller) FindDuplicatedById(ctx *fiber.Ctx) error {
 
 	vaas, err := c.srv.FindDuplicatedById(
 		ctx.Context(),
+		middleware.UsePostgres(ctx),
 		chainID,
 		emitter,
 		strconv.FormatUint(seq, 10),

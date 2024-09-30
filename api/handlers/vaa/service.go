@@ -18,17 +18,24 @@ import (
 
 // Service definition.
 type Service struct {
-	repo         *Repository
+	mongoRepo    *MongoRepository
+	postgresRepo *PostgresRepository
 	getCacheFunc cache.CacheGetFunc
 	parseVaaFunc vaaPayloadParser.ParseVaaFunc
 	logger       *zap.Logger
 }
 
 // NewService creates a new VAA Service.
-func NewService(r *Repository, getCacheFunc cache.CacheGetFunc, parseVaaFunc vaaPayloadParser.ParseVaaFunc, logger *zap.Logger) *Service {
+func NewService(
+	r *MongoRepository,
+	p *PostgresRepository,
+	getCacheFunc cache.CacheGetFunc,
+	parseVaaFunc vaaPayloadParser.ParseVaaFunc,
+	logger *zap.Logger) *Service {
 
 	s := Service{
-		repo:         r,
+		mongoRepo:    r,
+		postgresRepo: p,
 		getCacheFunc: getCacheFunc,
 		parseVaaFunc: parseVaaFunc,
 		logger:       logger.With(zap.String("module", "VaaService")),
@@ -48,6 +55,7 @@ type FindAllParams struct {
 // FindAll returns all VAAs.
 func (s *Service) FindAll(
 	ctx context.Context,
+	usePostgres bool,
 	params *FindAllParams,
 ) (*response.Response[[]*VaaDoc], error) {
 
@@ -60,9 +68,6 @@ func (s *Service) FindAll(
 	if params.TxHash != nil {
 		query.SetTxHash(params.TxHash.String())
 	}
-	if params.AppId != "" {
-		query.SetAppId(params.AppId)
-	}
 
 	// Execute the database query
 	//
@@ -72,13 +77,20 @@ func (s *Service) FindAll(
 	// This block of code has additional logic to handle that case.
 	var err error
 	var vaas []*VaaDoc
-	if query.txHash != "" {
-		vaas, err = s.repo.FindVaasByTxHashWorkaround(ctx, query)
+	if usePostgres {
+		vaas, err = s.postgresRepo.Find(ctx, query)
+		if err != nil {
+			return nil, err
+		}
 	} else {
-		vaas, err = s.repo.FindVaas(ctx, query)
-	}
-	if err != nil {
-		return nil, err
+		if query.txHash != "" {
+			vaas, err = s.mongoRepo.FindVaasByTxHashWorkaround(ctx, query)
+		} else {
+			vaas, err = s.mongoRepo.FindVaas(ctx, query)
+		}
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Return the matching documents
@@ -89,6 +101,7 @@ func (s *Service) FindAll(
 // FindByChain get all the vaa by chainID.
 func (s *Service) FindByChain(
 	ctx context.Context,
+	usePostgres bool,
 	chain sdk.ChainID,
 	p *pagination.Pagination,
 ) (*response.Response[[]*VaaDoc], error) {
@@ -98,7 +111,16 @@ func (s *Service) FindByChain(
 		SetPagination(p).
 		IncludeParsedPayload(false)
 
-	vaas, err := s.repo.FindVaas(ctx, query)
+	var vaas []*VaaDoc
+	var err error
+	if usePostgres {
+		vaas, err = s.postgresRepo.Find(ctx, query)
+	} else {
+		vaas, err = s.mongoRepo.FindVaas(ctx, query)
+	}
+	if err != nil {
+		return nil, err
+	}
 
 	res := response.Response[[]*VaaDoc]{Data: vaas}
 	return &res, err
@@ -116,6 +138,7 @@ type FindByEmitterParams struct {
 // FindByEmitter get all the vaa by chainID and emitter address.
 func (s *Service) FindByEmitter(
 	ctx context.Context,
+	usePostgres bool,
 	params *FindByEmitterParams,
 ) (*response.Response[[]*VaaDoc], error) {
 
@@ -131,10 +154,21 @@ func (s *Service) FindByEmitter(
 	// the data from a different collection.
 	var vaas []*VaaDoc
 	var err error
-	if params.ToChain != nil {
-		vaas, err = s.repo.FindVaasByEmitterAndToChain(ctx, query, *params.ToChain)
+
+	if usePostgres {
+		if params.ToChain != nil {
+			query.SetToChain(*params.ToChain)
+		}
+		vaas, err = s.postgresRepo.Find(ctx, query)
 	} else {
-		vaas, err = s.repo.FindVaas(ctx, query)
+		if params.ToChain != nil {
+			vaas, err = s.mongoRepo.FindVaasByEmitterAndToChain(ctx, query, *params.ToChain)
+		} else {
+			vaas, err = s.mongoRepo.FindVaas(ctx, query)
+		}
+	}
+	if err != nil {
+		return nil, err
 	}
 
 	res := response.Response[[]*VaaDoc]{Data: vaas}
@@ -144,6 +178,7 @@ func (s *Service) FindByEmitter(
 // If the parameter [payload] is true, the parse payload is added in the response.
 func (s *Service) FindById(
 	ctx context.Context,
+	usePostgres bool,
 	chain sdk.ChainID,
 	emitter *types.Address,
 	seq string,
@@ -157,7 +192,7 @@ func (s *Service) FindById(
 	}
 
 	// execute the database query
-	vaa, err := s.findById(ctx, chain, emitter, seq, includeParsedPayload)
+	vaa, err := s.findById(ctx, usePostgres, chain, emitter, seq, includeParsedPayload)
 	if err != nil {
 		return &response.Response[*VaaDoc]{}, err
 	}
@@ -170,6 +205,7 @@ func (s *Service) FindById(
 // findById get a vaa by chainID, emitter address and sequence number.
 func (s *Service) findById(
 	ctx context.Context,
+	usePostgres bool,
 	chain sdk.ChainID,
 	emitter *types.Address,
 	seq string,
@@ -182,16 +218,24 @@ func (s *Service) findById(
 		SetEmitter(emitter.Hex()).
 		SetSequence(seq).
 		IncludeParsedPayload(includeParsedPayload)
-	docs, err := s.repo.FindVaas(ctx, query)
+
+	var vaas []*VaaDoc
+	var err error
+	if usePostgres {
+		vaas, err = s.postgresRepo.Find(ctx, query)
+	} else {
+		vaas, err = s.mongoRepo.FindVaas(ctx, query)
+	}
+
 	if err != nil {
 		return nil, err
 	}
 
 	// we're expecting exactly one document
-	if len(docs) == 0 {
+	if len(vaas) == 0 {
 		return nil, errs.ErrNotFound
 	}
-	if len(docs) > 1 {
+	if len(vaas) > 1 {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
 		s.logger.Error("can not get more that one vaa by chainID/address/sequence",
 			zap.Any("q", query),
@@ -199,13 +243,14 @@ func (s *Service) findById(
 		return nil, errs.ErrInternalError
 	}
 
-	return docs[0], nil
+	return vaas[0], nil
 }
 
 // GetVaaCount get a list a list of vaa count grouped by chainID.
+// TODO: handle this endpoint with postgres or influx?
 func (s *Service) GetVaaCount(ctx context.Context) (*response.Response[[]*VaaStats], error) {
 	q := Query()
-	stats, err := s.repo.GetVaaCount(ctx, q)
+	stats, err := s.mongoRepo.GetVaaCount(ctx, q)
 	res := response.Response[[]*VaaStats]{Data: stats}
 	return &res, err
 }
@@ -275,6 +320,7 @@ func (s *Service) ParseVaa(ctx context.Context, vaaByte []byte) (any, error) {
 // If the parameter [payload] is true, the parse payload is added in the response.
 func (s *Service) FindDuplicatedById(
 	ctx context.Context,
+	usePostgres bool,
 	chain sdk.ChainID,
 	emitter *types.Address,
 	seq string,
@@ -286,8 +332,19 @@ func (s *Service) FindDuplicatedById(
 		return nil, errs.ErrNotFound
 	}
 
-	// execute the database query
-	vaas, err := s.repo.FindDuplicatedByID(ctx, chain, emitter, seq)
+	var vaas []*VaaDoc
+	var err error
+
+	if usePostgres {
+		query := Query().
+			SetChain(chain).
+			SetEmitter(emitter.Hex()).
+			SetSequence(seq)
+		vaas, err = s.postgresRepo.Find(ctx, query)
+	} else {
+		vaas, err = s.mongoRepo.FindDuplicatedByID(ctx, chain, emitter, seq)
+	}
+
 	if err != nil {
 		return nil, err
 	}
