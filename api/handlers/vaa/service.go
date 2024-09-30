@@ -156,6 +156,9 @@ func (s *Service) FindByEmitter(
 	var err error
 
 	if usePostgres {
+		if params.ToChain != nil {
+			query.SetToChain(*params.ToChain)
+		}
 		vaas, err = s.postgresRepo.Find(ctx, query)
 	} else {
 		if params.ToChain != nil {

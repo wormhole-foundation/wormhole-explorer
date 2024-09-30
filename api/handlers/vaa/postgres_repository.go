@@ -2,7 +2,6 @@ package vaa
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -45,7 +44,7 @@ type vaaResult struct {
 	TxHash *string `db:"tx_hash"`
 	// field ParsedPayload belongs to table wh_attestation_vaa_properties.
 	// It was added for compatibility.
-	ParsedPayload []byte `db:"parsed_payload"`
+	ParsedPayload map[string]any `db:"payload"`
 }
 
 // FindVaas finds VAAs.
@@ -86,21 +85,13 @@ func (p *PostgresRepository) Find(
 			TxHash:            v.TxHash,
 			Digest:            v.ID,
 			IsDuplicated:      v.IsDuplicated,
-			Payload:           unmarshalPayload(v.ParsedPayload), // CHECK THIS IN MONGO
+			Payload:           v.ParsedPayload, // CHECK THIS IN MONGO
 			Timestamp:         &v.CreatedAt,
 			IndexedAt:         &v.CreatedAt,
 			UpdatedAt:         v.UpdatedAt,
 		})
 	}
 	return result, nil
-}
-
-func unmarshalPayload(data []byte) map[string]interface{} {
-	var payload map[string]interface{}
-	if err := json.Unmarshal(data, &payload); err != nil {
-		return nil
-	}
-	return payload
 }
 
 func (q *VaaQuery) toQuery() (string, []any) {
@@ -172,11 +163,11 @@ func (q *VaaQuery) toQueryByTxHash() (string, []any) {
 		query += "\n"
 	}
 
-	query += "FROM wh_operation_transactions as t \n"
-	query += "INNER JOIN wh_attestation_vaas as v ON v.id = t.attestation_vaas_id AND v.active = TRUE \n"
+	query += "FROM wormholescan.wh_operation_transactions as t \n"
+	query += "INNER JOIN wormholescan.wh_attestation_vaas as v ON v.id = t.attestation_vaas_id AND v.active = TRUE \n"
 
 	if q.includeParsedPayload {
-		query += "LEFT JOIN wh_attestation_vaa_properties as p ON t.attestation_vaas_id = p.id \n"
+		query += "LEFT JOIN wormholescan.wh_attestation_vaa_properties as p ON t.attestation_vaas_id = p.id \n"
 	}
 
 	query += "WHERE t.tx_hash = $1 \n"
@@ -203,6 +194,7 @@ func (q *VaaQuery) toQueryWithFilters() (string, []any) {
 		query += "LEFT JOIN wormholescan.wh_attestation_vaa_properties as p ON v.id = p.id \n"
 	}
 
+	query += "WHERE 1 = 1 \n"
 	if q.chainId > 0 {
 		query += "AND v.emitter_chain_id = $1 \n"
 		params = append(params, q.chainId)
@@ -228,9 +220,9 @@ func (q *VaaQuery) toQueryByToChain() (string, []any) {
 		query += "\n"
 	}
 
-	query += "FROM wh_attestation_vaa_properties as p \n"
-	query += "INNER JOIN wh_attestation_vaas as v ON v.id = p.id \n"
-	query += "LEFT JOIN wh_operation_transactions as t ON p.id = t.attestation_vaas_id \n"
+	query += "FROM wormholescan.wh_attestation_vaa_properties as p \n"
+	query += "INNER JOIN wormholescan.wh_attestation_vaas as v ON v.id = p.id \n"
+	query += "LEFT JOIN wormholescan.wh_operation_transactions as t ON p.id = t.attestation_vaas_id \n"
 
 	if q.toChain > 0 {
 		query += "WHERE p.to_chain_id = $1 \n"
@@ -246,8 +238,8 @@ func (q *VaaQuery) toQueryDuplicatedVaaId() (string, []any) {
 	query := `
 	SELECT v.id, v.vaa_id, v.version, v.emitter_chain_id, v.emitter_address, v.sequence, v.guardian_set_index, v.raw, v.timestamp, 
 	v.active, v.is_duplicated, v.created_at, v.updated_at, v.consistency_level, o.tx_hash 
-	FROM wh_attestation_vaas as v
-	INNER JOIN wh_observations as o ON v.id = o.hash
+	FROM wormholescan.wh_attestation_vaas as v
+	INNER JOIN wormholescan.wh_observations as o ON v.id = o.hash
 	WHERE v.vaa_id = $1 AND v.is_duplicated = TRUE
 	`
 	// query := "SELECT v.id, v.vaa_id, v.version, v.emitter_chain_id, v.emitter_address, v.sequence, v.guardian_set_index, v.raw, v.timestamp"
