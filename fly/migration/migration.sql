@@ -21,6 +21,8 @@ CREATE INDEX "wh_observations_tx_hash_idx"
     ON wormholescan.wh_observations ("tx_hash");
 CREATE INDEX "wh_observations_emitter_chain_id_emitter_address_sequence_idx" 
     on wormholescan.wh_observations ("emitter_chain_id", "emitter_address", "sequence");
+CREATE INDEX "wh_observations_created_at_idx"
+    ON wormholescan.wh_observations ("created_at" desc);
 
 -- create table wormholescan.wh_attestation_vaas
 CREATE TABLE wormholescan.wh_attestation_vaas (

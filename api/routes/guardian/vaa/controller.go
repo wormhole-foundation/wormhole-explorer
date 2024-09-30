@@ -49,6 +49,7 @@ func (c *Controller) FindSignedVAAByID(ctx *fiber.Ctx) error {
 
 	vaa, err := c.srv.FindById(
 		ctx.Context(),
+		false, //TODO modify api migration.
 		chainID,
 		emitter,
 		strconv.FormatUint(seq, 10),
