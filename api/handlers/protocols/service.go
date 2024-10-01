@@ -80,10 +80,10 @@ func (s *Service) GetProtocolsTotalValues(ctx context.Context) []ProtocolTotalVa
 	}
 
 	wg.Add(1)
-	go s.fetchAllProtocolValues(ctx, wg, s.protocols, results) // fetch all protocols which are populated from the vaas we received from gossip
+	go s.fetchAllProtocolValues(ctx, wg, s.protocols, results) // fetch all protocols from the vaas we received from gossip network
 
 	go func() {
-		wg.Wait() // wait for both goroutines to finish
+		wg.Wait() // wait for all goroutines to finish in order to close the channel
 		close(results)
 	}()
 
@@ -133,7 +133,7 @@ func (s *Service) getProtocolTotalValuesFn(protocol string) fetchProtocolTotalVa
 	}
 }
 
-func (s *Service) fetchAllProtocolValues(ctx context.Context, wg *sync.WaitGroup, excludeProtocols []string, results chan<- ProtocolTotalValuesDTO) {
+func (s *Service) fetchAllProtocolValues(ctx context.Context, wg *sync.WaitGroup, excludedProtocols []string, results chan<- ProtocolTotalValuesDTO) {
 	defer wg.Done()
 
 	val, err := cacheable.GetOrLoad[[]ProtocolStats](ctx,
@@ -143,7 +143,7 @@ func (s *Service) fetchAllProtocolValues(ctx context.Context, wg *sync.WaitGroup
 		s.cacheKeyPrefix+":ALL_PROTOCOLS",
 		s.metrics,
 		func() ([]ProtocolStats, error) {
-			return s.getAllProtocolStats(ctx, excludeProtocols)
+			return s.getAllProtocolStats(ctx, excludedProtocols)
 		},
 	)
 
@@ -260,23 +260,23 @@ func (s *Service) getCoreProtocolStats(ctx context.Context, protocol string) (Pr
 }
 
 func (s *Service) getCCTPStats(ctx context.Context, protocol string) (ProtocolStats, error) {
-	protocolStats, err := s.repo.getCCTPStats(ctx, protocol)
+	cctpStats, err := s.repo.getCCTPStats(ctx, protocol)
 	if err != nil {
 		return ProtocolStats{
 			Protocol: protocol,
 		}, err
 	}
 
-	diffLastDay := protocolStats.DeltaLast24hr.TotalMessages
+	diffLastDay := cctpStats.DeltaLast24hr.TotalMessages
 	val := ProtocolStats{
 		Protocol:              protocol,
-		TotalValueTransferred: protocolStats.Latest.TotalValueTransferred,
-		TotalMessages:         protocolStats.Latest.TotalMessages,
+		TotalValueTransferred: cctpStats.Latest.TotalValueTransferred,
+		TotalMessages:         cctpStats.Latest.TotalMessages,
 		LastDayMessages:       diffLastDay,
-		Last24HourVolume:      protocolStats.DeltaLast24hr.TotalValueTransferred,
+		Last24HourVolume:      cctpStats.DeltaLast24hr.TotalValueTransferred,
 	}
 
-	lastDayTotalMessages := protocolStats.Latest.TotalMessages - diffLastDay
+	lastDayTotalMessages := cctpStats.Latest.TotalMessages - diffLastDay
 	if lastDayTotalMessages != 0 {
 		percentage := strconv.FormatFloat(float64(diffLastDay)/float64(lastDayTotalMessages)*100, 'f', 2, 64) + "%"
 		val.LastDayDiffPercentage = percentage
