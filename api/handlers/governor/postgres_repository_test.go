@@ -3,9 +3,10 @@ package governor
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/mongo"
+	"github.com/wormhole-foundation/wormhole-explorer/common/types"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
-	"gotest.tools/assert"
 )
 
 func TestPostgresRepository_createGovernorLimit(t *testing.T) {
@@ -97,4 +98,27 @@ func TestPostgresRepository_paginateBigSize(t *testing.T) {
 
 	assert.Equal(t, len(paginated), 7)
 	assert.Equal(t, paginated[0].ChainID, sdk.ChainID(4))
+}
+
+func TestGovernorQuery_toQuery(t *testing.T) {
+	q := NewGovernorQuery()
+	expected := "SELECT id, guardian_name, message , created_at , updated_at FROM wormholescan.wh_governor_status \n ORDER BY id ASC \n LIMIT $1 OFFSET $2 \n "
+	query, params := q.toQuery()
+	assert.Equal(t, query, expected)
+	assert.Equal(t, len(params), 2)
+	assert.Equal(t, params[0], q.Limit)
+	assert.Equal(t, params[1], q.Skip)
+}
+
+func TestGovernorQuery_toQueryWithID(t *testing.T) {
+	addr := "000ac0076727b35fbea2dac28fee5ccb0fea768e"
+	address, err := types.StringToAddress(addr, true)
+	assert.Nil(t, err)
+	assert.NotNil(t, address)
+	q := NewGovernorQuery().SetID(address)
+	expected := "SELECT id, guardian_name, message , created_at , updated_at FROM wormholescan.wh_governor_status \n WHERE id = $1 \n "
+	query, params := q.toQuery()
+	assert.Equal(t, query, expected)
+	assert.Equal(t, len(params), 1)
+	assert.Equal(t, params[0], addr)
 }

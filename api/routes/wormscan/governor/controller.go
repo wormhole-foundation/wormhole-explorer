@@ -8,7 +8,6 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/governor"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
 	"github.com/wormhole-foundation/wormhole-explorer/api/response"
-	_ "github.com/wormhole-foundation/wormhole-explorer/api/response" // needed by swaggo docs
 	"go.uber.org/zap"
 )
 
@@ -107,7 +106,7 @@ func (c *Controller) FindGovernorStatus(ctx *fiber.Ctx) error {
 		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
 	}
 
-	governorStatus, err := c.srv.FindGovernorStatus(ctx.Context(), p)
+	governorStatus, err := c.srv.FindGovernorStatus(ctx.Context(), middleware.UsePostgres(ctx), p)
 	if err != nil {
 		return err
 	}
@@ -142,7 +141,7 @@ func (c *Controller) FindGovernorStatusByGuardianAddress(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	govStatus, err := c.srv.FindGovernorStatusByGuardianAddress(ctx.Context(), guardianAddress, p)
+	govStatus, err := c.srv.FindGovernorStatusByGuardianAddress(ctx.Context(), middleware.UsePostgres(ctx), guardianAddress, p)
 	if err != nil {
 		return err
 	}

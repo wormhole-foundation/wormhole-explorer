@@ -2,7 +2,9 @@ package governor
 
 import (
 	"context"
+	"encoding/json"
 	"sort"
+	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/mongo"
 	"github.com/wormhole-foundation/wormhole-explorer/common/db"
@@ -15,6 +17,14 @@ type governorLimitResult struct {
 	NotionalLimit      uint64 `db:"notional_limit"`
 	BigTransactionSize uint64 `db:"big_transaction_size"`
 	AvailableNotional  uint64 `db:"available_notional"`
+}
+
+type governorStatusResult struct {
+	ID           string    `db:"id"`
+	GuardianName string    `db:"guardian_name"`
+	Message      string    `db:"message"`
+	CreatedAt    time.Time `db:"created_at"`
+	UpdatedAt    time.Time `db:"updated_at"`
 }
 
 type PostgresRepository struct {
@@ -71,6 +81,59 @@ func (r *PostgresRepository) GetGovernorLimit(
 	return paginate(limits, int(q.Skip), int(q.Limit)), nil
 }
 
+func (r *PostgresRepository) FindGovernorStatus(
+	ctx context.Context,
+	q *GovernorQuery,
+) ([]*GovStatus, error) {
+	query, params := q.toQuery()
+	var result []governorStatusResult
+	err := r.db.Select(ctx, &result, query, params...)
+	if err != nil {
+		r.logger.Error("failed to execute query", zap.Error(err), zap.String("query", query))
+		return nil, err
+	}
+
+	statuses := make([]*GovStatus, 0, len(result))
+	for _, s := range result {
+		govStatus, err := createGovStatus(&s)
+		if err != nil {
+			r.logger.Error("creating govStatus", zap.Error(err), zap.String("guardian_name", s.GuardianName))
+			return nil, err
+		}
+		statuses = append(statuses, govStatus)
+	}
+
+	return statuses, nil
+}
+
+func (r *PostgresRepository) FindOneGovernorStatus(
+	ctx context.Context,
+	q *GovernorQuery,
+) (*GovStatus, error) {
+	var result governorStatusResult
+	query, params := q.toQuery()
+	err := r.db.SelectOne(ctx, &result, query, params...)
+	if err != nil {
+		r.logger.Error("failed to execute query", zap.Error(err), zap.String("query", query))
+		return nil, err
+	}
+	return createGovStatus(&result)
+}
+
+func (q *GovernorQuery) toQuery() (string, []any) {
+	var params []any
+	query := "SELECT id, guardian_name, message , created_at , updated_at FROM wormholescan.wh_governor_status \n "
+	if q.id != nil {
+		params = append(params, q.id.ShortHex())
+		query += "WHERE id = $1 \n "
+	} else {
+		params = append(params, q.Limit, q.Skip)
+		query += "ORDER BY id ASC \n "
+		query += "LIMIT $1 OFFSET $2 \n "
+	}
+	return query, params
+}
+
 func createGovernorLimit(chainID uint16, chainLimits []governorLimitResult) *GovernorLimit {
 	sort.Slice(chainLimits, func(i, j int) bool {
 		return chainLimits[i].NotionalLimit > chainLimits[j].NotionalLimit
@@ -102,6 +165,24 @@ func createGovernorLimit(chainID uint16, chainLimits []governorLimitResult) *Gov
 		MaxTransactionSize: bigTransactionSize,
 		AvailableNotional:  availableNotional,
 	}
+}
+
+func createGovStatus(s *governorStatusResult) (*GovStatus, error) {
+
+	var wrapper struct {
+		Chains []*GovStatusChains `json:"chains"`
+	}
+	err := json.Unmarshal([]byte(s.Message), &wrapper)
+	if err != nil {
+		return nil, err
+	}
+	return &GovStatus{
+		ID:        s.ID,
+		NodeName:  s.GuardianName,
+		Chains:    wrapper.Chains,
+		CreatedAt: &s.CreatedAt,
+		UpdatedAt: &s.UpdatedAt,
+	}, nil
 }
 
 func paginate(list []*GovernorLimit, skip int, size int) []*GovernorLimit {

@@ -68,12 +68,23 @@ func (s *Service) FindGovernorConfigByGuardianAddress(
 }
 
 // FindGovernorStatus get a list of governor status.
-func (s *Service) FindGovernorStatus(ctx context.Context, p *pagination.Pagination) (*response.Response[[]*GovStatus], error) {
+func (s *Service) FindGovernorStatus(ctx context.Context, usePostgres bool, p *pagination.Pagination) (*response.Response[[]*GovStatus], error) {
 	if p == nil {
 		p = pagination.Default()
 	}
 	query := NewGovernorQuery().SetPagination(p)
-	govStatus, err := s.mongoRepo.FindGovernorStatus(ctx, query)
+	var govStatus []*GovStatus
+	var err error
+	if usePostgres {
+		govStatus, err = s.postgresRepo.FindGovernorStatus(ctx, query)
+	} else {
+		govStatus, err = s.mongoRepo.FindGovernorStatus(ctx, query)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
 	res := response.Response[[]*GovStatus]{Data: govStatus}
 	return &res, err
 }
@@ -81,6 +92,7 @@ func (s *Service) FindGovernorStatus(ctx context.Context, p *pagination.Paginati
 // FindGovernorStatusByGuardianAddress get a governor status by guardianAddress.
 func (s *Service) FindGovernorStatusByGuardianAddress(
 	ctx context.Context,
+	usePostgres bool,
 	guardianAddress *types.Address,
 	p *pagination.Pagination,
 ) (*response.Response[*GovStatus], error) {
@@ -89,8 +101,16 @@ func (s *Service) FindGovernorStatusByGuardianAddress(
 		SetID(guardianAddress).
 		SetPagination(p)
 
-	govStatus, err := s.mongoRepo.FindOneGovernorStatus(ctx, query)
-
+	var govStatus *GovStatus
+	var err error
+	if usePostgres {
+		govStatus, err = s.postgresRepo.FindOneGovernorStatus(ctx, query)
+	} else {
+		govStatus, err = s.mongoRepo.FindOneGovernorStatus(ctx, query)
+	}
+	if err != nil {
+		return nil, err
+	}
 	res := response.Response[*GovStatus]{Data: govStatus}
 	return &res, err
 }
