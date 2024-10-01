@@ -108,68 +108,39 @@ union(tables:[tvt,totalMsgs])
 		|> set(key:"app_id",value:"%s")
 `
 
-const QueryTemplateProtocolStatsLastDay = `
+const QueryTemplateProtocolStats24HrAgo = `
 		from(bucket: "%s")
-  			|> range(start: %s, stop: %s)
+  			|> range(start: -1d)
   			|> filter(fn: (r) => r._measurement == "%s" and r.protocol == "%s")
 			|> first()
 			|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
 `
 
-const QueryTemplateProtocolStats = `
-		data = from(bucket: "%s")
-  					|> range(start: -2d)
-  					|> filter(fn: (r) => r._measurement == "%s" and r.protocol == "%s")
-
-		totalMsg = data
-					|> filter(fn: (r) => r._field == "total_messages")
-					|> sort(columns:["_time"],desc:false)
-					|> last()	
-
-		tvl = data	
-  					|> filter(fn: (r) => r._field == "total_value_locked")
-					|> sort(columns:["_time"],desc:false)
-					|> last()
-
-		volume = data	
-  					|> filter(fn: (r) => r._field == "volume")
-					|> sort(columns:["_time"],desc:false)
-					|> last()
-	
-		union(tables:[totalMsg,tvl,volume])
+const QueryTemplateProtocolStatsNow = `
+		from(bucket: "%s")
+  			|> range(start: -2d)
+  			|> filter(fn: (r) => r._measurement == "%s" and r.protocol == "%s")
+			|> last()
 			|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
 `
 
 const QueryTemplateProtocolActivity = `	
-		data = 
+	data = 
 		from(bucket: "%s")
 		  |> range(start: %s)
 		  |> filter(fn: (r) => r._measurement == "%s" and r.protocol == "%s")
-			
-		tvs = data	
-			|> filter(fn: (r) => r._field == "total_value_secure") 
-			|> cumulativeSum()
-			|> last()
-		
+	
 		tvt = data	
 			|> filter(fn: (r) => r._field == "total_value_transferred") 
-			|> cumulativeSum()
-			|> last()
-			
-		volume = data	
-		  	|> filter(fn: (r) => r._field == "volume")
-			|> sort(columns:["_time"],desc:false)
-		  	|> cumulativeSum()
-			|> last()	
+			|> sum()
 
 		txs = data	
   			|> filter(fn: (r) => r._field == "txs")
-			|> sort(columns:["_time"],desc:false)
-  			|> cumulativeSum()
-			|> last()
+  			|> sum()
 
-		union(tables:[tvs,tvt,volume,txs])
-		 |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
+		union(tables:[tvt, txs])
+			|> pivot(rowKey:["_start","_stop"], columnKey: ["_field"], valueColumn: "_value")
+			|> rename(columns: {_stop: "_time"})
 `
 
 const QueryLast24HrActivity = `
@@ -217,9 +188,7 @@ type intStats struct {
 type rowActivity struct {
 	Protocol                      string    `mapstructure:"protocol"`
 	Time                          time.Time `mapstructure:"_time"`
-	TotalUsd                      float64   `mapstructure:"total_usd"`
 	TotalValueTransferred         float64   `mapstructure:"total_value_transferred"`
-	TotalValueSecure              float64   `mapstructure:"total_value_secure"`
 	Txs                           uint64    `mapstructure:"txs"`
 	Last24HrTotalValueTransferred float64
 }
@@ -269,70 +238,44 @@ func (q *queryApiWrapper) Query(ctx context.Context, query string) (QueryResult,
 	return q.qApi.Query(ctx, query)
 }
 
-func (r *Repository) getProtocolStats(ctx context.Context, protocol string) (rowStat, error) {
-
-	q := fmt.Sprintf(QueryTemplateProtocolStats, r.bucket30d, dbconsts.ProtocolsStatsMeasurementHourly, protocol)
-
-	statsData, err := fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, q, protocol)
-	if err != nil {
-		r.logger.Error("error fetching latest daily stats", zap.Error(err))
-		return rowStat{}, err
-	}
-
-	return rowStat{
-		Protocol:         protocol,
-		TotalMessages:    statsData.TotalMessages,
-		TotalValueLocked: statsData.TotalValueLocked,
-		Volume:           statsData.Volume,
-	}, nil
-
+func (r *Repository) getProtocolStatsNow(ctx context.Context, protocol string) (rowStat, error) {
+	q := fmt.Sprintf(QueryTemplateProtocolStatsNow, r.bucket30d, dbconsts.ProtocolsStatsMeasurementHourly, protocol)
+	return fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, q, protocol)
 }
 
-func (r *Repository) getProtocolStatsLastDay(ctx context.Context, protocol string) (rowStat, error) {
-
-	to := time.Now().UTC().Truncate(24 * time.Hour)
-	from := to.Add(-24 * time.Hour)
-	q := fmt.Sprintf(QueryTemplateProtocolStatsLastDay, r.bucket30d, from.Format(time.RFC3339), to.Format(time.RFC3339), dbconsts.ProtocolsStatsMeasurementHourly, protocol)
-
-	lastDayData, err := fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, q, protocol)
-	if err != nil {
-		r.logger.Error("error fetching last day stats", zap.Error(err))
-		return rowStat{}, err
-	}
-
-	return lastDayData, nil
-
+func (r *Repository) getProtocolStats24hrAgo(ctx context.Context, protocol string) (rowStat, error) {
+	q := fmt.Sprintf(QueryTemplateProtocolStats24HrAgo, r.bucket30d, dbconsts.ProtocolsStatsMeasurementHourly, protocol)
+	return fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, q, protocol)
 }
 
-func (r *Repository) getProtocolActivity(ctx context.Context, protocol string) (rowActivity, error) {
+func (r *Repository) getAllbridgeActivity(ctx context.Context) (rowActivity, error) {
 
-	q := fmt.Sprintf(QueryTemplateProtocolActivity, r.bucketInfinite, "1970-01-01T00:00:00Z", dbconsts.ProtocolsActivityMeasurementDaily, protocol)
-	activityDaily, err := fetchSingleRecordData[rowActivity](r.logger, r.queryAPI, ctx, q, protocol)
+	const allbridge = "allbridge"
+	q := fmt.Sprintf(QueryTemplateProtocolActivity, r.bucketInfinite, "1970-01-01T00:00:00Z", dbconsts.ProtocolsActivityMeasurementDaily, allbridge)
+	activityDaily, err := fetchSingleRecordData[rowActivity](r.logger, r.queryAPI, ctx, q, allbridge)
 	if err != nil {
 		r.logger.Error("error fetching latest daily activity", zap.Error(err))
 		return rowActivity{}, err
 	}
 
-	q = fmt.Sprintf(QueryTemplateProtocolActivity, r.bucket30d, activityDaily.Time.Format(time.RFC3339), dbconsts.ProtocolsActivityMeasurementHourly, protocol)
-	activityHourly, err := fetchSingleRecordData[rowActivity](r.logger, r.queryAPI, ctx, q, protocol)
+	q = fmt.Sprintf(QueryTemplateProtocolActivity, r.bucket30d, activityDaily.Time.Format(time.RFC3339), dbconsts.ProtocolsActivityMeasurementHourly, allbridge)
+	activityHourly, err := fetchSingleRecordData[rowActivity](r.logger, r.queryAPI, ctx, q, allbridge)
 	if err != nil {
 		r.logger.Error("error fetching latest hourly activity", zap.Error(err))
 		return rowActivity{}, err
 	}
 
-	q = fmt.Sprintf(QueryLast24HrActivity, r.bucketInfinite, dbconsts.ProtocolsActivityMeasurementDaily, protocol)
-	last24HrActivity, err := fetchSingleRecordData[rowActivity](r.logger, r.queryAPI, ctx, q, protocol)
+	q = fmt.Sprintf(QueryLast24HrActivity, r.bucketInfinite, dbconsts.ProtocolsActivityMeasurementDaily, allbridge)
+	last24HrActivity, err := fetchSingleRecordData[rowActivity](r.logger, r.queryAPI, ctx, q, allbridge)
 	if err != nil {
 		r.logger.Error("error fetching last 24 hr activity", zap.Error(err))
 		return rowActivity{}, err
 	}
 
 	return rowActivity{
-		Protocol:                      protocol,
+		Protocol:                      allbridge,
 		Txs:                           activityDaily.Txs + activityHourly.Txs,
-		TotalUsd:                      activityDaily.TotalUsd + activityHourly.TotalUsd,
 		TotalValueTransferred:         activityDaily.TotalValueTransferred + activityHourly.TotalValueTransferred,
-		TotalValueSecure:              activityDaily.TotalValueSecure + activityHourly.TotalValueSecure,
 		Last24HrTotalValueTransferred: last24HrActivity.TotalValueTransferred,
 	}, nil
 }
