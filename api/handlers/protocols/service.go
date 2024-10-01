@@ -107,6 +107,7 @@ func (s *Service) fetchProtocolValues(ctx context.Context, wg *sync.WaitGroup, p
 		func() (ProtocolStats, error) {
 			return fetch(ctx, protocol)
 		},
+		cacheable.WithAutomaticRenew(),
 	)
 
 	res := ProtocolTotalValuesDTO{
@@ -145,6 +146,7 @@ func (s *Service) fetchAllProtocolValues(ctx context.Context, wg *sync.WaitGroup
 		func() ([]ProtocolStats, error) {
 			return s.getAllProtocolStats(ctx, excludedProtocols)
 		},
+		cacheable.WithAutomaticRenew(),
 	)
 
 	if err != nil {
