@@ -117,29 +117,29 @@ const AllProtocolsDeltaLastDay = `
 		ts = date.truncate(t: now(), unit: 1h)
 		yesterday = date.sub(d: 1d, from: ts)
 		
-	data =	from(bucket: "%s")
-		|> range(start: yesterday,stop:ts)
-		|> filter(fn: (r) => r._measurement == "protocols_stats_totals_1h")
-		|> drop(columns: ["emitter_chain","destination_chain"])
+		data = from(bucket: "%s")
+				|> range(start: yesterday,stop:ts)
+				|> filter(fn: (r) => r._measurement == "protocols_stats_totals_1h")
+				|> drop(columns: ["emitter_chain","destination_chain"])
 		
-tvt =	data
+		tvt = data
 			|> filter(fn : (r) => r._field == "total_value_transferred")
 			|> group(columns:["app_id"])
 			|> sum()
 			|> set(key:"_field",value:"total_value_transferred")
 			|> map(fn: (r) => ({r with _value: int(v: r._value)}))
 		
-totalMsgs =	data
-				|> filter(fn : (r) => r._field == "total_messages")
-				|> group(columns:["app_id"])
-				|> sum()
-				|> set(key:"_field",value:"total_messages")
-				|> map(fn: (r) => ({r with _value: int(v: r._value)}))
+		totalMsgs =	data
+					|> filter(fn : (r) => r._field == "total_messages")
+					|> group(columns:["app_id"])
+					|> sum()
+					|> set(key:"_field",value:"total_messages")
+					|> map(fn: (r) => ({r with _value: int(v: r._value)}))
 		
-union(tables:[tvt,totalMsgs])
-		|> set(key:"_time",value:string(v:yesterday))
-		|> pivot(rowKey:["_time","app_id"], columnKey: ["_field"], valueColumn: "_value")
-		|> map(fn: (r) => ({r with app_id: strings.trimPrefix(v: r.app_id, prefix: "TOTAL_")}))
+		union(tables:[tvt,totalMsgs])
+			|> set(key:"_time",value:string(v:yesterday))
+			|> pivot(rowKey:["_time","app_id"], columnKey: ["_field"], valueColumn: "_value")
+			|> map(fn: (r) => ({r with app_id: strings.trimPrefix(v: r.app_id, prefix: "TOTAL_")}))
 `
 
 const AllProtocolStats24HrAgo = `
