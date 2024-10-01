@@ -116,6 +116,7 @@ func (c CachedResult[T]) IsExpired(ttl time.Duration) bool {
 
 type Opts func(opts *cacheableCfg)
 
+// WithAutomaticRenew Sets the cache to be automatically renewed in a separate goroutine
 func WithAutomaticRenew() Opts {
 	return func(opts *cacheableCfg) {
 		opts.automaticRenew = true
