@@ -19,7 +19,8 @@ import (
 )
 
 type Service struct {
-	repo              *Repository
+	mongoRepo         *MongoRepository
+	postgresRepo      *PostgresRepository
 	cache             cache.Cache
 	metrics           metrics.Metrics
 	supportedChainIDs map[vaa.ChainID]string
@@ -32,18 +33,37 @@ const (
 )
 
 // NewService create a new governor.Service.
-func NewService(dao *Repository, cache cache.Cache, metrics metrics.Metrics, logger *zap.Logger) *Service {
+func NewService(mongoRepo *MongoRepository, postgresRepo *PostgresRepository, cache cache.Cache, metrics metrics.Metrics, logger *zap.Logger) *Service {
 	supportedChainIDs := domain.GetSupportedChainIDs()
-	return &Service{repo: dao, cache: cache, metrics: metrics, supportedChainIDs: supportedChainIDs, logger: logger.With(zap.String("module", "GovernorService"))}
+	return &Service{mongoRepo: mongoRepo, postgresRepo: postgresRepo, cache: cache, metrics: metrics, supportedChainIDs: supportedChainIDs, logger: logger.With(zap.String("module", "GovernorService"))}
 }
 
 // FindGovernorConfig get a list of governor configurations.
-func (s *Service) FindGovernorConfig(ctx context.Context, p *pagination.Pagination) (*response.Response[[]*GovConfig], error) {
+func (s *Service) FindGovernorConfig(
+	ctx context.Context,
+	p *pagination.Pagination,
+	usePostgres bool,
+) (*response.Response[[]*GovConfig], error) {
+
+	// set default pagination if not provided
 	if p == nil {
 		p = pagination.Default()
 	}
+
 	query := NewGovernorQuery().SetPagination(p)
-	govConfigs, err := s.repo.FindGovConfigurations(ctx, query)
+
+	var govConfigs []*GovConfig
+	var err error
+	if usePostgres {
+		govConfigs, err = s.postgresRepo.FindGovConfigurations(ctx, query)
+	} else {
+		govConfigs, err = s.mongoRepo.FindGovConfigurations(ctx, query)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
 	res := response.Response[[]*GovConfig]{Data: govConfigs}
 	return &res, err
 }
@@ -52,6 +72,7 @@ func (s *Service) FindGovernorConfig(ctx context.Context, p *pagination.Paginati
 func (s *Service) FindGovernorConfigByGuardianAddress(
 	ctx context.Context,
 	guardianAddress *types.Address,
+	usePostgres bool,
 ) ([]*GovConfig, error) {
 
 	p := pagination.
@@ -62,17 +83,39 @@ func (s *Service) FindGovernorConfigByGuardianAddress(
 		SetID(guardianAddress).
 		SetPagination(p)
 
-	govConfigs, err := s.repo.FindGovConfigurations(ctx, query)
+	var govConfigs []*GovConfig
+	var err error
+	if usePostgres {
+		govConfigs, err = s.postgresRepo.FindGovConfigurations(ctx, query)
+	} else {
+		govConfigs, err = s.mongoRepo.FindGovConfigurations(ctx, query)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
 	return govConfigs, err
 }
 
 // FindGovernorStatus get a list of governor status.
-func (s *Service) FindGovernorStatus(ctx context.Context, p *pagination.Pagination) (*response.Response[[]*GovStatus], error) {
+func (s *Service) FindGovernorStatus(ctx context.Context, usePostgres bool, p *pagination.Pagination) (*response.Response[[]*GovStatus], error) {
 	if p == nil {
 		p = pagination.Default()
 	}
 	query := NewGovernorQuery().SetPagination(p)
-	govStatus, err := s.repo.FindGovernorStatus(ctx, query)
+	var govStatus []*GovStatus
+	var err error
+	if usePostgres {
+		govStatus, err = s.postgresRepo.FindGovernorStatus(ctx, query)
+	} else {
+		govStatus, err = s.mongoRepo.FindGovernorStatus(ctx, query)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
 	res := response.Response[[]*GovStatus]{Data: govStatus}
 	return &res, err
 }
@@ -80,6 +123,7 @@ func (s *Service) FindGovernorStatus(ctx context.Context, p *pagination.Paginati
 // FindGovernorStatusByGuardianAddress get a governor status by guardianAddress.
 func (s *Service) FindGovernorStatusByGuardianAddress(
 	ctx context.Context,
+	usePostgres bool,
 	guardianAddress *types.Address,
 	p *pagination.Pagination,
 ) (*response.Response[*GovStatus], error) {
@@ -88,8 +132,16 @@ func (s *Service) FindGovernorStatusByGuardianAddress(
 		SetID(guardianAddress).
 		SetPagination(p)
 
-	govStatus, err := s.repo.FindOneGovernorStatus(ctx, query)
-
+	var govStatus *GovStatus
+	var err error
+	if usePostgres {
+		govStatus, err = s.postgresRepo.FindOneGovernorStatus(ctx, query)
+	} else {
+		govStatus, err = s.mongoRepo.FindOneGovernorStatus(ctx, query)
+	}
+	if err != nil {
+		return nil, err
+	}
 	res := response.Response[*GovStatus]{Data: govStatus}
 	return &res, err
 }
@@ -100,7 +152,7 @@ func (s *Service) FindNotionalLimit(ctx context.Context, p *pagination.Paginatio
 		p = pagination.Default()
 	}
 	query := QueryNotionalLimit().SetPagination(p)
-	notionalLimit, err := s.repo.FindNotionalLimit(ctx, query)
+	notionalLimit, err := s.mongoRepo.FindNotionalLimit(ctx, query)
 	res := response.Response[[]*NotionalLimit]{Data: notionalLimit}
 	return &res, err
 }
@@ -108,7 +160,7 @@ func (s *Service) FindNotionalLimit(ctx context.Context, p *pagination.Paginatio
 // GetNotionalLimitByChainID get a notional limit by chainID.
 func (s *Service) GetNotionalLimitByChainID(ctx context.Context, p *pagination.Pagination, chainID vaa.ChainID) (*response.Response[[]*NotionalLimitDetail], error) {
 	query := QueryNotionalLimit().SetPagination(p).SetChain(chainID)
-	notionalLimit, err := s.repo.GetNotionalLimitByChainID(ctx, query)
+	notionalLimit, err := s.mongoRepo.GetNotionalLimitByChainID(ctx, query)
 	res := response.Response[[]*NotionalLimitDetail]{Data: notionalLimit}
 	return &res, err
 }
@@ -119,7 +171,7 @@ func (s *Service) GetAvailableNotional(ctx context.Context, p *pagination.Pagina
 		p = pagination.Default()
 	}
 	query := QueryNotionalLimit().SetPagination(p)
-	notionalAvailability, err := s.repo.GetAvailableNotional(ctx, query)
+	notionalAvailability, err := s.mongoRepo.GetAvailableNotional(ctx, query)
 	res := response.Response[[]*NotionalAvailable]{Data: notionalAvailability}
 	return &res, err
 }
@@ -131,7 +183,7 @@ func (s *Service) GetAvailableNotionalByChainID(ctx context.Context, p *paginati
 		return nil, errs.ErrNotFound
 	}
 	query := QueryNotionalLimit().SetPagination(p).SetChain(chainID)
-	notionaLAvailability, err := s.repo.GetAvailableNotionalByChainID(ctx, query)
+	notionaLAvailability, err := s.mongoRepo.GetAvailableNotionalByChainID(ctx, query)
 	res := response.Response[[]*NotionalAvailableDetail]{Data: notionaLAvailability}
 	return &res, err
 }
@@ -143,7 +195,7 @@ func (s *Service) GetMaxNotionalAvailableByChainID(ctx context.Context, chainID 
 		return nil, errs.ErrNotFound
 	}
 	query := QueryNotionalLimit().SetChain(chainID)
-	maxNotionaLAvailable, err := s.repo.GetMaxNotionalAvailableByChainID(ctx, query)
+	maxNotionaLAvailable, err := s.mongoRepo.GetMaxNotionalAvailableByChainID(ctx, query)
 	res := response.Response[*MaxNotionalAvailableRecord]{Data: maxNotionaLAvailable}
 	return &res, err
 }
@@ -154,7 +206,7 @@ func (s *Service) GetEnqueueVass(ctx context.Context, p *pagination.Pagination) 
 		p = pagination.Default()
 	}
 	query := QueryEnqueuedVaa().SetPagination(p)
-	enqueuedVaaResponse, err := s.repo.GetEnqueueVass(ctx, query)
+	enqueuedVaaResponse, err := s.mongoRepo.GetEnqueueVass(ctx, query)
 	res := response.Response[[]*EnqueuedVaas]{Data: enqueuedVaaResponse}
 	return &res, err
 }
@@ -165,18 +217,27 @@ func (s *Service) GetEnqueueVassByChainID(ctx context.Context, p *pagination.Pag
 		p = pagination.Default()
 	}
 	query := QueryEnqueuedVaa().SetPagination(p).SetChain(chainID)
-	enqueuedVaaRecord, err := s.repo.GetEnqueueVassByChainID(ctx, query)
+	enqueuedVaaRecord, err := s.mongoRepo.GetEnqueueVassByChainID(ctx, query)
 	res := response.Response[[]*EnqueuedVaaDetail]{Data: enqueuedVaaRecord}
 	return &res, err
 }
 
 // GetGovernorLimit get governor limit.
-func (s *Service) GetGovernorLimit(ctx context.Context, p *pagination.Pagination) (*response.Response[[]*GovernorLimit], error) {
+func (s *Service) GetGovernorLimit(ctx context.Context, usePostgres bool, p *pagination.Pagination) (*response.Response[[]*GovernorLimit], error) {
 	if p == nil {
 		p = pagination.Default()
 	}
 	query := NewGovernorQuery().SetPagination(p)
-	governorLimit, err := s.repo.GetGovernorLimit(ctx, query)
+	var governorLimit []*GovernorLimit
+	var err error
+	if usePostgres {
+		governorLimit, err = s.postgresRepo.GetGovernorLimit(ctx, query)
+	} else {
+		governorLimit, err = s.mongoRepo.GetGovernorLimit(ctx, query)
+	}
+	if err != nil {
+		return nil, err
+	}
 	res := response.Response[[]*GovernorLimit]{Data: governorLimit}
 	return &res, err
 }
@@ -187,7 +248,7 @@ func (s *Service) GetAvailNotionByChain(ctx context.Context) ([]*AvailableNotion
 	key := availableNotionByChain
 	return cacheable.GetOrLoad(ctx, s.logger, s.cache, 1*time.Minute, key, s.metrics,
 		func() ([]*AvailableNotionalByChain, error) {
-			return s.repo.GetAvailNotionByChain(ctx)
+			return s.mongoRepo.GetAvailNotionByChain(ctx)
 		})
 }
 
@@ -197,7 +258,7 @@ func (s *Service) GetTokenList(ctx context.Context) ([]*TokenList, error) {
 	key := tokenList
 	return cacheable.GetOrLoad(ctx, s.logger, s.cache, 1*time.Minute, key, s.metrics,
 		func() ([]*TokenList, error) {
-			return s.repo.GetTokenList(ctx)
+			return s.mongoRepo.GetTokenList(ctx)
 		})
 
 }
@@ -205,7 +266,7 @@ func (s *Service) GetTokenList(ctx context.Context) ([]*TokenList, error) {
 // GetEnqueuedVaas get enqueued vaas.
 // Guardian api migration.
 func (s *Service) GetEnqueuedVaas(ctx context.Context) ([]*EnqueuedVaaItem, error) {
-	entries, err := s.repo.GetEnqueuedVaas(ctx)
+	entries, err := s.mongoRepo.GetEnqueuedVaas(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -225,14 +286,14 @@ func (s *Service) GetEnqueuedVaas(ctx context.Context) ([]*EnqueuedVaaItem, erro
 // IsVaaEnqueued check vaa is enqueued.
 // Guardian api migration.
 func (s *Service) IsVaaEnqueued(ctx context.Context, chainID vaa.ChainID, emitter *types.Address, seq string) (bool, error) {
-	isEnqueued, err := s.repo.IsVaaEnqueued(ctx, chainID, emitter, seq)
+	isEnqueued, err := s.mongoRepo.IsVaaEnqueued(ctx, chainID, emitter, seq)
 	return isEnqueued, err
 }
 
 // GetGovernorVaas get enqueued vaas.
 // Guardian api migration.
 func (s *Service) GetGovernorVaas(ctx context.Context) ([]GovernorVaaDoc, error) {
-	result, err := s.repo.GetGovernorVaas(ctx)
+	result, err := s.mongoRepo.GetGovernorVaas(ctx)
 	if err != nil {
 		return nil, err
 	}

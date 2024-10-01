@@ -6,7 +6,6 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/transactions"
-	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/repository"
 	"github.com/wormhole-foundation/wormhole-explorer/common/types"
@@ -14,12 +13,11 @@ import (
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 )
 
-// Repository definition
-type Repository struct {
+// MongoRepository definition
+type MongoRepository struct {
 	db          *mongo.Database
 	logger      *zap.Logger
 	collections struct {
@@ -33,9 +31,9 @@ type Repository struct {
 	}
 }
 
-// NewRepository create a new Repository.
-func NewRepository(db *mongo.Database, logger *zap.Logger) *Repository {
-	return &Repository{db: db,
+// NewMongoRepository create a new Repository.
+func NewMongoRepository(db *mongo.Database, logger *zap.Logger) *MongoRepository {
+	return &MongoRepository{db: db,
 		logger: logger.With(zap.String("module", "VaaRepository")),
 		collections: struct {
 			vaas               *mongo.Collection
@@ -66,7 +64,7 @@ func NewRepository(db *mongo.Database, logger *zap.Logger) *Repository {
 // Then, if the transaction hash is not found, it will fall back to searching in the `vaas` collection.
 //
 // Take into consideration that multiple VAAs could share the same transaction ID.
-func (r *Repository) FindVaasByTxHashWorkaround(
+func (r *MongoRepository) FindVaasByTxHashWorkaround(
 	ctx context.Context,
 	query *VaaQuery,
 ) ([]*VaaDoc, error) {
@@ -127,7 +125,7 @@ func (r *Repository) FindVaasByTxHashWorkaround(
 }
 
 // FindVaasByEmitterAndToChain searches the database for VAAs that match a given emitter chain, address and toChain.
-func (r *Repository) FindVaasByEmitterAndToChain(
+func (r *MongoRepository) FindVaasByEmitterAndToChain(
 	ctx context.Context,
 	query *VaaQuery,
 	toChain sdk.ChainID,
@@ -206,7 +204,7 @@ func (r *Repository) FindVaasByEmitterAndToChain(
 // When the `q.txHash` field is set, this function will look up transaction hashes in the `vaas` collection.
 //
 // Take into consideration that multiple VAAs could share the same transaction ID.
-func (r *Repository) FindVaas(
+func (r *MongoRepository) FindVaas(
 	ctx context.Context,
 	q *VaaQuery,
 ) ([]*VaaDoc, error) {
@@ -294,13 +292,6 @@ func (r *Repository) FindVaas(
 			}},
 		})
 
-		// filter by appId
-		if q.appId != "" {
-			pipeline = append(pipeline, bson.D{
-				{"$match", bson.D{bson.E{"appId", q.appId}}},
-			})
-		}
-
 		// skip initial results
 		if q.Pagination.Skip != 0 {
 			pipeline = append(pipeline, bson.D{
@@ -348,7 +339,7 @@ func (r *Repository) FindVaas(
 	}
 
 	// If the payload field was not requested, remove it from the results.
-	if !q.includeParsedPayload && q.appId == "" {
+	if !q.includeParsedPayload {
 		for i := range vaasWithPayload {
 			vaasWithPayload[i].Payload = nil
 		}
@@ -393,7 +384,7 @@ func (r *Repository) FindVaas(
 }
 
 // GetVaaCount get a count of vaa by chainID.
-func (r *Repository) GetVaaCount(ctx context.Context, q *VaaQuery) ([]*VaaStats, error) {
+func (r *MongoRepository) GetVaaCount(ctx context.Context, q *VaaQuery) ([]*VaaStats, error) {
 
 	cur, err := r.collections.vaaCount.Find(ctx, bson.D{}, q.findOptions())
 	if err != nil {
@@ -413,7 +404,7 @@ func (r *Repository) GetVaaCount(ctx context.Context, q *VaaQuery) ([]*VaaStats,
 	return varCounts, nil
 }
 
-func (r *Repository) FindDuplicatedByID(ctx context.Context, chain sdk.ChainID, emitter *types.Address, seq string) ([]*VaaDoc, error) {
+func (r *MongoRepository) FindDuplicatedByID(ctx context.Context, chain sdk.ChainID, emitter *types.Address, seq string) ([]*VaaDoc, error) {
 
 	vaaID := fmt.Sprintf("%d/%s/%s", chain, emitter.Hex(), seq)
 
@@ -450,82 +441,4 @@ func (r *Repository) FindDuplicatedByID(ctx context.Context, chain sdk.ChainID, 
 		return nil, errors.WithStack(err)
 	}
 	return append(duplicateVaas, &vaa), nil
-}
-
-// VaaQuery respresent a query for the vaa mongodb document.
-type VaaQuery struct {
-	pagination.Pagination
-	ids                  []string
-	chainId              sdk.ChainID
-	emitter              string
-	sequence             string
-	txHash               string
-	appId                string
-	includeParsedPayload bool
-}
-
-// Query create a new VaaQuery with default pagination vaues.
-func Query() *VaaQuery {
-	p := pagination.Default()
-	return &VaaQuery{Pagination: *p}
-}
-
-func (q *VaaQuery) SetIDs(ids []string) *VaaQuery {
-	q.ids = ids
-	return q
-}
-
-// SetChain set the chainId field of the VaaQuery struct.
-func (q *VaaQuery) SetChain(chainID sdk.ChainID) *VaaQuery {
-	q.chainId = chainID
-	return q
-}
-
-// SetEmitter set the emitter field of the VaaQuery struct.
-func (q *VaaQuery) SetEmitter(emitter string) *VaaQuery {
-	q.emitter = emitter
-	return q
-}
-
-// SetSequence set the sequence field of the VaaQuery struct.
-func (q *VaaQuery) SetSequence(seq string) *VaaQuery {
-	q.sequence = seq
-	return q
-}
-
-// SetPagination set the pagination field of the VaaQuery struct.
-func (q *VaaQuery) SetPagination(p *pagination.Pagination) *VaaQuery {
-	q.Pagination = *p
-	return q
-}
-
-// SetTxHash set the txHash field of the VaaQuery struct.
-func (q *VaaQuery) SetTxHash(txHash string) *VaaQuery {
-	q.txHash = txHash
-	return q
-}
-
-func (q *VaaQuery) SetAppId(appId string) *VaaQuery {
-	q.appId = appId
-	return q
-}
-
-func (q *VaaQuery) IncludeParsedPayload(val bool) *VaaQuery {
-	q.includeParsedPayload = val
-	return q
-}
-
-func (q *VaaQuery) getSortPredicate() bson.E {
-	return bson.E{"timestamp", q.GetSortInt()}
-}
-
-func (q *VaaQuery) findOptions() *options.FindOptions {
-
-	sort := bson.D{q.getSortPredicate()}
-
-	return options.
-		Find().
-		SetSort(sort).
-		SetLimit(q.Limit).
-		SetSkip(q.Skip)
 }

@@ -37,7 +37,7 @@ func (c *Controller) FindOne(ctx *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	relay, err := c.srv.FindByVAA(ctx.Context(), chainID, addr, strconv.FormatUint(seq, 10))
+	relay, err := c.srv.FindByVAA(ctx.Context(), middleware.UsePostgres(ctx), chainID, addr, strconv.FormatUint(seq, 10))
 	if err != nil {
 		return err
 	}
