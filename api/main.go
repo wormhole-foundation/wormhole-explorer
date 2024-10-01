@@ -49,6 +49,7 @@ import (
 	wormscanCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache"
 	vaaPayloadParser "github.com/wormhole-foundation/wormhole-explorer/common/client/parser"
 	"github.com/wormhole-foundation/wormhole-explorer/common/coingecko"
+	"github.com/wormhole-foundation/wormhole-explorer/common/db"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	xlogger "github.com/wormhole-foundation/wormhole-explorer/common/logger"
@@ -117,9 +118,9 @@ func main() {
 
 	// Setup DB
 	rootLogger.Info("connecting to MongoDB")
-	db, err := dbutil.Connect(appCtx, rootLogger, cfg.DB.URL, cfg.DB.Name, false)
+	storage, err := newStorage(appCtx, cfg, rootLogger)
 	if err != nil {
-		rootLogger.Fatal("failed to connect to MongoDB", zap.Error(err))
+		rootLogger.Fatal("failed to connect to database", zap.Error(err))
 	}
 
 	// Get cache get function
@@ -152,12 +153,15 @@ func main() {
 
 	// Set up repositories
 	rootLogger.Info("initializing repositories")
-	addressRepo := address.NewRepository(db.Database, rootLogger)
-	vaaRepo := vaa.NewRepository(db.Database, rootLogger)
-	obsRepo := observations.NewRepository(db.Database, rootLogger)
-	governorRepo := governor.NewRepository(db.Database, rootLogger)
-	infrastructureRepo := infrastructure.NewRepository(db.Database, rootLogger)
-	heartbeatsRepo := heartbeats.NewRepository(db.Database, rootLogger)
+	addressRepo := address.NewRepository(storage.mongoDB.Database, rootLogger)
+	vaaMongoRepo := vaa.NewMongoRepository(storage.mongoDB.Database, rootLogger)
+	vaaPostgresRepo := vaa.NewPostgresRepository(storage.postgresDB, rootLogger)
+	obsMongoRepo := observations.NewMongoRepository(storage.mongoDB.Database, rootLogger)
+	obsPostgresRepo := observations.NewPostgresRepository(storage.postgresDB, rootLogger)
+	mongoGovernorRepo := governor.NewMongoRepository(storage.mongoDB.Database, rootLogger)
+	postgresGovernorRepo := governor.NewPostgresRepository(storage.postgresDB, rootLogger)
+	infrastructureRepo := infrastructure.NewRepository(storage.mongoDB.Database, rootLogger)
+	heartbeatsRepo := heartbeats.NewRepository(storage.mongoDB.Database, rootLogger)
 	transactionsRepo := transactions.NewRepository(
 		tvl,
 		cfg.P2pNetwork,
@@ -166,11 +170,12 @@ func main() {
 		cfg.Influx.Bucket24Hours,
 		cfg.Influx.Bucket30Days,
 		cfg.Influx.BucketInfinite,
-		db.Database,
+		storage.mongoDB.Database,
 		rootLogger,
 	)
-	relaysRepo := relays.NewRepository(db.Database, rootLogger)
-	operationsRepo := operations.NewRepository(db.Database, rootLogger)
+	mongoRelaysRepo := relays.NewMongoRepository(storage.mongoDB.Database, rootLogger)
+	postgresRelaysRepo := relays.NewPostgresRepository(storage.postgresDB, rootLogger)
+	operationsRepo := operations.NewRepository(storage.mongoDB.Database, rootLogger)
 	nttRepo := stats2.NewNTTRepository(
 		influxCli,
 		cfg.Influx.Organization,
@@ -200,7 +205,7 @@ func main() {
 		cfg.Influx.Bucket30Days,
 		cfg.Influx.Bucket24Hours,
 		rootLogger)
-	guardianSetRepository := repository.NewMongoGuardianSetRepository(db.Database, rootLogger)
+	guardianSetRepository := repository.NewMongoGuardianSetRepository(storage.mongoDB.Database, rootLogger)
 
 	metrics := metrics.NewPrometheusMetrics(cfg.Environment)
 
@@ -208,13 +213,13 @@ func main() {
 	rootLogger.Info("initializing services")
 	expirationTime := time.Duration(cfg.Cache.MetricExpiration) * time.Minute
 	addressService := address.NewService(addressRepo, rootLogger)
-	vaaService := vaa.NewService(vaaRepo, cache.Get, vaaParserFunc, rootLogger)
-	obsService := observations.NewService(obsRepo, rootLogger)
-	governorService := governor.NewService(governorRepo, cache, metrics, rootLogger)
+	vaaService := vaa.NewService(vaaMongoRepo, vaaPostgresRepo, cache.Get, vaaParserFunc, rootLogger)
+	obsService := observations.NewService(obsMongoRepo, obsPostgresRepo, rootLogger)
+	governorService := governor.NewService(mongoGovernorRepo, postgresGovernorRepo, cache, metrics, rootLogger)
 	infrastructureService := infrastructure.NewService(infrastructureRepo, rootLogger)
 	heartbeatsService := heartbeats.NewService(heartbeatsRepo, rootLogger)
 	transactionsService := transactions.NewService(transactionsRepo, cache, expirationTime, tokenProvider, metrics, rootLogger)
-	relaysService := relays.NewService(relaysRepo, rootLogger)
+	relaysService := relays.NewService(mongoRelaysRepo, postgresRelaysRepo, rootLogger)
 	operationsService := operations.NewService(operationsRepo, rootLogger)
 	statsService := stats.NewService(statsRepo, statsAddressRepo, statsHolderRepo, cache, expirationTime, metrics, rootLogger)
 	protocolsService := protocols.NewService(cfg.Protocols, protocolsRepo, rootLogger, cache, cfg.Cache.ProtocolsStatsKey, cfg.Cache.ProtocolsStatsExpiration, metrics, tvl)
@@ -304,10 +309,82 @@ func main() {
 	rootLogger.Info("closing cache...")
 	cache.Close()
 
-	rootLogger.Info("closing MongoDB connection...")
-	db.DisconnectWithTimeout(10 * time.Second)
+	rootLogger.Info("closing DB connection...")
+	storage.Close()
 
 	rootLogger.Info("terminated API service successfully")
+}
+
+type storageLayer struct {
+	mongoDB    *dbutil.Session
+	postgresDB *db.DB
+}
+
+func (s *storageLayer) Close() {
+	if s.mongoDB != nil {
+		s.mongoDB.DisconnectWithTimeout(10 * time.Second)
+	}
+	if s.postgresDB != nil {
+		s.postgresDB.Close()
+	}
+}
+
+func newStorage(ctx context.Context,
+	cfg *config.AppConfig,
+	logger *zap.Logger) (*storageLayer, error) {
+
+	switch cfg.DB.Layer {
+	case config.DBLayerMongo:
+		mongoDB, err := newMongoDatabase(ctx, cfg, logger)
+		if err != nil {
+			return nil, fmt.Errorf("failed to initialize MongoDB: %w", err)
+		}
+		return &storageLayer{mongoDB: mongoDB}, nil
+	case config.DBLayerPostgres:
+		postgresDB, err := newPostgresDatabase(ctx, cfg, logger)
+		if err != nil {
+			return nil, fmt.Errorf("failed to initialize Postgres: %w", err)
+		}
+		return &storageLayer{postgresDB: postgresDB}, nil
+	case config.DBLayerDual:
+		mongoDB, err := newMongoDatabase(ctx, cfg, logger)
+		if err != nil {
+			return nil, fmt.Errorf("failed to initialize MongoDB: %w", err)
+		}
+		postgresDB, err := newPostgresDatabase(ctx, cfg, logger)
+		if err != nil {
+			return nil, fmt.Errorf("failed to initialize Postgres: %w", err)
+		}
+		return &storageLayer{mongoDB: mongoDB, postgresDB: postgresDB}, nil
+	default:
+		return nil, fmt.Errorf("unknown database layer: %s", cfg.DB.Layer)
+	}
+}
+
+func newMongoDatabase(ctx context.Context,
+	cfg *config.AppConfig,
+	logger *zap.Logger) (*dbutil.Session, error) {
+	if cfg.DB.URL == "" {
+		return nil, fmt.Errorf("missing MongoDB URL")
+	}
+	return dbutil.Connect(ctx, logger, cfg.DB.URL, cfg.DB.Name, false)
+}
+
+func newPostgresDatabase(ctx context.Context,
+	cfg *config.AppConfig,
+	logger *zap.Logger) (*db.DB, error) {
+
+	if cfg.DB.PostgresURL == "" {
+		return nil, fmt.Errorf("missing Postgres URL")
+	}
+
+	// Enable database logging
+	var options db.Option
+	if cfg.DB.PostgresLogEnabled {
+		options = db.WithTracer(logger)
+	}
+
+	return db.NewDB(ctx, cfg.DB.PostgresURL, options)
 }
 
 // NewCache get a CacheGetFunc to get a value by a Key from cache and a CacheReadable to get a value by a Key from notional local cache.

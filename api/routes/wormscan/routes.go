@@ -134,7 +134,7 @@ func RegisterRoutes(
 	vaas.Get("/:chain/:emitter/:sequence/duplicated", vaaCtrl.FindDuplicatedById)
 	vaas.Post("/parse", vaaCtrl.ParseVaa)
 
-	// oservations resource
+	// observations resource
 	observations := api.Group("/observations")
 	observations.Get("/", observationsCtrl.FindAll)
 	observations.Get("/:chain", observationsCtrl.FindAllByChain)
