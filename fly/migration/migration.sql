@@ -116,6 +116,7 @@ CREATE TABLE wormholescan.wh_governor_config (
     "guardian_name" varchar not null,
     "counter" bigint not null,
     "timestamp" timestamptz not null,
+    "chains" jsonb not null,
     "tokens" jsonb not null,
     "created_at" timestamptz not null,
     "updated_at" timestamptz not null,
