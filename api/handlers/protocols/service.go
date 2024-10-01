@@ -15,12 +15,13 @@ import (
 const CCTP = "CCTP_WORMHOLE_INTEGRATION"
 const PortalTokenBridge = "PORTAL_TOKEN_BRIDGE"
 const NTT = "NATIVE_TOKEN_TRANSFER"
+const MAYAN = "MAYAN"
+const ALLBRIDGE = "ALLBRIDGE"
 
 type Service struct {
-	Protocols      []string
+	protocols      []string
 	repo           *Repository
 	logger         *zap.Logger
-	coreProtocols  []string
 	cache          cache.Cache
 	cacheKeyPrefix string
 	cacheTTL       int
@@ -49,13 +50,13 @@ type tvlProvider interface {
 }
 
 type fetchProtocolStats func(ctx context.Context, protocol string) (intStats, error)
+type fetchProtocolTotalValues func(context.Context, string) (ProtocolStats, error)
 
-func NewService(extProtocols, coreProtocols []string, repo *Repository, logger *zap.Logger, cache cache.Cache, cacheKeyPrefix string, cacheTTL int, metrics metrics.Metrics, tvlProvider tvlProvider) *Service {
+func NewService(protocols []string, repo *Repository, logger *zap.Logger, cache cache.Cache, cacheKeyPrefix string, cacheTTL int, metrics metrics.Metrics, tvlProvider tvlProvider) *Service {
 	return &Service{
-		Protocols:      extProtocols,
+		protocols:      protocols,
 		repo:           repo,
 		logger:         logger,
-		coreProtocols:  coreProtocols,
 		cache:          cache,
 		cacheKeyPrefix: cacheKeyPrefix,
 		cacheTTL:       cacheTTL,
@@ -66,22 +67,21 @@ func NewService(extProtocols, coreProtocols []string, repo *Repository, logger *
 
 func (s *Service) GetProtocolsTotalValues(ctx context.Context) []ProtocolTotalValuesDTO {
 
-	totalProtocols := len(s.Protocols) + len(s.coreProtocols)
-	results := make(chan ProtocolTotalValuesDTO, totalProtocols)
-	wg := &sync.WaitGroup{}
-	wg.Add(totalProtocols)
+	protocolsQty := len(s.protocols)
+	results := make(chan ProtocolTotalValuesDTO, protocolsQty)
 
-	for _, p := range s.Protocols {
-		go s.fetchProtocolValues(ctx, wg, p, results, s.getProtocolStats)
-	}
-	for _, p := range s.coreProtocols {
-		go s.fetchProtocolValues(ctx, wg, p, results, s.getCoreProtocolStats)
+	wg := &sync.WaitGroup{}
+	wg.Add(protocolsQty)
+
+	for _, p := range s.protocols {
+		fetchFn := s.getProtocolTotalValuesFn(p)
+		go s.fetchProtocolValues(ctx, wg, p, results, fetchFn)
 	}
 
 	wg.Wait()
 	close(results)
 
-	resultsSlice := make([]ProtocolTotalValuesDTO, 0, len(s.Protocols))
+	resultsSlice := make([]ProtocolTotalValuesDTO, 0, len(s.protocols))
 	for r := range results {
 		r.Protocol = getProtocolNameDto(r.Protocol)
 		resultsSlice = append(resultsSlice, r)
@@ -89,20 +89,7 @@ func (s *Service) GetProtocolsTotalValues(ctx context.Context) []ProtocolTotalVa
 	return resultsSlice
 }
 
-func getProtocolNameDto(protocol string) string {
-	switch protocol {
-	case CCTP:
-		return "cctp"
-	case PortalTokenBridge:
-		return "portal_token_bridge"
-	case NTT:
-		return strings.ToLower(NTT)
-	default:
-		return protocol
-	}
-}
-
-func (s *Service) fetchProtocolValues(ctx context.Context, wg *sync.WaitGroup, protocol string, results chan<- ProtocolTotalValuesDTO, fetch func(context.Context, string) (ProtocolStats, error)) {
+func (s *Service) fetchProtocolValues(ctx context.Context, wg *sync.WaitGroup, protocol string, results chan<- ProtocolTotalValuesDTO, fetch fetchProtocolTotalValues) {
 	defer wg.Done()
 
 	val, err := cacheable.GetOrLoad[ProtocolStats](ctx,
@@ -125,15 +112,37 @@ func (s *Service) fetchProtocolValues(ctx context.Context, wg *sync.WaitGroup, p
 	results <- res
 }
 
+func (s *Service) getProtocolTotalValuesFn(protocol string) fetchProtocolTotalValues {
+	switch protocol {
+	case MAYAN:
+		return s.getMayanStats
+	case ALLBRIDGE:
+		return s.getAllbridgeStats
+	default:
+		return s.getCoreProtocolStats
+	}
+}
+
+func getProtocolNameDto(protocol string) string {
+	switch protocol {
+	case CCTP:
+		return "cctp"
+	case PortalTokenBridge:
+		return "portal_token_bridge"
+	case NTT:
+		return strings.ToLower(NTT)
+	default:
+		return protocol
+	}
+}
+
 // getProtocolStats fetches stats for PortalTokenBridge and NTT
 func (s *Service) getCoreProtocolStats(ctx context.Context, protocol string) (ProtocolStats, error) {
 
-	protocolStats, err := s.getFetchFn(protocol)(ctx, protocol)
+	protocolStats, err := s.getRepositoryFetchFn(protocol)(ctx, protocol)
 	if err != nil {
 		return ProtocolStats{
-			Protocol:              protocol,
-			TotalValueTransferred: protocolStats.Latest.TotalValueTransferred,
-			TotalMessages:         protocolStats.Latest.TotalMessages,
+			Protocol: protocol,
 		}, err
 	}
 
@@ -169,7 +178,7 @@ func (s *Service) getCoreProtocolStats(ctx context.Context, protocol string) (Pr
 	return val, nil
 }
 
-func (s *Service) getFetchFn(protocol string) fetchProtocolStats {
+func (s *Service) getRepositoryFetchFn(protocol string) fetchProtocolStats {
 	switch protocol {
 	case CCTP:
 		return s.repo.getCCTPStats
@@ -178,8 +187,34 @@ func (s *Service) getFetchFn(protocol string) fetchProtocolStats {
 	}
 }
 
-func (s *Service) getProtocolStats(ctx context.Context, protocol string) (ProtocolStats, error) {
+func (s *Service) getMayanStats(ctx context.Context, _ string) (ProtocolStats, error) {
+	const mayan = "mayan"
+	mayanNow, errStats := s.repo.getProtocolStatsNow(ctx, mayan)
+	if errStats != nil {
+		s.logger.Error("error fetching Mayan stats", zap.Error(errStats), zap.String("protocol", mayan))
+		return ProtocolStats{Protocol: mayan}, errStats
+	}
+	mayan24hrAgo, errStats := s.repo.getProtocolStats24hrAgo(ctx, mayan)
+	if errStats != nil {
+		s.logger.Error("error fetching Mayan stats 24hr ago", zap.Error(errStats), zap.String("protocol", mayan))
+		return ProtocolStats{Protocol: mayan}, errStats
+	}
 
+	last24HrMessages := mayanNow.TotalMessages - mayan24hrAgo.TotalMessages
+	return ProtocolStats{
+		Protocol:              mayan,
+		TotalValueLocked:      mayanNow.TotalValueLocked,
+		TotalMessages:         mayanNow.TotalMessages,
+		TotalValueTransferred: mayanNow.Volume,
+		LastDayMessages:       last24HrMessages,
+		Last24HourVolume:      mayanNow.Volume - mayan24hrAgo.Volume,
+		LastDayDiffPercentage: strconv.FormatFloat(float64(last24HrMessages)/float64(mayan24hrAgo.TotalMessages)*100, 'f', 2, 64) + "%",
+	}, nil
+}
+
+func (s *Service) getAllbridgeStats(ctx context.Context, _ string) (ProtocolStats, error) {
+
+	const allbridge = "allbridge"
 	type statsResult struct {
 		result stats
 		Err    error
@@ -187,37 +222,35 @@ func (s *Service) getProtocolStats(ctx context.Context, protocol string) (Protoc
 	statsRes := make(chan statsResult, 1)
 	go func() {
 		defer close(statsRes)
-		rowStats, errStats := s.repo.getProtocolStats(ctx, protocol)
+		statsNow, errStats := s.repo.getProtocolStatsNow(ctx, allbridge)
 		if errStats != nil {
 			statsRes <- statsResult{Err: errStats}
 			return
 		}
-		lastDayStats, errStats := s.repo.getProtocolStatsLastDay(ctx, protocol)
+		stats24hrAgo, errStats := s.repo.getProtocolStats24hrAgo(ctx, allbridge)
 		if errStats != nil {
 			statsRes <- statsResult{Err: errStats}
 			return
 		}
-		statsRes <- statsResult{result: stats{Latest: rowStats, Last24: lastDayStats}}
+		statsRes <- statsResult{result: stats{Latest: statsNow, Last24: stats24hrAgo}}
 	}()
 
-	activity, err := s.repo.getProtocolActivity(ctx, protocol)
+	activity, err := s.repo.getAllbridgeActivity(ctx)
 	if err != nil {
-		s.logger.Error("error fetching protocol activity", zap.Error(err), zap.String("protocol", protocol))
-		return ProtocolStats{Protocol: protocol}, err
+		s.logger.Error("error fetching allbridge activity", zap.Error(err), zap.String("protocol", allbridge))
+		return ProtocolStats{Protocol: allbridge}, err
 	}
 
 	rStats := <-statsRes
 	if rStats.Err != nil {
-		s.logger.Error("error fetching protocol stats", zap.Error(rStats.Err), zap.String("protocol", protocol))
-		return ProtocolStats{Protocol: protocol}, rStats.Err
+		s.logger.Error("error fetching allbridge stats", zap.Error(rStats.Err), zap.String("protocol", allbridge))
+		return ProtocolStats{Protocol: allbridge}, rStats.Err
 	}
 
 	dto := ProtocolStats{
-		Protocol:              protocol,
-		TotalValueLocked:      rStats.result.Latest.TotalValueLocked,
+		Protocol:              allbridge,
 		TotalMessages:         rStats.result.Latest.TotalMessages,
 		TotalValueTransferred: activity.TotalValueTransferred,
-		TotalValueSecured:     activity.TotalValueSecure,
 		Last24HourVolume:      activity.Last24HrTotalValueTransferred,
 	}
 
