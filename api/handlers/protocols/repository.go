@@ -146,67 +146,63 @@ const AllProtocolStats24HrAgo = `
 	import "date"
 	import "strings"
 
-startOfCurrentDay = date.truncate(t: now(), unit: 1d)
-
-data =	from(bucket: "%s")
-			|> range(start: 1970-01-01T00:00:00Z,stop:startOfCurrentDay)
-			|> filter(fn: (r) => r._measurement == "protocols_stats_totals_1d" and r.version == "v1")
-			|> drop(columns: ["emitter_chain","destination_chain","version"])
-
-tvt = data	
-		|> filter(fn : (r) => r._field == "total_value_transferred")
-		|> group(columns:["app_id"])
-		|> sum()
-		|> set(key:"_field",value:"total_value_transferred")
-		|> map(fn: (r) => ({r with _value: int(v: r._value)}))
-
-totalMsgs =	data	
+	startOfCurrentDay = date.truncate(t: now(), unit: 1d)
+	
+	data =	from(bucket: "%s")
+				|> range(start: 1970-01-01T00:00:00Z,stop:startOfCurrentDay)
+				|> filter(fn: (r) => r._measurement == "protocols_stats_totals_1d" and r.version == "v1")
+				|> drop(columns: ["emitter_chain","destination_chain","version"])
+	
+	tvt = data	
+			|> filter(fn : (r) => r._field == "total_value_transferred")
+			|> group(columns:["app_id"])
+			|> sum()
+			|> set(key:"_field",value:"total_value_transferred")
+			|> map(fn: (r) => ({r with _value: int(v: r._value)}))
+	
+	totalMsgs =	data	
 				|> filter(fn : (r) => r._field == "total_messages")
 				|> group(columns:["app_id"])
 				|> sum()
 				|> set(key:"_field",value:"total_messages")
 				|> map(fn: (r) => ({r with _value: int(v: r._value)}))
-
-union(tables:[tvt,totalMsgs])		
-	|> set(key:"_time",value:string(v:startOfCurrentDay))
-	|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
-	|> map(fn: (r) => ({r with app_id: strings.trimPrefix(v: r.app_id, prefix: "TOTAL_")}))
+	
+	union(tables:[tvt,totalMsgs])		
+		|> set(key:"_time",value:string(v:startOfCurrentDay))
+		|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
+		|> map(fn: (r) => ({r with app_id: strings.trimPrefix(v: r.app_id, prefix: "TOTAL_")}))
 `
 
 const AllProtocolsDeltaSinceStartOfDay = `
 	import "date"
-	import "join"
-	import "influxdata/influxdb/schema"
-	import "array"
-	import "types"
 	import "strings"
 
-ts = date.truncate(t: now(), unit: 1h)
-startOfDay = date.truncate(t: now(), unit: 1d)
-
-data = from(bucket: "%s")
-		|> range(start: startOfDay,stop:ts)
-		|> filter(fn: (r) => r._measurement == "protocols_stats_totals_1h")
-		|> drop(columns: ["emitter_chain","destination_chain","version"])
-
-tvt = data	
-		|> filter(fn : (r) => r._field == "total_value_transferred")
-		|> group(columns:["app_id"])
-		|> sum()
-		|> set(key:"_field",value:"total_value_transferred")
-		|> map(fn: (r) => ({r with _value: int(v: r._value)}))
-
-totalMsgs =	data	
-				|> filter(fn : (r) => r._field == "total_messages")
-				|> group(columns:["app_id"])
-				|> sum()	
-				|> set(key:"_field",value:"total_messages")
-				|> map(fn: (r) => ({r with _value: int(v: r._value)}))
-
-union(tables:[tvt,totalMsgs])
-	|> set(key:"_time",value:string(v:startOfDay))
-	|> pivot(rowKey:["_time","app_id"], columnKey: ["_field"], valueColumn: "_value")
-	|> map(fn: (r) => ({r with app_id: strings.trimPrefix(v: r.app_id, prefix: "TOTAL_")}))
+	ts = date.truncate(t: now(), unit: 1h)
+	startOfDay = date.truncate(t: now(), unit: 1d)
+	
+	data = from(bucket: "%s")
+			|> range(start: startOfDay,stop:ts)
+			|> filter(fn: (r) => r._measurement == "protocols_stats_totals_1h")
+			|> drop(columns: ["emitter_chain","destination_chain","version"])
+	
+	tvt = data	
+			|> filter(fn : (r) => r._field == "total_value_transferred")
+			|> group(columns:["app_id"])
+			|> sum()
+			|> set(key:"_field",value:"total_value_transferred")
+			|> map(fn: (r) => ({r with _value: int(v: r._value)}))
+	
+	totalMsgs =	data	
+					|> filter(fn : (r) => r._field == "total_messages")
+					|> group(columns:["app_id"])
+					|> sum()	
+					|> set(key:"_field",value:"total_messages")
+					|> map(fn: (r) => ({r with _value: int(v: r._value)}))
+	
+	union(tables:[tvt,totalMsgs])
+		|> set(key:"_time",value:string(v:startOfDay))
+		|> pivot(rowKey:["_time","app_id"], columnKey: ["_field"], valueColumn: "_value")
+		|> map(fn: (r) => ({r with app_id: strings.trimPrefix(v: r.app_id, prefix: "TOTAL_")}))
 `
 
 const QueryTemplateProtocolStats24HrAgo = `
