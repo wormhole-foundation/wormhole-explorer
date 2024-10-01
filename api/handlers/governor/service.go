@@ -39,12 +39,31 @@ func NewService(mongoRepo *MongoRepository, postgresRepo *PostgresRepository, ca
 }
 
 // FindGovernorConfig get a list of governor configurations.
-func (s *Service) FindGovernorConfig(ctx context.Context, p *pagination.Pagination) (*response.Response[[]*GovConfig], error) {
+func (s *Service) FindGovernorConfig(
+	ctx context.Context,
+	p *pagination.Pagination,
+	usePostgres bool,
+) (*response.Response[[]*GovConfig], error) {
+
+	// set default pagination if not provided
 	if p == nil {
 		p = pagination.Default()
 	}
+
 	query := NewGovernorQuery().SetPagination(p)
-	govConfigs, err := s.mongoRepo.FindGovConfigurations(ctx, query)
+
+	var govConfigs []*GovConfig
+	var err error
+	if usePostgres {
+		govConfigs, err = s.postgresRepo.FindGovConfigurations(ctx, query)
+	} else {
+		govConfigs, err = s.mongoRepo.FindGovConfigurations(ctx, query)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
 	res := response.Response[[]*GovConfig]{Data: govConfigs}
 	return &res, err
 }
@@ -53,6 +72,7 @@ func (s *Service) FindGovernorConfig(ctx context.Context, p *pagination.Paginati
 func (s *Service) FindGovernorConfigByGuardianAddress(
 	ctx context.Context,
 	guardianAddress *types.Address,
+	usePostgres bool,
 ) ([]*GovConfig, error) {
 
 	p := pagination.
@@ -63,7 +83,18 @@ func (s *Service) FindGovernorConfigByGuardianAddress(
 		SetID(guardianAddress).
 		SetPagination(p)
 
-	govConfigs, err := s.mongoRepo.FindGovConfigurations(ctx, query)
+	var govConfigs []*GovConfig
+	var err error
+	if usePostgres {
+		govConfigs, err = s.postgresRepo.FindGovConfigurations(ctx, query)
+	} else {
+		govConfigs, err = s.mongoRepo.FindGovConfigurations(ctx, query)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
 	return govConfigs, err
 }
 
