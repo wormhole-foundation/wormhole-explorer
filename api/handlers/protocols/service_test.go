@@ -272,49 +272,44 @@ func TestService_GetProtocolsTotalValues_CacheHit(t *testing.T) {
 }
 
 func TestService_GetPortalTokenBridge_Stats(t *testing.T) {
-	var errNil error
-
-	totalStartOfCurrentDay := &mockQueryTableResult{}
-	totalStartOfCurrentDay.On("Next").Return(true)
-	totalStartOfCurrentDay.On("Err").Return(errNil)
-	totalStartOfCurrentDay.On("Close").Return(errNil)
-	totalStartOfCurrentDay.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
-		"app_id":                  protocols.PortalTokenBridge,
-		"total_messages":          uint64(50),
-		"total_value_transferred": 4e8,
-	}))
-
-	deltaSinceStartOfDay := &mockQueryTableResult{}
-	deltaSinceStartOfDay.On("Next").Return(true)
-	deltaSinceStartOfDay.On("Err").Return(errNil)
-	deltaSinceStartOfDay.On("Close").Return(errNil)
-	deltaSinceStartOfDay.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
-		"app_id":                  protocols.PortalTokenBridge,
-		"total_messages":          uint64(6),
-		"total_value_transferred": 2e8,
-	}))
-
-	deltaLastDay := &mockQueryTableResult{}
-	deltaLastDay.On("Next").Return(true)
-	deltaLastDay.On("Err").Return(errNil)
-	deltaLastDay.On("Close").Return(errNil)
-	deltaLastDay.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
-		"app_id":                  protocols.PortalTokenBridge,
-		"total_messages":          uint64(7),
-		"total_value_transferred": 132,
-	}))
 
 	ctx := context.Background()
 	queryAPI := &mockQueryAPI{}
 
-	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryCoreProtocolTotalStartOfDay, "bucketInfinite", dbconsts.TotalProtocolsStatsDaily, protocols.PortalTokenBridge, protocols.PortalTokenBridge)).Return(totalStartOfCurrentDay, errNil)
-	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryCoreProtocolDeltaSinceStartOfDay, "bucket30d", dbconsts.TotalProtocolsStatsHourly, protocols.PortalTokenBridge, protocols.PortalTokenBridge)).Return(deltaSinceStartOfDay, errNil)
-	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryCoreProtocolDeltaLastDay, "bucket30d", dbconsts.TotalProtocolsStatsHourly, protocols.PortalTokenBridge, protocols.PortalTokenBridge)).Return(deltaLastDay, errNil)
-
 	// core protocols influx calls
-	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.AllProtocolStats24HrAgo, "bucketInfinite")).Return(emptyQueryTableResult(), nil)
-	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.AllProtocolsDeltaSinceStartOfDay, "bucket30d")).Return(emptyQueryTableResult(), nil)
-	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.AllProtocolsDeltaLastDay, "bucket30d")).Return(emptyQueryTableResult(), nil)
+	totalStartOfCurrentDay := &multirowQueryTableResult{
+		Result: []*query.FluxRecord{
+			query.NewFluxRecord(1, map[string]interface{}{
+				"app_id":                  protocols.PortalTokenBridge,
+				"total_messages":          uint64(50),
+				"total_value_transferred": 3e8,
+			}),
+		},
+	}
+
+	deltaSinceStartOfDay := &multirowQueryTableResult{
+		Result: []*query.FluxRecord{
+			query.NewFluxRecord(1, map[string]interface{}{
+				"app_id":                  protocols.PortalTokenBridge,
+				"total_messages":          uint64(25),
+				"total_value_transferred": 2e8,
+			}),
+		},
+	}
+
+	deltaLastDay := &multirowQueryTableResult{
+		Result: []*query.FluxRecord{
+			query.NewFluxRecord(1, map[string]interface{}{
+				"app_id":                  protocols.PortalTokenBridge,
+				"total_messages":          uint64(10),
+				"total_value_transferred": 1e8,
+			}),
+		},
+	}
+
+	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.AllProtocolStats24HrAgo, "bucketInfinite")).Return(totalStartOfCurrentDay, nil)
+	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.AllProtocolsDeltaSinceStartOfDay, "bucket30d")).Return(deltaSinceStartOfDay, nil)
+	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.AllProtocolsDeltaLastDay, "bucket30d")).Return(deltaLastDay, nil)
 
 	repository := protocols.NewRepository(queryAPI, "bucketInfinite", "bucket30d", "bucket24hr", zap.NewNop())
 	service := protocols.NewService([]string{}, repository, zap.NewNop(), cache.NewDummyCacheClient(), "WORMSCAN:PROTOCOLS", 0, metrics.NewNoOpMetrics(), &mockTvl{})
@@ -324,10 +319,10 @@ func TestService_GetPortalTokenBridge_Stats(t *testing.T) {
 	for i := range values {
 		switch values[i].Protocol {
 		case "portal_token_bridge":
-			assert.Equal(t, uint64(56), values[i].TotalMessages)
-			assert.Equal(t, 6.0, values[i].TotalValueTransferred)
-			assert.Equal(t, uint64(7), values[i].LastDayMessages)
-			assert.Equal(t, "14.29%", values[i].LastDayDiffPercentage)
+			assert.Equal(t, uint64(75), values[i].TotalMessages)
+			assert.Equal(t, 5.0, values[i].TotalValueTransferred)
+			assert.Equal(t, uint64(10), values[i].LastDayMessages)
+			assert.Equal(t, "15.38%", values[i].LastDayDiffPercentage)
 			assert.Equal(t, 1235.523, values[i].TotalValueLocked)
 		default:
 			t.Errorf("unexpected protocol %s", values[i].Protocol)
@@ -350,6 +345,29 @@ func emptyQueryTableResult() *mockQueryTableResult {
 	m.On("Err").Return(nil)
 	m.On("Close").Return(nil)
 	return m
+}
+
+type multirowQueryTableResult struct {
+	Result []*query.FluxRecord
+	index  int // this is to track how many times Next() has been called
+}
+
+func (m *multirowQueryTableResult) Next() bool {
+	return m.index < len(m.Result)
+}
+
+func (m *multirowQueryTableResult) Record() *query.FluxRecord {
+	record := m.Result[m.index]
+	m.index++
+	return record
+}
+
+func (m *multirowQueryTableResult) Err() error {
+	return nil
+}
+
+func (m *multirowQueryTableResult) Close() error {
+	return nil
 }
 
 type mockQueryTableResult struct {
@@ -379,6 +397,6 @@ func (m *mockQueryTableResult) Close() error {
 type mockTvl struct {
 }
 
-func (t *mockTvl) Get(ctx context.Context) (string, error) {
+func (t *mockTvl) Get(_ context.Context) (string, error) {
 	return "1235.523", nil
 }
