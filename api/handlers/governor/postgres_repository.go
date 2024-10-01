@@ -3,11 +3,13 @@ package governor
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"sort"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/mongo"
 	"github.com/wormhole-foundation/wormhole-explorer/common/db"
+	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
@@ -27,6 +29,29 @@ type governorStatusResult struct {
 	UpdatedAt    time.Time `db:"updated_at"`
 }
 
+type governorConfigResult struct {
+	ID           string                  `db:"id"`
+	GuardianName string                  `db:"guardian_name"`
+	Counter      int64                   `db:"counter"`
+	Timestamp    time.Time               `db:"timestamp"`
+	Chains       []*governorConfigChains `db:"chains"`
+	Tokens       []*governorConfigTokens `db:"tokens"`
+	CreatedAt    *time.Time              `db:"created_at"`
+	UpdatedAt    *time.Time              `db:"updated_at"`
+}
+
+type governorConfigChains struct {
+	ChainID            vaa.ChainID `db:"chainId"`
+	NotionalLimit      uint64      `db:"notionalLimit"`
+	BigTransactionSize uint64      `db:"bigTransactionSize"`
+}
+
+type governorConfigTokens struct {
+	OriginChainID int     `db:"originChainId"`
+	OriginAddress string  `db:"originAddress"`
+	Price         float32 `db:"price"`
+}
+
 type PostgresRepository struct {
 	db     *db.DB
 	logger *zap.Logger
@@ -35,6 +60,87 @@ type PostgresRepository struct {
 func NewPostgresRepository(db *db.DB, logger *zap.Logger) *PostgresRepository {
 	return &PostgresRepository{db: db,
 		logger: logger.With(zap.String("module", "PostgresObservationsRepository"))}
+}
+
+func (r *PostgresRepository) FindGovConfigurations(
+	ctx context.Context,
+	q *GovernorQuery,
+) ([]*GovConfig, error) {
+
+	// build query and params.
+	query, params := buildGovConfigQuery(q)
+
+	// execute the query.
+	var result []governorConfigResult
+	err := r.db.Select(ctx, &result, query, params...)
+	if err != nil {
+		r.logger.Error("failed to execute query", zap.Error(err), zap.String("query", query))
+		return nil, err
+	}
+
+	// process response.
+	configs := make([]*GovConfig, 0, len(result))
+	for _, r := range result {
+		configs = append(configs, createGovConfig(r))
+	}
+	return configs, nil
+}
+
+func buildGovConfigQuery(q *GovernorQuery) (string, []any) {
+	baseQuery := `SELECT id, guardian_name, counter, timestamp, chains, tokens, created_at, updated_at FROM wormholescan.wh_governor_config`
+	var params []any
+	var counter uint8 = 1
+
+	// handle filtering by id (guardian address).
+	if q.id != nil {
+		baseQuery += fmt.Sprintf(" WHERE id = $%d", counter)
+		params = append(params, q.id)
+		counter++
+	}
+
+	// handle pagination and sorting.
+	baseQuery += fmt.Sprintf(" ORDER BY id ASC LIMIT $%d OFFSET $%d", counter, counter+1)
+	params = append(params, q.Limit, q.Skip)
+
+	return baseQuery, params
+}
+
+func createGovConfig(r governorConfigResult) *GovConfig {
+	chains := make([]*GovConfigChains, 0, len(r.Chains))
+	for _, c := range r.Chains {
+		chains = append(chains, &GovConfigChains{
+			ChainID:            c.ChainID,
+			NotionalLimit:      mongo.Uint64(c.NotionalLimit),
+			BigTransactionSize: mongo.Uint64(c.BigTransactionSize),
+		})
+	}
+
+	tokens := make([]*GovConfigfTokens, 0, len(r.Tokens))
+	for _, t := range r.Tokens {
+		tokens = append(tokens, &GovConfigfTokens{
+			OriginChainID: t.OriginChainID,
+			OriginAddress: t.OriginAddress,
+			Price:         t.Price,
+		})
+	}
+
+	return &GovConfig{
+		ID:        r.ID,
+		NodeName:  r.GuardianName,
+		Counter:   int(r.Counter),
+		CreatedAt: r.CreatedAt,
+		UpdatedAt: r.UpdatedAt,
+		Chains:    chains,
+		Tokens:    tokens,
+	}
+}
+
+func mapGovConfigResults(result []governorConfigResult) []*GovConfig {
+	configs := make([]*GovConfig, 0, len(result))
+	for _, r := range result {
+		configs = append(configs, createGovConfig(r))
+	}
+	return configs
 }
 
 func (r *PostgresRepository) GetGovernorLimit(

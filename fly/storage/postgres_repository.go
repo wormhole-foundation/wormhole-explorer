@@ -292,7 +292,7 @@ func (r *PostgresRepository) UpsertGovernorConfig(ctx context.Context, govC *gos
 	(id, guardian_name, counter, timestamp, chains, tokens, created_at, updated_at)
 	VALUES($1, $2, $3, $4, $5, $6, $7, $8) 
 	ON CONFLICT(id) DO UPDATE 
-	SET counter = $3, timestamp = $4, tokens = $5, updated_at = $7;
+	SET counter = $3, timestamp = $4, tokens = $6, updated_at = $8;
 	`
 
 	_, err = r.db.Exec(context.Background(),

@@ -23,7 +23,7 @@ func NewPostgresRepository(db *db.DB, logger *zap.Logger) *PostgresRepository {
 	return &PostgresRepository{db: db, logger: logger}
 }
 
-// VaaQuery represents a query for the vaa postgres document.
+// vaaResult represents the response of a VAA query.
 type vaaResult struct {
 	ID               string     `db:"id"`
 	VaaID            string     `db:"vaa_id"`

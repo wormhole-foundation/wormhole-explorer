@@ -34,17 +34,20 @@ func NewController(serv *governor.Service, logger *zap.Logger) *Controller {
 // @Router /api/v1/governor/config [get]
 func (c *Controller) FindGovernorConfigurations(ctx *fiber.Ctx) error {
 
-	p, err := middleware.ExtractPagination(ctx)
+	// get pagination.
+	pagination, err := middleware.ExtractPagination(ctx)
 	if err != nil {
 		return err
 	}
 
-	// Check pagination max limit
-	if p.Limit > 1000 {
+	// check pagination max limit.
+	if pagination.Limit > 1000 {
 		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
 	}
 
-	governorConfigs, err := c.srv.FindGovernorConfig(ctx.Context(), p)
+	// call service to get governor configurations.
+	governorConfigs, err := c.srv.FindGovernorConfig(ctx.Context(),
+		pagination, middleware.UsePostgres(ctx))
 	if err != nil {
 		return err
 	}
@@ -69,7 +72,8 @@ func (c *Controller) FindGovernorConfigurationByGuardianAddress(ctx *fiber.Ctx) 
 	}
 
 	// query the database
-	govConfigs, err := c.srv.FindGovernorConfigByGuardianAddress(ctx.Context(), guardianAddress)
+	govConfigs, err := c.srv.FindGovernorConfigByGuardianAddress(ctx.Context(),
+		guardianAddress, middleware.UsePostgres(ctx))
 	if err != nil {
 		return err
 	} else if len(govConfigs) == 0 {
@@ -79,9 +83,8 @@ func (c *Controller) FindGovernorConfigurationByGuardianAddress(ctx *fiber.Ctx) 
 		return response.NewInternalError(ctx, err)
 	}
 
-	// populate the response struct and return
-	res := response.Response[*governor.GovConfig]{Data: govConfigs[0]}
-	return ctx.JSON(res)
+	response := response.Response[*governor.GovConfig]{Data: govConfigs[0]}
+	return ctx.JSON(response)
 }
 
 // FindGovernorStatus godoc
