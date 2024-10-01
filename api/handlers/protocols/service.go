@@ -217,48 +217,6 @@ func getProtocolNameDto(protocol string) string {
 	}
 }
 
-// getProtocolStats fetches stats for PortalTokenBridge and NTT
-func (s *Service) getCoreProtocolStats(ctx context.Context, protocol string) (ProtocolStats, error) {
-
-	protocolStats, err := s.repo.getCoreProtocolStats(ctx, protocol)
-	if err != nil {
-		return ProtocolStats{
-			Protocol: protocol,
-		}, err
-	}
-
-	diffLastDay := protocolStats.DeltaLast24hr.TotalMessages
-	val := ProtocolStats{
-		Protocol:              protocol,
-		TotalValueTransferred: protocolStats.Latest.TotalValueTransferred,
-		TotalMessages:         protocolStats.Latest.TotalMessages,
-		LastDayMessages:       diffLastDay,
-		Last24HourVolume:      protocolStats.DeltaLast24hr.TotalValueTransferred,
-	}
-
-	lastDayTotalMessages := protocolStats.Latest.TotalMessages - diffLastDay
-	if lastDayTotalMessages != 0 {
-		percentage := strconv.FormatFloat(float64(diffLastDay)/float64(lastDayTotalMessages)*100, 'f', 2, 64) + "%"
-		val.LastDayDiffPercentage = percentage
-	}
-
-	if PortalTokenBridge == protocol {
-		tvl, errTvl := s.tvl.Get(ctx)
-		if errTvl != nil {
-			s.logger.Error("error fetching tvl", zap.Error(errTvl), zap.String("protocol", protocol))
-			return val, errTvl
-		}
-		tvlFloat, errTvl := strconv.ParseFloat(tvl, 64)
-		if errTvl != nil {
-			s.logger.Error("error parsing tvl value", zap.Error(errTvl), zap.String("protocol", protocol), zap.String("tvl_str", tvl))
-			return val, errTvl
-		}
-		val.TotalValueLocked = tvlFloat
-	}
-
-	return val, nil
-}
-
 func (s *Service) getCCTPStats(ctx context.Context, protocol string) (ProtocolStats, error) {
 	cctpStats, err := s.repo.getCCTPStats(ctx, protocol)
 	if err != nil {
