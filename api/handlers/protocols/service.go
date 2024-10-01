@@ -16,9 +16,11 @@ import (
 
 const CCTP = "CCTP_WORMHOLE_INTEGRATION"
 const PortalTokenBridge = "PORTAL_TOKEN_BRIDGE"
+const GenericRelayer = "GENERIC_RELAYER"
 const NTT = "NATIVE_TOKEN_TRANSFER"
 const MAYAN = "MAYAN"
 const ALLBRIDGE = "ALLBRIDGE"
+const UNKNOWN = "UNKNOWN"
 
 type Service struct {
 	protocols      []string
@@ -89,6 +91,9 @@ func (s *Service) GetProtocolsTotalValues(ctx context.Context) []ProtocolTotalVa
 
 	resultsSlice := make([]ProtocolTotalValuesDTO, 0, protocolsQty)
 	for r := range results {
+		if r.Protocol == UNKNOWN {
+			continue
+		}
 		r.Protocol = getProtocolNameDto(r.Protocol)
 		resultsSlice = append(resultsSlice, r)
 	}
@@ -214,6 +219,8 @@ func getProtocolNameDto(protocol string) string {
 		return "cctp"
 	case PortalTokenBridge:
 		return "portal_token_bridge"
+	case GenericRelayer:
+		return "standard_relayer"
 	default:
 		return strings.ToLower(protocol)
 	}
