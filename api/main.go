@@ -152,7 +152,7 @@ func main() {
 
 	// Set up repositories
 	rootLogger.Info("initializing repositories")
-	addressRepo := address.NewRepository(storage.mongoDB.Database, rootLogger)
+	addressRepo := address.NewMongoRepository(storage.mongoDB.Database, rootLogger)
 	vaaMongoRepo := vaa.NewMongoRepository(storage.mongoDB.Database, rootLogger)
 	vaaPostgresRepo := vaa.NewPostgresRepository(storage.postgresDB, rootLogger)
 	obsMongoRepo := observations.NewMongoRepository(storage.mongoDB.Database, rootLogger)
