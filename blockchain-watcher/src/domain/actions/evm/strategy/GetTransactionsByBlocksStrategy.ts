@@ -51,7 +51,8 @@ export class GetTransactionsByBlocksStrategy implements GetTransactions {
           evmBlocks,
           transactionReceipts,
           transactionsByAddressConfigured,
-          populatedTransactions
+          populatedTransactions,
+          filter.topics
         );
       }
     }

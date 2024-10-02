@@ -6,6 +6,7 @@ import { solana } from "../../../domain/entities";
 import winston from "../../log";
 import {
   VersionedTransactionResponse,
+  VersionedBlockResponse,
   SolanaJSONRPCError,
   Commitment,
   PublicKey,
@@ -23,7 +24,7 @@ export class Web3SolanaSlotRepository implements SolanaSlotRepository {
     return this.pool.get().getSlot(commitment as Commitment);
   }
 
-  getBlock(slot: number, finality?: string): Promise<Fallible<solana.Block, SolanaFailure>> {
+  async getBlock(slot: number, finality?: string): Promise<Fallible<solana.Block, SolanaFailure>> {
     const provider = this.pool.get();
     return provider
       .getBlock(slot, {
@@ -82,9 +83,14 @@ export class Web3SolanaSlotRepository implements SolanaSlotRepository {
     finality?: string
   ): Promise<solana.Transaction[]> {
     const provider = this.pool.get();
-    const txs = await provider.getTransactions(
-      sigs.map((sig) => sig.signature),
-      { maxSupportedTransactionVersion: 0, commitment: this.normalizeFinality(finality) }
+    const txs = await this.withProvider<(VersionedTransactionResponse | null)[]>(
+      provider,
+      (provider) =>
+        provider.getTransactions(
+          sigs.map((sig) => sig.signature),
+          { maxSupportedTransactionVersion: 0, commitment: this.normalizeFinality(finality) }
+        ),
+      "getTransactions"
     );
 
     if (txs.length !== sigs.length) {
@@ -120,6 +126,20 @@ export class Web3SolanaSlotRepository implements SolanaSlotRepository {
           },
         } as solana.Transaction;
       });
+  }
+
+  private async withProvider<T>(
+    provider: InstrumentedConnectionWrapper,
+    fn: (provider: InstrumentedConnectionWrapper) => Promise<T>,
+    method: string
+  ) {
+    try {
+      return await fn(provider);
+    } catch (e) {
+      this.logger.error(`[solana][${method}] Error getting result on ${provider.getUrl()}`);
+      provider.setProviderOffline();
+      throw e;
+    }
   }
 
   private normalizeFinality(finality?: string): Finality | undefined {

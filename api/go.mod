@@ -28,6 +28,7 @@ require (
 require (
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/test-go/testify v1.1.4
+	golang.org/x/exp v0.0.0-20231006140011-7918f672742d
 )
 
 require (
@@ -35,12 +36,12 @@ require (
 	github.com/algorand/go-codec/codec v1.1.8 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
 	github.com/go-resty/resty/v2 v2.11.0 // indirect
+	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/uuid v1.5.0 // indirect
 	github.com/philhofer/fwd v1.1.2 // indirect
 	github.com/redis/go-redis/v9 v9.0.5 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/tinylib/msgp v1.1.8 // indirect
-	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
 	golang.org/x/net v0.25.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20230726155614-23370e0ffb3e // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230807174057-1744710a1577 // indirect

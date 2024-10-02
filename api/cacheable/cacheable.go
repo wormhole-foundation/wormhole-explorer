@@ -3,6 +3,7 @@ package cacheable
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/metrics"
@@ -19,9 +20,15 @@ func GetOrLoad[T any](
 	key string,
 	metrics metrics.Metrics,
 	load func() (T, error),
+	opts ...Opts,
 ) (T, error) {
-	log := logger.With(zap.String("key", key))
 
+	cfg := cacheableCfg{}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+
+	log := logger.With(zap.String("key", key))
 	// Try to get the result from the cache.
 	value, err := cacheClient.Get(ctx, key)
 	foundCache := true
@@ -29,7 +36,7 @@ func GetOrLoad[T any](
 	//If the result is not found in the cache or fails, then load the result.
 	if err != nil {
 		foundCache = false
-		if err != cache.ErrNotFound {
+		if !errors.Is(err, cache.ErrNotFound) {
 			log.Warn("getting result from cache", zap.Error(err))
 		}
 	}
@@ -40,7 +47,10 @@ func GetOrLoad[T any](
 		err = json.Unmarshal([]byte(value), &cached)
 		if err != nil {
 			log.Warn("unmarshal cache", zap.Error(err))
-		} else if cached.Timestamp.Add(expirations).After(time.Now()) {
+		} else if !cached.IsExpired(expirations) {
+			return cached.Result, nil
+		} else if cfg.automaticRenew {
+			go renewCachedValue(context.WithoutCancel(ctx), cacheClient, log, key, load)
 			return cached.Result, nil
 		}
 	}
@@ -69,6 +79,27 @@ func GetOrLoad[T any](
 	return result, nil
 }
 
+func renewCachedValue[T any](
+	ctx context.Context,
+	cacheClient cache.Cache,
+	log *zap.Logger,
+	key string,
+	load func() (T, error),
+) {
+
+	newValue, errNewValue := load()
+	if errNewValue != nil {
+		log.Error("error renewing cache value", zap.Error(errNewValue))
+		return
+	}
+
+	renewedCacheValue := CachedResult[T]{Timestamp: time.Now(), Result: newValue}
+	err := cacheClient.Set(ctx, key, renewedCacheValue, 0)
+	if err != nil {
+		log.Error("error updating cache value", zap.Error(err))
+	}
+}
+
 type CachedResult[T any] struct {
 	Timestamp time.Time `json:"timestamp"`
 	Result    T         `json:"result"`
@@ -76,4 +107,22 @@ type CachedResult[T any] struct {
 
 func (c CachedResult[T]) MarshalBinary() ([]byte, error) {
 	return json.Marshal(c)
+}
+
+func (c CachedResult[T]) IsExpired(ttl time.Duration) bool {
+	expireTime := c.Timestamp.Add(ttl)
+	return expireTime.Before(time.Now())
+}
+
+type Opts func(opts *cacheableCfg)
+
+// WithAutomaticRenew Sets the cache to be automatically renewed in a separate goroutine
+func WithAutomaticRenew() Opts {
+	return func(opts *cacheableCfg) {
+		opts.automaticRenew = true
+	}
+}
+
+type cacheableCfg struct {
+	automaticRenew bool
 }

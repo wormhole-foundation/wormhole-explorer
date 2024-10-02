@@ -1,6 +1,8 @@
 import * as configData from "./contractsMapperConfig.json";
 import winston from "../log";
 
+const UNKNOWN = "unknown";
+
 let logger: winston.Logger;
 logger = winston.child({ module: "contractsMapperConfig" });
 
@@ -19,28 +21,41 @@ export const findProtocol = (
 ): Protocol => {
   for (const contract of contractsMapperConfig.contracts) {
     if (contract.chain === chain) {
-      const foundProtocol = contract.protocols.find((protocol) =>
+      // Try to find the protocol by address first
+      let protocol = contract.protocols.find((protocol) =>
         protocol.addresses.some((addr) => addr.toLowerCase() === address.toLowerCase())
       );
-      const foundMethod = foundProtocol?.methods.find(
+
+      // If not found by address, find by method
+      if (!protocol) {
+        const protocolsByMethod = contract.protocols.filter((protocol) =>
+          protocol.methods.some((method) => method.methodId === comparativeMethod)
+        );
+
+        if (protocolsByMethod?.length === 1) {
+          protocol = protocolsByMethod[0];
+        }
+      }
+
+      // Find the method in the identified protocol
+      const method = protocol?.methods.find(
         (method) => method.methodId === String(comparativeMethod)
       );
 
-      if (foundMethod && foundProtocol) {
-        return {
-          method: foundMethod.method,
-          type: foundProtocol.type,
-        };
-      }
+      return {
+        method: method?.method ?? UNKNOWN,
+        type: protocol?.type ?? UNKNOWN,
+      };
     }
   }
+
   logger.warn(
     `[${chain}] Protocol not found, [hash: ${hash}][address: ${address}][method: ${comparativeMethod}]`
   );
 
   return {
-    method: "unknown",
-    type: "unknown",
+    method: UNKNOWN,
+    type: UNKNOWN,
   };
 };
 

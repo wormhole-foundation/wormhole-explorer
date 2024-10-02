@@ -69,26 +69,36 @@ data:
             "mapper": "solanaTransferRedeemedMapper",
             "config": {
               "programs": {
-                "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe": {
-                  "instructions": ["02", "03", "09", "0a"],
-                  "vaaAccountIndex": 2
-                },
-                "nTTh3bZ5Aer6xboWZe39RDEft4MeVxSQ8D1EYAVLZw9": {
-                  "instructions": ["86d58f44eb66e860"],
-                  "vaaAccountIndex": 3
-                },
-                "2rHhojZ7hpu1zA91nvZmT8TqWWvMcKmmNBCr2mKTtMq4": {
+                "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe": [
+                  {
+                    "instructions": ["02", "03", "09", "0a"],
+                    "vaaAccountIndex": 2
+                  }
+                ],
+                "nTTh3bZ5Aer6xboWZe39RDEft4MeVxSQ8D1EYAVLZw9": [
+                  {
+                    "instructions": ["86d58f44eb66e860"],
+                    "vaaAccountIndex": 3
+                  }
+                ],
+                "2rHhojZ7hpu1zA91nvZmT8TqWWvMcKmmNBCr2mKTtMq4": [
+                  {
                     "instructions": ["02", "03"],
                     "vaaAccountIndex": 2
-                },
-                "6afkDMjQCod662yV22tBQGArRnwhCCWHKXTpnZPqxd8": {
-                  "instructions": ["86d58f44eb66e860"],
-                  "vaaAccountIndex": 3
-                },
-                "mPydpGUWxzERTNpyvTKdvS7v8kvw5sgwfiP8WQFrXVS": {
+                  }
+                ],
+                "6afkDMjQCod662yV22tBQGArRnwhCCWHKXTpnZPqxd8": [
+                  {
+                    "instructions": ["86d58f44eb66e860"],
+                    "vaaAccountIndex": 3
+                  }
+                ],
+                "mPydpGUWxzERTNpyvTKdvS7v8kvw5sgwfiP8WQFrXVS": [
+                  {  
                     "instructions": ["b0261e11e64ece9d"],
                     "vaaAccountIndex": 2
-                }
+                  }
+                ]
               },
               "metricName": "process_vaa_event"
             }
@@ -120,7 +130,8 @@ data:
               "NttADdCvGLUhukNyePei9CkmHoe6S9xjqgqfQv51PQg",
               "NttXP2tPLxGkNA3yrSfFZbtDbfKPKBrJUR6Jcqh6sRi",
               "NTt198zrFsZkvfFH5juBK98frhDNooPtd5PGefd7vNb",
-              "NtTtwqVX4SCNECrZ8ZmEaxAPFcm5r7Szx4tBmYLU17p"
+              "NtTtwqVX4SCNECrZ8ZmEaxAPFcm5r7Szx4tBmYLU17p",
+              "HtkeCDdYY4i9ncAxXKjYTx8Uu3WM8JbtiLRYjtHwaVXb"
             ],
             "chain": "solana",
             "chainId": 1
@@ -133,50 +144,82 @@ data:
             "mapper": "solanaTransferRedeemedMapper",
             "config": {
               "programs": {
-                "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb": {
-                  "instructions": ["02", "03", "09", "0a"],
-                  "vaaAccountIndex": 2
-                },
-                "WnFt12ZrnzZrFZkt2xsNsaNWoQribnuQ5B5FrDbwDhD": {
+                "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb": [
+                  {
+                    "instructions": ["02", "03", "09", "0a"],
+                    "vaaAccountIndex": 2
+                  }
+                ],
+                "WnFt12ZrnzZrFZkt2xsNsaNWoQribnuQ5B5FrDbwDhD": [
+                  {
                     "instructions": ["02", "03"],
                     "vaaAccountIndex": 2
-                },
-                "NTtAaoDJhkeHeaVUHnyhwbPNAN6WgBpHkHBTc6d7vLK": {
-                  "instructions": ["86d58f44eb66e860"],
-                  "vaaAccountIndex": 3
-                },
-                "NttWixqwUHAnpXym3UYUySQZtb4C57EZxpH721JfLyF": {
-                  "instructions": ["86d58f44eb66e860"],
-                  "vaaAccountIndex": 3
-                },
-                "nTtPcmsVY4f86cSREmnio5tUyiK58HBqBeDwaUYQt6t": {
-                  "instructions": ["86d58f44eb66e860"],
-                  "vaaAccountIndex": 3
-                },
-                "NttBm3HouTCFnUBz32fEs5joQFRjFoJPA8AyhtgjFrw": {
-                  "instructions": ["86d58f44eb66e860"],
-                  "vaaAccountIndex": 3
-                },
-                "NTtxeqz2XjMnpcEoWMqb6pz84zHweJRYWyzmsmmW49E": {
-                  "instructions": ["86d58f44eb66e860"],
-                  "vaaAccountIndex": 3
-                },
-                "NttADdCvGLUhukNyePei9CkmHoe6S9xjqgqfQv51PQg": {
-                  "instructions": ["86d58f44eb66e860"],
-                  "vaaAccountIndex": 3
-                },
-                "NttXP2tPLxGkNA3yrSfFZbtDbfKPKBrJUR6Jcqh6sRi": {
-                  "instructions": ["86d58f44eb66e860"],
-                  "vaaAccountIndex": 3
-                },
-                "NTt198zrFsZkvfFH5juBK98frhDNooPtd5PGefd7vNb": {
-                  "instructions": ["86d58f44eb66e860"],
-                  "vaaAccountIndex": 3
-                },
-                "NtTtwqVX4SCNECrZ8ZmEaxAPFcm5r7Szx4tBmYLU17p": {
-                  "instructions": ["86d58f44eb66e860"],
-                  "vaaAccountIndex": 3
-                }
+                  }
+                ],
+                "NTtAaoDJhkeHeaVUHnyhwbPNAN6WgBpHkHBTc6d7vLK": [
+                  {
+                    "instructions": ["86d58f44eb66e860"],
+                    "vaaAccountIndex": 3
+                  }
+                ],
+                "NttWixqwUHAnpXym3UYUySQZtb4C57EZxpH721JfLyF": [
+                  {
+                    "instructions": ["86d58f44eb66e860"],
+                    "vaaAccountIndex": 3
+                  }
+                ],
+                "nTtPcmsVY4f86cSREmnio5tUyiK58HBqBeDwaUYQt6t": [
+                  {
+                    "instructions": ["86d58f44eb66e860"],
+                    "vaaAccountIndex": 3
+                  }
+                ],
+                "NttBm3HouTCFnUBz32fEs5joQFRjFoJPA8AyhtgjFrw": [
+                  {
+                    "instructions": ["86d58f44eb66e860"],
+                    "vaaAccountIndex": 3
+                  }
+                ],
+                "NTtxeqz2XjMnpcEoWMqb6pz84zHweJRYWyzmsmmW49E": [
+                  {
+                    "instructions": ["86d58f44eb66e860"],
+                    "vaaAccountIndex": 3
+                  }
+                ],
+                "NttADdCvGLUhukNyePei9CkmHoe6S9xjqgqfQv51PQg": [
+                  {
+                    "instructions": ["86d58f44eb66e860"],
+                    "vaaAccountIndex": 3
+                  }
+                ],
+                "NttXP2tPLxGkNA3yrSfFZbtDbfKPKBrJUR6Jcqh6sRi": [
+                  {
+                    "instructions": ["86d58f44eb66e860"],
+                    "vaaAccountIndex": 3
+                  }
+                ],
+                "NTt198zrFsZkvfFH5juBK98frhDNooPtd5PGefd7vNb": [
+                  {
+                    "instructions": ["86d58f44eb66e860"],
+                    "vaaAccountIndex": 3
+                  }
+                ],
+                "NtTtwqVX4SCNECrZ8ZmEaxAPFcm5r7Szx4tBmYLU17p": [
+                  {
+                    "instructions": ["86d58f44eb66e860"],
+                    "vaaAccountIndex": 3
+                  }
+                ],
+                "HtkeCDdYY4i9ncAxXKjYTx8Uu3WM8JbtiLRYjtHwaVXb": [
+                  {
+                    "instructions": ["ddb2b82bf7f85aa0"],
+                    "vaaAccountIndex": 2
+                  },
+                  {
+                    "instructions": ["b0261e11e64ece9d"],
+                    "vaaAccountIndex": 4
+                  }
+                ]
               },
               "metricName": "process_vaa_event"
             }

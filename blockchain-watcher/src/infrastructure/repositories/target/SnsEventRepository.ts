@@ -1,12 +1,13 @@
 import { LogFoundEvent } from "../../../domain/entities";
+import { v4 as uuidv4 } from "uuid";
+import winston from "../../log";
 import crypto from "node:crypto";
 import {
-  SNSClient,
-  PublishBatchCommand,
   PublishBatchCommandInput,
   PublishBatchRequestEntry,
+  PublishBatchCommand,
+  SNSClient,
 } from "@aws-sdk/client-sns";
-import winston from "../../log";
 
 const CHUNK_SIZE = 10;
 
@@ -126,8 +127,12 @@ export class SnsEvent {
   }
 
   static fromLogFoundEvent<T>(logFoundEvent: LogFoundEvent<T>): SnsEvent {
+    const prefix = `chain-event-${uuidv4()}-${logFoundEvent.txHash}`;
+    // SNS message attributes have a limit of 127 characters
+    const trackId = prefix.length > 127 ? prefix.substring(0, 127) : prefix;
+
     return new SnsEvent(
-      `chain-event-${logFoundEvent.txHash}-${logFoundEvent.blockHeight}`,
+      trackId,
       "blockchain-watcher",
       logFoundEvent.name,
       new Date().toISOString(),

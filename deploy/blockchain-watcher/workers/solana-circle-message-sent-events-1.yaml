@@ -1,0 +1,166 @@
+---   
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .NAME }}-solana-circle-message-sent-events-1
+  namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-solana-circle-message-sent-events-1
+spec:
+  selector:
+    app: {{ .NAME }}-solana-circle-message-sent-events-1
+  ports:
+    - port: {{ .PORT }}
+      targetPort: {{ .PORT }}
+      name: {{ .NAME }}-solana-circle-message-sent-events-1
+      protocol: TCP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: blockchain-watcher-solana-circle-message-sent-events-1-pvc
+  namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-solana-circle-message-sent-events-1
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Mi
+  storageClassName: gp2
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .NAME }}-solana-circle-message-sent-events-1-jobs
+  namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-solana-circle-message-sent-events-1
+data:
+  testnet-jobs.json: |-
+    [
+    ]
+  mainnet-jobs.json: |-
+    [
+      {
+        "id": "poll-log-message-sent-solana",
+        "chain": "solana",
+        "source": {
+          "action": "PollSolanaTransactions",
+          "records": "GetSolanaTransactions",
+          "config": {
+            "slotBatchSize": 1000,
+            "commitment": "finalized",
+            "interval": 15000,
+            "signaturesLimit": 200,
+            "programIds": [
+              "CCTPmbSD7gX1bxKPAmg77w8oFzNFpaQiQUWD43TKaecd"
+            ],
+            "chain": "solana",
+            "chainId": 1
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleSolanaTransactions",
+            "target": "influx",
+            "mapper": "solanaLogCircleMessageSentMapper",
+            "config": {
+              "programs": {
+                "CCTPmbSD7gX1bxKPAmg77w8oFzNFpaQiQUWD43TKaecd": {
+                  "vaaAccountIndex": 3
+                }
+              },
+              "metricName": "process_circle_message_event",
+              "environment": "mainnet"
+            }
+          }
+        ]
+      }
+    ]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .NAME }}-solana-circle-message-sent-events-1
+  namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-solana-circle-message-sent-events-1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .NAME }}-solana-circle-message-sent-events-1
+  strategy: # Rolling update strategy for restarting the pods
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: {{ .NAME }}-solana-circle-message-sent-events-1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .PORT }}"
+    spec:
+      containers:
+        - name: {{ .NAME }}
+          image: {{ .IMAGE_NAME }} # Docker image
+          env:
+            - name: NODE_ENV
+              value: {{ .NODE_ENV }}
+            - name: PORT
+              value: "{{ .PORT }}"
+            - name: LOG_LEVEL
+              value: {{ .LOG_LEVEL }}
+            - name: BLOCKCHAIN_ENV
+              value: {{ .BLOCKCHAIN_ENV }}
+            - name: DRY_RUN_ENABLED
+              value: "{{ .DRY_RUN_ENABLED }}"
+            - name: SNS_TOPIC_ARN
+              value: {{ .SNS_TOPIC_ARN }}
+            - name: SNS_REGION
+              value: {{ .SNS_REGION }}
+            - name: INFLUXDB_BUCKET
+              value: {{ .INFLUXDB_BUCKET }}
+            - name: INFLUXDB_TOKEN
+              value: {{ .INFLUXDB_TOKEN }}
+            - name: INFLUXDB_ORG
+              value: {{ .INFLUXDB_ORG }}
+            - name: INFLUXDB_URL
+              value: {{ .INFLUXDB_URL }}
+            - name: NODE_OPTIONS
+              value: {{ .NODE_OPTIONS }}
+            - name: JOBS_DIR
+              value: /home/node/app/jobs
+            {{ if .SOLANA_RPCS }}
+            - name: SOLANA_RPCS
+              value: '{{ .SOLANA_RPCS }}'
+            {{ end }}
+          resources:
+            limits:
+              cpu: {{ .RESOURCES_LIMITS_CPU }}
+              memory: {{ .RESOURCES_LIMITS_MEMORY }}
+            requests:
+              cpu: {{ .RESOURCES_REQUESTS_CPU }}
+              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
+          volumeMounts:
+            - name: metadata-volume
+              mountPath: /home/node/app/metadata-repo 
+            - name: jobs-volume
+              mountPath: /home/node/app/jobs
+      restartPolicy: Always
+      serviceAccountName: blockchain-watcher
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: metadata-volume
+          persistentVolumeClaim:
+            claimName: blockchain-watcher-solana-circle-message-sent-events-1-pvc
+        - name: jobs-volume
+          configMap:
+            name: {{ .NAME }}-solana-circle-message-sent-events-1-jobs
+            items:
+              - key: {{ .BLOCKCHAIN_ENV }}-jobs.json
+                path: jobs.json
