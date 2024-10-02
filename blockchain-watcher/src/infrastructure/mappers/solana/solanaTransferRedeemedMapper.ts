@@ -125,11 +125,11 @@ const normalizeInstructionData = (data: Uint8Array, programId: string): string =
   return hexData.length > 2 ? hexData.slice(0, 16) : hexData;
 };
 
-const mapperHexDataWithTwoCaracteres: InstructionDataMaper = (hexData: string) => {
+const mapperHexDataWithTwoCaracteres: InstructionDataMapper = (hexData: string) => {
   return hexData.slice(0, 2);
 };
 
-const PROGRAMS_ID: Record<string, InstructionDataMaper> = {
+const PROGRAMS_ID: Record<string, InstructionDataMapper> = {
   FC4eXxkyrMPTjiYUpp4EAnkmwMbQyZ6NDCh1kfLn6vsf: mapperHexDataWithTwoCaracteres, // Mayan
 };
 
@@ -143,4 +143,4 @@ export type SolanaTransferRedeemedMapperOpts = {
   commitment?: Commitment;
 };
 
-type InstructionDataMaper = (hex: string) => string;
+type InstructionDataMapper = (hex: string) => string;
