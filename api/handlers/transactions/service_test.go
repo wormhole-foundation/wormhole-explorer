@@ -2,14 +2,15 @@ package transactions_test
 
 import (
 	"context"
+	"testing"
+	"time"
+
 	"github.com/valyala/fasthttp"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/transactions"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache"
 	"go.uber.org/zap"
-	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -233,8 +234,8 @@ func (m *mockRepository) FindChainActivity(ctx context.Context, q *transactions.
 	return called.Get(0).([]transactions.ChainActivityResult), called.Error(1)
 }
 
-func (m *mockRepository) GetScorecards(ctx context.Context) (*transactions.Scorecards, error) {
-	args := m.Called(ctx)
+func (m *mockRepository) GetScorecards(ctx context.Context, usePostgres bool) (*transactions.Scorecards, error) {
+	args := m.Called(ctx, usePostgres)
 	return args.Get(0).(*transactions.Scorecards), args.Error(1)
 }
 

@@ -4,9 +4,10 @@ import (
 	"context"
 	errors "errors"
 	"fmt"
-	"github.com/valyala/fasthttp"
 	"strings"
 	"time"
+
+	"github.com/valyala/fasthttp"
 
 	"github.com/wormhole-foundation/wormhole-explorer/api/cacheable"
 	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
@@ -34,7 +35,7 @@ type repository interface {
 	GetTopAssets(ctx context.Context, timeSpan *TopStatisticsTimeSpan) ([]AssetDTO, error)
 	GetTopChainPairs(ctx context.Context, timeSpan *TopStatisticsTimeSpan) ([]ChainPairDTO, error)
 	FindChainActivity(ctx context.Context, q *ChainActivityQuery) ([]ChainActivityResult, error)
-	GetScorecards(ctx context.Context) (*Scorecards, error)
+	GetScorecards(ctx context.Context, usePostgres bool) (*Scorecards, error)
 	FindGlobalTransactionByID(ctx context.Context, q *GlobalTransactionQuery) (*GlobalTransactionDoc, error)
 	FindTransactions(ctx context.Context, input *FindTransactionsInput) ([]TransactionDto, error)
 	ListTransactionsByAddress(ctx context.Context, address string, pagination *pagination.Pagination) ([]TransactionDto, error)
@@ -71,10 +72,11 @@ func (s *Service) GetTransactionCount(ctx context.Context, q *TransactionCountQu
 		})
 }
 
-func (s *Service) GetScorecards(ctx context.Context) (*Scorecards, error) {
-	return cacheable.GetOrLoad(ctx, s.logger, s.cache, s.expiration, scorecardsKey, s.metrics,
+func (s *Service) GetScorecards(ctx context.Context, usePostgres bool) (*Scorecards, error) {
+	key := fmt.Sprintf("%s:%v", scorecardsKey, usePostgres)
+	return cacheable.GetOrLoad(ctx, s.logger, s.cache, s.expiration, key, s.metrics,
 		func() (*Scorecards, error) {
-			return s.repo.GetScorecards(ctx)
+			return s.repo.GetScorecards(ctx, usePostgres)
 		})
 }
 

@@ -3,6 +3,10 @@ package transactions
 import (
 	"context"
 	"errors"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/influxdata/influxdb-client-go/v2/api/query"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -11,9 +15,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/integration/mtest"
 	"go.uber.org/zap"
-	"strings"
-	"testing"
-	"time"
 )
 
 func Test_convertToDecimal(t *testing.T) {
@@ -825,16 +826,20 @@ func TestGetScorecards(t *testing.T) {
 			mt.AddMockResponses(mtest.CreateCursorResponse(1, "wormhole.vaasPythnet", "firstBatch", tt.mockPythResponse))
 
 			repo := &Repository{
-				tvl:        tvlMock,
-				queryAPI:   queryAPIMock,
-				logger:     logger,
-				p2pNetwork: config.P2pMainNet,
-				collections: repositoryCollections{
-					vaasPythnet: mt.Coll,
-				},
+				tvl:                     tvlMock,
+				queryAPI:                queryAPIMock,
+				logger:                  logger,
+				p2pNetwork:              config.P2pMainNet,
 				bucket24HoursRetention:  "wormscan-24hours",
 				bucket30DaysRetention:   "wormscan-30days",
 				bucketInfiniteRetention: "wormscan",
+				mongoRepo: &MongoRepository{
+					p2pNetwork: config.P2pMainNet,
+					logger:     logger,
+					collections: repositoryCollections{
+						vaasPythnet: mt.Coll,
+					},
+				},
 			}
 
 			tvlMock.On("Get", mock.Anything).Return(tt.mockTvlReturn, tt.mockTvlErr)
@@ -843,7 +848,7 @@ func TestGetScorecards(t *testing.T) {
 				queryAPIMock.On("Query", mock.Anything, result.expectedQuery).Return(result.res, nil)
 			}
 
-			scorecards, err := repo.GetScorecards(context.Background())
+			scorecards, err := repo.GetScorecards(context.Background(), false)
 
 			if tt.expectedErr {
 				assert.Error(t, err)
