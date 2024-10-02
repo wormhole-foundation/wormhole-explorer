@@ -76,7 +76,7 @@ func TestService_GetProtocolsTotalValues_Allbridge(t *testing.T) {
 	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateProtocolStatsNow, "bucket30d", dbconsts.ProtocolsStatsMeasurementHourly, allbridge)).Return(respStatsLatest, nil)
 	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateProtocolStats24HrAgo, "bucket30d", dbconsts.ProtocolsStatsMeasurementHourly, allbridge)).Return(respStatsLastDay, nil)
 	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateProtocolActivity, "bucketInfinite", "1970-01-01T00:00:00Z", dbconsts.ProtocolsActivityMeasurementDaily, allbridge)).Return(respActivityLast, nil)
-	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateProtocolActivity, "bucket30d", ts.Format(time.RFC3339), dbconsts.ProtocolsActivityMeasurementHourly, allbridge)).Return(respActivity2, nil)
+	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateProtocolActivity, "bucket30d", ts.Truncate(24*time.Hour).Format(time.RFC3339), dbconsts.ProtocolsActivityMeasurementHourly, allbridge)).Return(respActivity2, nil)
 	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryLast24HrActivity, "bucketInfinite", dbconsts.ProtocolsActivityMeasurementDaily, allbridge)).Return(last24respActivity, nil)
 
 	// core protocols influx calls
@@ -186,7 +186,7 @@ func TestService_GetProtocolsTotalValues_Allbridge_FailedFetchingStats(t *testin
 	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateProtocolStatsNow, "bucket30d", dbconsts.ProtocolsStatsMeasurementHourly, allbridge)).Return(&mockQueryTableResult{}, errors.New("mocked_error"))
 	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateProtocolStats24HrAgo, "bucket30d", dbconsts.ProtocolsStatsMeasurementHourly, allbridge)).Return(respStatsLastDay, nil)
 	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateProtocolActivity, "bucketInfinite", "1970-01-01T00:00:00Z", dbconsts.ProtocolsActivityMeasurementDaily, allbridge)).Return(respActivityLast, nil)
-	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateProtocolActivity, "bucket30d", ts.Format(time.RFC3339), dbconsts.ProtocolsActivityMeasurementHourly, allbridge)).Return(respActivity2, nil)
+	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateProtocolActivity, "bucket30d", ts.Truncate(24*time.Hour).Format(time.RFC3339), dbconsts.ProtocolsActivityMeasurementHourly, allbridge)).Return(respActivity2, nil)
 	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryLast24HrActivity, "bucketInfinite", dbconsts.ProtocolsActivityMeasurementDaily, allbridge)).Return(respActivity2, nil)
 
 	// core protocols influx calls
