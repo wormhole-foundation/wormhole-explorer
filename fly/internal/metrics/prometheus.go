@@ -15,6 +15,8 @@ type PrometheusMetrics struct {
 	vaaTotal                      prometheus.Counter
 	observationReceivedCount      *prometheus.CounterVec
 	observationTotal              prometheus.Counter
+	batchObservationTotal         prometheus.Counter
+	batchSizeObservations         prometheus.Gauge
 	observationReceivedByGuardian *prometheus.CounterVec
 	heartbeatReceivedCount        *prometheus.CounterVec
 	governorConfigReceivedCount   *prometheus.CounterVec
@@ -57,6 +59,20 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 		prometheus.CounterOpts{
 			Name:        "observation_total",
 			Help:        "Total number of observation from Gossip network",
+			ConstLabels: constLabels,
+		})
+
+	batchObservationTotal := promauto.NewCounter(
+		prometheus.CounterOpts{
+			Name:        "batch_observation_total",
+			Help:        "Total number of batch observation messages from Gossip network",
+			ConstLabels: constLabels,
+		})
+
+	batchSizeObservations := promauto.NewGauge(
+		prometheus.GaugeOpts{
+			Name:        "batch_size_observations",
+			Help:        "Batch-observation sizes incoming from Gossip network",
 			ConstLabels: constLabels,
 		})
 
@@ -125,6 +141,8 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 		vaaTotal:                      vaaTotal,
 		observationReceivedCount:      observationReceivedCount,
 		observationTotal:              observationTotal,
+		batchObservationTotal:         batchObservationTotal,
+		batchSizeObservations:         batchSizeObservations,
 		heartbeatReceivedCount:        heartbeatReceivedCount,
 		governorConfigReceivedCount:   governorConfigReceivedCount,
 		governorStatusReceivedCount:   governorStatusReceivedCount,
@@ -190,6 +208,12 @@ func (m *PrometheusMetrics) IncObservationWithoutTxHash(chain sdk.ChainID) {
 // IncObservationTotal increases the number of observation received from Gossip network.
 func (m *PrometheusMetrics) IncObservationTotal() {
 	m.observationTotal.Inc()
+}
+
+// IncBatchObservationTotal increases the number of batch observation messages received from Gossip network.
+func (m *PrometheusMetrics) IncBatchObservationTotal(batchSize uint) {
+	m.batchObservationTotal.Inc()
+	m.batchSizeObservations.Add(float64(batchSize))
 }
 
 // IncObservationInvalidGuardian increases the number of invalid guardian in observation from Gossip network.

@@ -24,7 +24,6 @@ import (
 	"github.com/certusone/wormhole/node/pkg/common"
 	"github.com/certusone/wormhole/node/pkg/p2p"
 	"github.com/certusone/wormhole/node/pkg/supervisor"
-	crypto2 "github.com/ethereum/go-ethereum/crypto"
 	"github.com/libp2p/go-libp2p/core/crypto"
 	"go.uber.org/zap"
 )
@@ -137,7 +136,7 @@ func main() {
 	observationQueueConsumer.Start(rootCtx)
 
 	// Log observations
-	observationHandler := gossip.NewObservationHandler(channels.ObsvChannel, observationGossipConsumer.Push, guardianCheck, metrics)
+	observationHandler := gossip.NewObservationHandler(channels.ObsvChannel, channels.BatchObsvC, observationGossipConsumer.Push, observationGossipConsumer.PushBatch, guardianCheck, metrics)
 	observationHandler.Start(rootCtx)
 
 	// Log signed VAAs
@@ -186,14 +185,27 @@ func main() {
 	if err != nil {
 		logger.Fatal("Failed to load node key", zap.Error(err))
 	}
-	keyBytes, err := priv.Raw()
-	if err != nil {
-		logger.Fatal("failed to deserialize raw private key", zap.Error(err))
-	}
 
-	gk, err := crypto2.ToECDSA(keyBytes[:32])
-	if err != nil {
-		logger.Fatal("failed to deserialize raw key data", zap.Error(err))
+	components := p2p.DefaultComponents()
+	components.Port = cfg.P2pPort
+	components.WarnChannelOverflow = true
+
+	runParams, errRunParams := p2p.NewRunParams(
+		p2pNetworkConfig.P2pBootstrap,
+		p2pNetworkConfig.P2pNetworkID,
+		priv,
+		gst,
+		rootCtxCancel,
+		p2p.WithSignedObservationListener(channels.ObsvChannel),
+		p2p.WithSignedObservationBatchListener(channels.BatchObsvC),
+		p2p.WithSignedVAAListener(channels.SignedInChannel),
+		p2p.WithObservationRequestListener(channels.ObsvReqChannel),
+		p2p.WithChainGovernorConfigListener(channels.GovConfigChannel),
+		p2p.WithChainGovernorStatusListener(channels.GovStatusChannel),
+		p2p.WithComponents(components),
+	)
+	if errRunParams != nil {
+		logger.Fatal("failed to create run params", zap.Error(errRunParams))
 	}
 
 	// Run supervisor.
@@ -203,32 +215,7 @@ func main() {
 		components.WarnChannelOverflow = true
 		if err := supervisor.Run(ctx, "p2p",
 			p2p.Run(
-				channels.ObsvChannel,
-				channels.ObsvReqChannel,
-				nil,
-				channels.SendChannel,
-				channels.SignedInChannel,
-				priv,
-				gk,
-				gst,
-				p2pNetworkConfig.P2pNetworkID,
-				p2pNetworkConfig.P2pBootstrap,
-				"",
-				false,
-				rootCtxCancel,
-				nil,
-				nil,
-				channels.GovConfigChannel,
-				channels.GovStatusChannel,
-				components,
-				nil,   // ibc feature string
-				false, // gateway relayer enabled
-				false, // ccqEnabled
-				nil,   // query requests
-				nil,   // query responses
-				"",    // query bootstrap peers
-				0,     // query port
-				"",    // query allow list
+				runParams,
 			)); err != nil {
 			return err
 		}
