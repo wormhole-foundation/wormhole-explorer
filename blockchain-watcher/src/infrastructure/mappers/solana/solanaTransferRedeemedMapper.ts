@@ -26,7 +26,6 @@ export const solanaTransferRedeemedMapper = async (
       return results;
     }
   }
-
   return [];
 };
 
@@ -67,7 +66,7 @@ const processProgram = async (
   const results: TransactionFoundEvent<InstructionFound>[] = [];
 
   for (const instruction of whInstructions) {
-    const hexData = normalizeInstructionData(instruction.data);
+    const hexData = normalizeInstructionData(instruction.data, programId);
     const programParam = programParams.find((program) => program.instructions.includes(hexData));
     if (!programParam || !programParam.instructions || !programParam.vaaAccountIndex) {
       continue;
@@ -115,11 +114,25 @@ const mappedStatus = (transaction: solana.Transaction): string => {
   return TRANSACTION_STATUS_COMPLETED;
 };
 
-const normalizeInstructionData = (data: Uint8Array): string => {
+const normalizeInstructionData = (data: Uint8Array, programId: string): string => {
   const hexData = Buffer.from(data).toString("hex");
-  // Some instruction data contains only two characteres like token bridge: 02
-  // and other contains 16 characteres like fast transfer or NTT
-  return hexData.length > 2 ? hexData.slice(0, 16) : hexData;
+  const mapper = PROGRAMS_ID[programId];
+  const instructionData = mapper(hexData);
+
+  if (!instructionData) {
+    // Some instruction data contains only two characteres like token bridge: 02
+    // and other contains 16 characteres like fast transfer or NTT
+    return hexData.length > 2 ? hexData.slice(0, 16) : hexData;
+  }
+  return instructionData;
+};
+
+const mapperHexDataWithTwoCaracteres: InstructionDataMaper = (hexData: string) => {
+  return hexData.slice(0, 2);
+};
+
+const PROGRAMS_ID: Record<string, InstructionDataMaper> = {
+  FC4eXxkyrMPTjiYUpp4EAnkmwMbQyZ6NDCh1kfLn6vsf: mapperHexDataWithTwoCaracteres, // Mayan
 };
 
 export interface ProgramParams {
@@ -131,3 +144,5 @@ export type SolanaTransferRedeemedMapperOpts = {
   programs: Record<string, ProgramParams[]>;
   commitment?: Commitment;
 };
+
+type InstructionDataMaper = (hex: string) => string;

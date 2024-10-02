@@ -79,6 +79,16 @@
               "method": "executeSlowOrderCctp"
             }
           ]
+        },
+        {
+          "addresses": ["FC4eXxkyrMPTjiYUpp4EAnkmwMbQyZ6NDCh1kfLn6vsf"],
+          "type": "Mayan",
+          "methods": [
+            {
+              "methodId": "64",
+              "method": "MethodCreateAccount"
+            }
+          ]
         }
       ]
     },
