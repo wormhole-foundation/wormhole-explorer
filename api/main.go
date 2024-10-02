@@ -169,6 +169,7 @@ func main() {
 		cfg.Influx.Bucket30Days,
 		cfg.Influx.BucketInfinite,
 		storage.mongoDB.Database,
+		storage.postgresDB,
 		rootLogger,
 	)
 	mongoRelaysRepo := relays.NewMongoRepository(storage.mongoDB.Database, rootLogger)
