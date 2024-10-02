@@ -117,14 +117,12 @@ const mappedStatus = (transaction: solana.Transaction): string => {
 const normalizeInstructionData = (data: Uint8Array, programId: string): string => {
   const hexData = Buffer.from(data).toString("hex");
   const mapper = PROGRAMS_ID[programId];
-  const instructionData = mapper(hexData);
-
-  if (!instructionData) {
-    // Some instruction data contains only two characteres like token bridge: 02
-    // and other contains 16 characteres like fast transfer or NTT
-    return hexData.length > 2 ? hexData.slice(0, 16) : hexData;
+  if (mapper) {
+    return mapper(hexData);
   }
-  return instructionData;
+  // Some instruction data contains only two characteres like token bridge: 02
+  // and other contains 16 characteres like fast transfer or NTT
+  return hexData.length > 2 ? hexData.slice(0, 16) : hexData;
 };
 
 const mapperHexDataWithTwoCaracteres: InstructionDataMaper = (hexData: string) => {
