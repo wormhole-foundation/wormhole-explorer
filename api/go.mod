@@ -20,7 +20,7 @@ require (
 	github.com/swaggo/swag v1.16.1
 	github.com/wormhole-foundation/wormhole-explorer/common v0.0.0-00010101000000-000000000000
 	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240823200831-78771ff5297e
-	go.mongodb.org/mongo-driver v1.17.1
+	go.mongodb.org/mongo-driver v1.11.2
 	go.uber.org/zap v1.26.0
 	google.golang.org/grpc v1.57.1
 )
