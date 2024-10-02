@@ -251,14 +251,15 @@ func (r *Repository) getProtocolStats24hrAgo(ctx context.Context, protocol strin
 func (r *Repository) getAllbridgeActivity(ctx context.Context) (rowActivity, error) {
 
 	const allbridge = "allbridge"
+
 	q := fmt.Sprintf(QueryTemplateProtocolActivity, r.bucketInfinite, "1970-01-01T00:00:00Z", dbconsts.ProtocolsActivityMeasurementDaily, allbridge)
 	activityDaily, err := fetchSingleRecord[rowActivity](ctx, r.logger, r.queryAPI, q, allbridge)
 	if err != nil {
 		r.logger.Error("error fetching latest daily activity", zap.Error(err))
 		return rowActivity{}, err
 	}
-
-	q = fmt.Sprintf(QueryTemplateProtocolActivity, r.bucket30d, activityDaily.Time.Format(time.RFC3339), dbconsts.ProtocolsActivityMeasurementHourly, allbridge)
+	startOfDay := time.Now().UTC().Truncate(24 * time.Hour).Format(time.RFC3339)
+	q = fmt.Sprintf(QueryTemplateProtocolActivity, r.bucket30d, startOfDay, dbconsts.ProtocolsActivityMeasurementHourly, allbridge)
 	activityHourly, err := fetchSingleRecord[rowActivity](ctx, r.logger, r.queryAPI, q, allbridge)
 	if err != nil {
 		r.logger.Error("error fetching latest hourly activity", zap.Error(err))
