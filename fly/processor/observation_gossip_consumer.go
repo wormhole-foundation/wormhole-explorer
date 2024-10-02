@@ -66,8 +66,22 @@ func (c *observationGossipConsumer) Start(ctx context.Context) error {
 }
 
 // Push pushes a new observation to the processor.
-func (c *observationGossipConsumer) Push(ctx context.Context, o *gossipv1.SignedObservation) error {
+func (c *observationGossipConsumer) Push(_ context.Context, o *gossipv1.SignedObservation) error {
 	c.signedObsCh <- o
+	return nil
+}
+
+// PushBatch pushes a new observations batch to the processor.
+func (c *observationGossipConsumer) PushBatch(_ context.Context, batchMsg *gossipv1.SignedObservationBatch) error {
+	for _, obs := range batchMsg.Observations {
+		c.signedObsCh <- &gossipv1.SignedObservation{
+			Addr:      batchMsg.Addr,
+			Hash:      obs.Hash,
+			Signature: obs.Signature,
+			TxHash:    obs.TxHash,
+			MessageId: obs.MessageId,
+		}
+	}
 	return nil
 }
 

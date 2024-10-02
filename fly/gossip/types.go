@@ -7,11 +7,11 @@ import (
 
 type GossipChannels struct {
 
-	// Outbound gossip message queue
-	SendChannel chan []byte
-
 	// Inbound observations
 	ObsvChannel chan *common.MsgWithTimeStamp[gossipv1.SignedObservation]
+
+	// Inbound batch observations.
+	BatchObsvC chan *common.MsgWithTimeStamp[gossipv1.SignedObservationBatch]
 
 	// Inbound observation requests - we don't add a environment because we are going to delete this channel
 	ObsvReqChannel chan *gossipv1.ObservationRequest

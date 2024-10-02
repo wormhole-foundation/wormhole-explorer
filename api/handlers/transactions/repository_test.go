@@ -733,7 +733,6 @@ func Test_buildTokenSymbolActivityQuery(t *testing.T) {
 func TestGetScorecards(t *testing.T) {
 
 	m := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer m.Close()
 
 	logger, _ := zap.NewDevelopment()
 
