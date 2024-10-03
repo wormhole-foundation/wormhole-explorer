@@ -20,5 +20,8 @@ type VAAQueueConsumeFunc func(context.Context) <-chan queue.Message[[]byte]
 // ObservationPushFunc is a function to push observation message.
 type ObservationPushFunc func(ctx context.Context, o *gossipv1.SignedObservation) error
 
-// VAAQueueConsumeFunc is a function to obtain messages from a queue
+// BatchObservationPushFunc is a function to push observation batch message.
+type BatchObservationPushFunc func(ctx context.Context, o *gossipv1.SignedObservationBatch) error
+
+// ObservationQueueConsumeFunc is a function to obtain messages from a queue
 type ObservationQueueConsumeFunc func(context.Context) <-chan queue.Message[*gossipv1.SignedObservation]

@@ -26,7 +26,6 @@ export const solanaTransferRedeemedMapper = async (
       return results;
     }
   }
-
   return [];
 };
 
@@ -67,9 +66,8 @@ const processProgram = async (
   const results: TransactionFoundEvent<InstructionFound>[] = [];
 
   for (const instruction of whInstructions) {
-    const hexData = normalizeInstructionData(instruction.data);
-    const programParam = programParams.find((program) => program.instructions.includes(hexData));
-    if (!programParam || !programParam.instructions || !programParam.vaaAccountIndex) {
+    let programParam = findProgramParams(instruction.data, programParams);
+    if (!programParam || !programParam.instruction || !programParam.vaaAccountIndex) {
       continue;
     }
 
@@ -77,7 +75,7 @@ const processProgram = async (
     const { message } = await getPostedMessage(connection, accountAddress, commitment);
     const { sequence, emitterAddress, emitterChain } = message || {};
     const txHash = transaction.transaction.signatures[0];
-    const protocol = findProtocol(SOLANA_CHAIN, programId, hexData, txHash);
+    const protocol = findProtocol(SOLANA_CHAIN, programId, programParam.instruction, txHash);
     const protocolMethod = protocol?.method ?? "unknown";
     const protocolType = protocol?.type ?? "unknown";
     const emitterAddressToHex = emitterAddress.toString("hex");
@@ -115,11 +113,17 @@ const mappedStatus = (transaction: solana.Transaction): string => {
   return TRANSACTION_STATUS_COMPLETED;
 };
 
-const normalizeInstructionData = (data: Uint8Array): string => {
+const findProgramParams = (
+  data: Uint8Array,
+  programParams: ProgramParams[]
+): { vaaAccountIndex: number; instruction: string } | undefined => {
   const hexData = Buffer.from(data).toString("hex");
-  // Some instruction data contains only two characteres like token bridge: 02
-  // and other contains 16 characteres like fast transfer or NTT
-  return hexData.length > 2 ? hexData.slice(0, 16) : hexData;
+  for (const program of programParams) {
+    const instruction = program.instructions.find((i) => hexData.startsWith(i));
+    if (instruction) {
+      return { vaaAccountIndex: program.vaaAccountIndex, instruction };
+    }
+  }
 };
 
 export interface ProgramParams {

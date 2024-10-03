@@ -11,23 +11,28 @@ import (
 )
 
 type observationHandler struct {
-	obsvC    chan *common.MsgWithTimeStamp[gossipv1.SignedObservation]
-	pushFunc processor.ObservationPushFunc
-	guardian *health.GuardianCheck
-	metrics  metrics.Metrics
+	obsvC            chan *common.MsgWithTimeStamp[gossipv1.SignedObservation]
+	batchObsvC       chan *common.MsgWithTimeStamp[gossipv1.SignedObservationBatch]
+	pushObsFunc      processor.ObservationPushFunc
+	pushBatchObsFunc processor.BatchObservationPushFunc
+	guardian         *health.GuardianCheck
+	metrics          metrics.Metrics
 }
 
-func NewObservationHandler(
-	obsvC chan *common.MsgWithTimeStamp[gossipv1.SignedObservation],
+func NewObservationHandler(obsvC chan *common.MsgWithTimeStamp[gossipv1.SignedObservation],
+	batchObsvC chan *common.MsgWithTimeStamp[gossipv1.SignedObservationBatch],
 	pushFunc processor.ObservationPushFunc,
+	pushBatchObsFunc processor.BatchObservationPushFunc,
 	guardian *health.GuardianCheck,
 	metrics metrics.Metrics,
 ) *observationHandler {
 	return &observationHandler{
-		obsvC:    obsvC,
-		pushFunc: pushFunc,
-		guardian: guardian,
-		metrics:  metrics,
+		obsvC:            obsvC,
+		pushObsFunc:      pushFunc,
+		guardian:         guardian,
+		metrics:          metrics,
+		batchObsvC:       batchObsvC,
+		pushBatchObsFunc: pushBatchObsFunc,
 	}
 }
 
@@ -42,7 +47,12 @@ func (h *observationHandler) Start(ctx context.Context) {
 				o := m.Msg
 				h.guardian.Ping(ctx)
 				h.metrics.IncObservationTotal()
-				h.pushFunc(ctx, o)
+				h.pushObsFunc(ctx, o)
+			case m := <-h.batchObsvC:
+				o := m.Msg
+				h.guardian.Ping(ctx)
+				h.metrics.IncBatchObservationTotal(uint(len(o.Observations)))
+				h.pushBatchObsFunc(ctx, o)
 			}
 		}
 	}()
