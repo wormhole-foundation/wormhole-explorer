@@ -801,7 +801,15 @@ func (r *Repository) FindApplicationActivity(ctx *fasthttp.RequestCtx, q Applica
 	return totals, appsActivity, nil
 }
 
-func (r *Repository) FindGlobalTransactionByID(ctx context.Context, q *GlobalTransactionQuery) (*GlobalTransactionDoc, error) {
+// FindGlobalTransactionByID returns a global transaction by its ID.
+func (r *Repository) FindGlobalTransactionByID(
+	ctx context.Context,
+	usePostgres bool,
+	q *GlobalTransactionQuery,
+) (*GlobalTransactionDoc, error) {
+	if usePostgres {
+		return r.postgresRepo.FindGlobalTransactionByID(ctx, q)
+	}
 	return r.mongoRepo.FindGlobalTransactionByID(ctx, q)
 }
 
