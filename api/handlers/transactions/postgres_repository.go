@@ -9,6 +9,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/config"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/common/db"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
@@ -138,20 +139,41 @@ func createOriginTx(operationTxs []*operationTxResult) *OriginTx {
 		}
 	}
 
+	// denormalize tx hash for compatibility reasons.
+	denormalizedTxHash := domain.DenormalizeTxHashByChainId(
+		sdk.ChainID(sourceTx.ChainID), sourceTx.TxHash)
+
+	// denormalize from address for compatibility reasons.
+	var denormalizedFromAddress string
+	if sourceTx.FromAddress != nil {
+		denormalizedFromAddress = domain.DenormalizeAddressByChainId(
+			sdk.ChainID(sourceTx.ChainID), *sourceTx.FromAddress)
+	}
+
 	originTx := &OriginTx{
-		TxHash: sourceTx.TxHash,
-		From:   *sourceTx.FromAddress,
+		TxHash: denormalizedTxHash,
+		From:   denormalizedFromAddress,
 		Status: *sourceTx.Status,
 	}
 
 	var attribute *AttributeDoc
 	if nestedSourceTx != nil {
+
+		var denormalizedNestedTxHash string
+		if nestedSourceTx.TxHash != "" {
+			// denormalize tx hash for compatibility reasons.
+			denormalizedNestedTxHash = domain.DenormalizeTxHashByChainId(
+				sdk.ChainID(nestedSourceTx.ChainID), nestedSourceTx.TxHash)
+		}
 		values := map[string]any{
 			"originChainId": nestedSourceTx.ChainID,
-			"originTxHash":  nestedSourceTx.TxHash,
+			"originTxHash":  denormalizedNestedTxHash,
 		}
 		if nestedSourceTx.FromAddress != nil {
-			values["originAddress"] = *nestedSourceTx.FromAddress
+			// denormalize from address for compatibility reasons.
+			denormalizedOriginAddress := domain.DenormalizeAddressByChainId(
+				sdk.ChainID(nestedSourceTx.ChainID), *nestedSourceTx.FromAddress)
+			values["originAddress"] = denormalizedOriginAddress
 		}
 
 		attribute = &AttributeDoc{
@@ -190,13 +212,31 @@ func createDestinationTx(operationTxs []*operationTxResult) *DestinationTx {
 		updatedAt = &destinationTx.UpdatedAt
 	}
 
+	// denormalize tx hash for compatibility reasons.
+	denormalizedTxHash := domain.DenormalizeTxHashByChainId(
+		sdk.ChainID(destinationTx.ChainID), destinationTx.TxHash)
+
+	// denormalize from address for compatibility reasons.
+	var denormalizedFromAddress string
+	if destinationTx.FromAddress != nil {
+		denormalizedFromAddress = domain.DenormalizeAddressByChainId(
+			sdk.ChainID(destinationTx.ChainID), *destinationTx.FromAddress)
+	}
+
+	// denormalize to address for compatibility reasons.
+	var denormalizedToAddress string
+	if destinationTx.ToAddress != nil {
+		denormalizedToAddress = domain.DenormalizeAddressByChainId(
+			sdk.ChainID(destinationTx.ChainID), *destinationTx.ToAddress)
+	}
+
 	return &DestinationTx{
 		ChainID:     sdk.ChainID(destinationTx.ChainID),
 		Status:      *destinationTx.Status,
 		Method:      *destinationTx.BlockchainMethod,
-		TxHash:      destinationTx.TxHash,
-		From:        *destinationTx.FromAddress,
-		To:          *destinationTx.ToAddress,
+		TxHash:      denormalizedTxHash,
+		From:        denormalizedFromAddress,
+		To:          denormalizedToAddress,
 		BlockNumber: blockNumber,
 		Timestamp:   timestamp,
 		UpdatedAt:   updatedAt,
