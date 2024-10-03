@@ -33,3 +33,12 @@ func (r *RepositoryMongoDB) FindById(ctx context.Context, id string) (*VaaDoc, e
 func (r *RepositoryMongoDB) GetVaa(ctx context.Context, id string) (*VaaDoc, error) {
 	return r.FindById(ctx, id)
 }
+
+// GetTxHash method to support
+func (r *RepositoryMongoDB) GetTxHash(ctx context.Context, vaaDigest string) (string, error) {
+	vaaDoc, err := r.FindById(ctx, vaaDigest)
+	if err != nil {
+		return "", err
+	}
+	return vaaDoc.TxHash, nil
+}
