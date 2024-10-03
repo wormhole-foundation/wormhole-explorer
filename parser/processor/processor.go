@@ -8,6 +8,7 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/tidwall/gjson"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	vaaPayloadParser "github.com/wormhole-foundation/wormhole-explorer/common/client/parser"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
@@ -232,6 +233,7 @@ func buildAttestationVaaProperties(
 
 	// get raw payload.
 	var rawPayload *json.RawMessage
+	var payloadType *int
 	if parsedPayload := vaaParseResponse.ParsedPayload; parsedPayload != nil {
 		jsonPayload, err := json.Marshal(parsedPayload)
 		if err != nil {
@@ -241,6 +243,13 @@ func buildAttestationVaaProperties(
 			return parser.AttestationVaaProperties{}, err
 		}
 		rawPayload = (*json.RawMessage)(&jsonPayload)
+		payloadTypeValue := gjson.Get(string(jsonPayload), "payloadType")
+		if payloadTypeValue.Exists() {
+			value := int(payloadTypeValue.Int())
+			if value > 0 {
+				payloadType = &value
+			}
+		}
 	}
 
 	// get raw standardized fields.
@@ -343,6 +352,7 @@ func buildAttestationVaaProperties(
 		VaaID:             vaa.MessageID(),
 		AppID:             standardizedProperties.AppIds,
 		Payload:           rawPayload,
+		PayloadType:       payloadType,
 		RawStandardFields: rawStandardFields,
 		FromChainID:       fromChainID,
 		FromAddress:       fromAddress,
