@@ -66,7 +66,7 @@ const processProgram = async (
   const results: TransactionFoundEvent<InstructionFound>[] = [];
 
   for (const instruction of whInstructions) {
-    let programParam = normalizeInstructionData(instruction.data, programParams);
+    let programParam = findProgramParams(instruction.data, programParams);
     if (!programParam || !programParam.instruction || !programParam.vaaAccountIndex) {
       continue;
     }
@@ -113,7 +113,10 @@ const mappedStatus = (transaction: solana.Transaction): string => {
   return TRANSACTION_STATUS_COMPLETED;
 };
 
-const normalizeInstructionData = (data: Uint8Array, programParams: ProgramParams[]) => {
+const findProgramParams = (
+  data: Uint8Array,
+  programParams: ProgramParams[]
+): { vaaAccountIndex: number; instruction: string } | undefined => {
   const hexData = Buffer.from(data).toString("hex");
   for (const program of programParams) {
     const instruction = program.instructions.find((i) => hexData.startsWith(i));
