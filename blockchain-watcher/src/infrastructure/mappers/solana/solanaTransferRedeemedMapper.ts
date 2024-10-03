@@ -67,7 +67,7 @@ const processProgram = async (
 
   for (const instruction of whInstructions) {
     let programParam = normalizeInstructionData(instruction.data, programParams);
-    if (!programParam || !programParam.instruction || programParam.vaaAccountIndex === undefined) {
+    if (!programParam || !programParam.instruction || !programParam.vaaAccountIndex) {
       continue;
     }
 
