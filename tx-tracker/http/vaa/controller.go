@@ -70,6 +70,14 @@ func (c *Controller) Process(ctx *fiber.Ctx) error {
 		return err
 	}
 
+	txHash := v.TxHash
+	if txHash == "" {
+		txHash, err = c.vaaRepository.GetTxHash(ctx.Context(), digest)
+		if err != nil {
+			return err
+		}
+	}
+
 	p := &consumer.ProcessSourceTxParams{
 		ID:          digest,
 		TrackID:     "controller",
@@ -79,7 +87,7 @@ func (c *Controller) Process(ctx *fiber.Ctx) error {
 		ChainId:     vaa.EmitterChain,
 		Emitter:     vaa.EmitterAddress.String(),
 		Sequence:    strconv.FormatUint(vaa.Sequence, 10),
-		TxHash:      v.TxHash,
+		TxHash:      txHash,
 		Vaa:         v.Vaa,
 		IsVaaSigned: true,
 		Metrics:     c.metrics,

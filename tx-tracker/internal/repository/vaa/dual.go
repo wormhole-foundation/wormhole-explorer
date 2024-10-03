@@ -24,3 +24,16 @@ func (r *DualVaaRepository) GetVaa(ctx context.Context, id string) (*VaaDoc, err
 	}
 	return nil, nil
 }
+
+func (r *DualVaaRepository) GetTxHash(ctx context.Context, vaaDigest string) (string, error) {
+	for _, repo := range r.repos {
+		txHash, err := repo.GetTxHash(ctx, vaaDigest)
+		if err != nil {
+			return "", err
+		}
+		if txHash != "" {
+			return txHash, nil
+		}
+	}
+	return "", nil
+}
