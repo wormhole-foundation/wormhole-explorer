@@ -241,6 +241,7 @@ CREATE TABLE wormholescan.wh_attestation_vaa_properties (
     "message_id" varchar not null,
     "app_id" text[] null,
     "payload" json null,
+    "payload_type" int null,
     "raw_standard_fields" json null,
     "from_chain_id" int null,
     "from_address" varchar null,
@@ -267,6 +268,12 @@ CREATE INDEX "wh_attestation_vaa_properties_to_address_idx"
     ON wormholescan.wh_attestation_vaa_properties ("to_address");
 CREATE INDEX "wh_attestation_vaa_properties_timestamp_idx" 
     ON wormholescan.wh_attestation_vaa_properties ("timestamp" desc);
+CREATE INDEX "wh_attestation_vaa_properties_from_chain_id_idx"
+    ON wormholescan.wh_attestation_vaa_properties ("from_chain_id");
+CREATE INDEX "wh_attestation_vaa_properties_to_chain_id_idx"
+    ON wormholescan.wh_attestation_vaa_properties ("to_chain_id");
+CREATE INDEX "wh_attestation_vaa_properties_payload_type_idx"
+    ON wormholescan.wh_attestation_vaa_properties ("payload_type");
 
 -- create table wormholescan.wh_relays
 CREATE TABLE wormholescan.wh_relays (
