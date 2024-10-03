@@ -215,6 +215,7 @@ func NormalizeTxHashByChainId(chainID sdk.ChainID, txHash string) string {
 
 func NormalizeAddressByChainId(chainID sdk.ChainID, address string) string {
 	switch chainID {
+	//EVMs
 	case sdk.ChainIDEthereum,
 		sdk.ChainIDBase,
 		sdk.ChainIDBSC,
@@ -241,6 +242,8 @@ func NormalizeAddressByChainId(chainID sdk.ChainID, address string) string {
 		sdk.ChainIDBlast,
 		sdk.ChainIDXLayer,
 		sdk.ChainIDSnaxchain:
+		return utils.NormalizeHex(address)
+	case sdk.ChainIDAptos:
 		return utils.NormalizeHex(address)
 	default:
 		return address
