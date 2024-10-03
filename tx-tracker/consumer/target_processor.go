@@ -59,11 +59,14 @@ func ProcessTargetTx(
 	params *ProcessTargetTxParams,
 	notionalCache *notional.NotionalCache,
 ) error {
-
+	// calculate fee detail
 	feeDetail := calculateFeeDetail(params, logger, notionalCache)
-
+	// normalize tx hash and addresses
 	txHash := domain.NormalizeTxHashByChainId(params.ChainID, params.TxHash)
+	fromAddress := domain.NormalizeAddressByChainId(params.ChainID, params.From)
+	toAddress := domain.NormalizeAddressByChainId(params.ChainID, params.To)
 	now := time.Now()
+
 	update := &TargetTxUpdate{
 		VaaID:   params.VaaID,
 		TrackID: params.TrackID,
@@ -73,8 +76,8 @@ func ProcessTargetTx(
 			TxHash:      txHash,
 			BlockNumber: params.BlockHeight,
 			Timestamp:   params.BlockTimestamp,
-			From:        params.From,
-			To:          params.To,
+			From:        fromAddress,
+			To:          toAddress,
 			Method:      params.Method,
 			FeeDetail:   feeDetail,
 			UpdatedAt:   &now,
