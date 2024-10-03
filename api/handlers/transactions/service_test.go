@@ -239,7 +239,7 @@ func (m *mockRepository) GetScorecards(ctx context.Context, usePostgres bool) (*
 	return args.Get(0).(*transactions.Scorecards), args.Error(1)
 }
 
-func (m *mockRepository) FindGlobalTransactionByID(ctx context.Context, q *transactions.GlobalTransactionQuery) (*transactions.GlobalTransactionDoc, error) {
+func (m *mockRepository) FindGlobalTransactionByID(ctx context.Context, usePostgres bool, q *transactions.GlobalTransactionQuery) (*transactions.GlobalTransactionDoc, error) {
 	args := m.Called(ctx, q)
 	return args.Get(0).(*transactions.GlobalTransactionDoc), args.Error(1)
 }

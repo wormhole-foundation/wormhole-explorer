@@ -28,6 +28,10 @@ func NormalizeHex(s string) string {
 	return Remove0x(lower)
 }
 
+func DenormalizeHex(s string) string {
+	return "0x" + s
+}
+
 func NormalizeBytesToHex(b []byte) string {
 	return NormalizeHex(hex.EncodeToString(b))
 }

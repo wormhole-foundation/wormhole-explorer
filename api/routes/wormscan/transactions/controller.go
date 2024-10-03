@@ -455,7 +455,8 @@ func (c *Controller) FindGlobalTransactionByID(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	globalTransaction, err := c.srv.FindGlobalTransactionByID(ctx.Context(), chainID, emitter, strconv.FormatUint(seq, 10))
+	globalTransaction, err := c.srv.FindGlobalTransactionByID(ctx.Context(),
+		middleware.UsePostgres(ctx), chainID, emitter, strconv.FormatUint(seq, 10))
 	if err != nil {
 		return err
 	}
