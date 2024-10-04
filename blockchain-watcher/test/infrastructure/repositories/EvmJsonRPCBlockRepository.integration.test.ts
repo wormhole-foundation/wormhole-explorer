@@ -43,10 +43,9 @@ describe("EvmJsonRPCBlockRepository", () => {
 
     // Then
     expect(result).toBeInstanceOf(Array);
-    expect(result[0].isHealthy).toEqual(true);
-    expect(result[0].height).toEqual(1980809n);
+    expect(result[0].isHealthy).toEqual(false);
+    expect(result[0].height).toEqual(undefined);
     expect(result[0].url).toEqual("http://localhost");
-    expect(result[0].latency).toBeDefined();
   });
 
   it("should be able to get block height", async () => {

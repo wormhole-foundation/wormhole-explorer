@@ -1,5 +1,5 @@
 import { InstrumentedHttpProvider } from "./InstrumentedHttpProvider";
-import { ProviderHealthCheck } from "../../../domain/poolRpcs/PoolRpcs";
+import { ProviderHealthCheck } from "../../../domain/repositories";
 import { Logger } from "winston";
 import winston from "../../log";
 import {
@@ -60,8 +60,6 @@ export class HealthyProvidersPool<
     if (providers?.length === 0 || providersHealthCheck?.length === 0) {
       return;
     }
-    const auxProvider = providers;
-
     const providersHealthy = providersHealthCheck.filter((provider) => provider.isHealthy);
     if (providersHealthy.length === 0) {
       return;
@@ -69,7 +67,7 @@ export class HealthyProvidersPool<
 
     const filter = this.filter(providersHealthy, cursor);
     const sort = this.sort(filter);
-    const healthy = this.setOffline(auxProvider, sort);
+    const healthy = this.setOffline(providers, sort);
 
     logger.info(
       `[${chain}] Healthy providers: ${healthy
@@ -125,7 +123,7 @@ export class HealthyProvidersPool<
   // Only set up offline the providers because we can lose all the providers
   // and the pool will be empty
   private setOffline(
-    auxProvider: InstrumentedHttpProvider[],
+    providers: InstrumentedHttpProvider[],
     providersHealthCheck: ProviderHealthCheck[]
   ): InstrumentedHttpProvider[] {
     const filteredUrlIndexMap = new Map<string, number>();
@@ -133,7 +131,7 @@ export class HealthyProvidersPool<
       filteredUrlIndexMap.set(provider.url, index);
     });
 
-    return auxProvider
+    return providers
       .map((provider) => {
         // If the provider is not in the filtered list, set it offline
         if (!filteredUrlIndexMap.has(provider.getUrl())) {

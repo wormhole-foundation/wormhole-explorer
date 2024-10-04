@@ -1,14 +1,14 @@
+import { AptosRepository, ProviderHealthCheck } from "../../../domain/repositories";
 import { Range, TransactionFilter } from "../../../domain/actions/aptos/PollAptos";
 import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
 import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
-import { AptosRepository } from "../../../domain/repositories";
-import { ProviderHealthCheck } from "../../../domain/poolRpcs/PoolRpcs";
 import winston from "winston";
 import {
   AptosTransactionByVersion,
   AptosBlockByVersion,
   AptosTransaction,
   AptosEvent,
+  LedgerInfo,
 } from "../../../domain/entities/aptos";
 
 let TRANSACTION_BY_VERSION_ENDPOINT = "/transactions/by_version";
@@ -36,26 +36,26 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
     if (!cursor) {
       return [];
     }
-    const txEndpoint = `${TRANSACTION_BY_VERSION_ENDPOINT}/${Number(cursor)}`;
-    const providers = this.pool.getProviders();
-    let txResult: AptosTransactionByVersion = {};
     const providersHealthCheck: ProviderHealthCheck[] = [];
+    const providers = this.pool.getProviders();
 
     for (const provider of providers) {
       try {
-        const requestStartTime = performance.now();
-        txResult = await this.pool.get().get<typeof txResult>(txEndpoint);
-        const requestEndTime = performance.now();
+        const result = await this.pool.get().get<LedgerInfo>("");
 
-        const height = txResult.version ? BigInt(txResult.version) : undefined;
-
+        const height = result.ledger_version ? BigInt(result.ledger_version) : undefined;
         providersHealthCheck.push({
           isHealthy: height !== undefined,
-          latency: Number(((requestEndTime - requestStartTime) / 1000).toFixed(2)),
+          latency: provider.getLatency(),
           height: height,
           url: provider.getUrl(),
         });
       } catch (e) {
+        this.logger.error(
+          `[${chain}][healthCheck] Error getting result on ${provider.getUrl()}: ${JSON.stringify(
+            e
+          )}`
+        );
         providersHealthCheck.push({ url: provider.getUrl(), height: undefined, isHealthy: false });
       }
     }
@@ -69,13 +69,10 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
   ): Promise<AptosEvent[]> {
     try {
       let endpoint = `${ACCOUNT_ENDPOINT}/${filter.address}/events/${filter.event}/${filter.fieldName}`;
-      let results: AptosEvent[] = [];
-
-      results = await this.pool.get().get<typeof results>(endpoint, {
+      return await this.pool.get().get<AptosEvent[]>(endpoint, {
         limit: range?.limit,
         start: range?.from,
       });
-      return results;
     } catch (e) {
       this.handleError(
         `Range params: ${JSON.stringify(range)}, error: ${e}`,
@@ -94,11 +91,8 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
           const txEndpoint = `${TRANSACTION_BY_VERSION_ENDPOINT}/${Number(event.version)}`;
           const blockEndpoint = `${BLOCK_BY_VERSION_ENDPOINT}/${Number(event.version)}`;
 
-          let txResult: AptosTransactionByVersion = {};
-          let blockResult: AptosBlockByVersion = {};
-
-          txResult = await this.pool.get().get<typeof txResult>(txEndpoint);
-          blockResult = await this.pool.get().get<typeof blockResult>(blockEndpoint);
+          const txResult = await this.pool.get().get<AptosTransactionByVersion>(txEndpoint);
+          const blockResult = await this.pool.get().get<AptosBlockByVersion>(blockEndpoint);
 
           return {
             blockHeight: BigInt(blockResult.block_height!),
@@ -120,13 +114,10 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
 
   async getTransactions(range: Range): Promise<AptosTransaction[]> {
     try {
-      let results: AptosTransaction[] = [];
-
-      results = await this.pool.get().get<typeof results>(TRANSACTION_ENDPOINT, {
+      return await this.pool.get().get<AptosTransaction[]>(TRANSACTION_ENDPOINT, {
         limit: range?.limit,
         start: range?.from,
       });
-      return results;
     } catch (e) {
       this.handleError(`Range params: ${JSON.stringify(range)}, error: ${e}`, "getTransactions");
       throw e;

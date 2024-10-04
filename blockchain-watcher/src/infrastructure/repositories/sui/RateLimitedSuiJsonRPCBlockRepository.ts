@@ -1,8 +1,7 @@
 import { Checkpoint, SuiEventFilter, TransactionFilter } from "@mysten/sui.js/client";
+import { SuiRepository, ProviderHealthCheck } from "../../../domain/repositories";
 import { SuiTransactionBlockReceipt } from "../../../domain/entities/sui";
 import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
-import { ProviderHealthCheck } from "../../../domain/poolRpcs/PoolRpcs";
-import { SuiRepository } from "../../../domain/repositories";
 import { Range } from "../../../domain/entities";
 import { Options } from "../common/rateLimitedOptions";
 import winston from "winston";

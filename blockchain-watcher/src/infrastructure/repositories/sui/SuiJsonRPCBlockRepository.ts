@@ -1,8 +1,7 @@
 import { SuiTransactionBlockReceipt } from "../../../domain/entities/sui";
 import { divideIntoBatches } from "../common/utils";
-import { SuiRepository } from "../../../domain/repositories";
+import { SuiRepository, ProviderHealthCheck } from "../../../domain/repositories";
 import { Range } from "../../../domain/entities";
-import { ProviderHealthCheck } from "../../../domain/poolRpcs/PoolRpcs";
 import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
 import winston from "winston";
 import { InstrumentedSuiClientWrapper } from "../../rpc/http/InstrumentedSuiClientWrapper";
@@ -30,23 +29,24 @@ export class SuiJsonRPCBlockRepository implements SuiRepository {
   ): Promise<ProviderHealthCheck[]> {
     const providersHealthCheck: ProviderHealthCheck[] = [];
     const providers = this.pool.getProviders();
-    let response;
 
     for (const provider of providers) {
       try {
-        const requestStartTime = performance.now();
-        response = await this.pool.get().getLatestCheckpointSequenceNumber();
-        const requestEndTime = performance.now();
+        const response = await this.pool.get().getLatestCheckpointSequenceNumber();
 
         const height = response ? BigInt(response) : undefined;
-
         providersHealthCheck.push({
           isHealthy: height !== undefined,
-          latency: Number(((requestEndTime - requestStartTime) / 1000).toFixed(2)),
+          latency: provider.getLatency(),
           height: height,
           url: provider.url,
         });
       } catch (e) {
+        this.logger.error(
+          `[${chain}][healthCheck] Error getting result on ${provider.getUrl()}: ${JSON.stringify(
+            e
+          )}`
+        );
         providersHealthCheck.push({ url: provider.url, height: undefined, isHealthy: false });
       }
     }

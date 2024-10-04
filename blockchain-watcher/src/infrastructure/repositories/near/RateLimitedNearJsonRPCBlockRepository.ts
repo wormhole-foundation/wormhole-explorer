@@ -1,7 +1,6 @@
+import { NearRepository, ProviderHealthCheck } from "../../../domain/repositories";
 import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
-import { ProviderHealthCheck } from "../../../domain/poolRpcs/PoolRpcs";
 import { NearTransaction } from "../../../domain/entities/near";
-import { NearRepository } from "../../../domain/repositories";
 import { Options } from "../common/rateLimitedOptions";
 import winston from "winston";
 

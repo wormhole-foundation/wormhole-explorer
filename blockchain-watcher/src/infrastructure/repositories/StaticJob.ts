@@ -271,26 +271,6 @@ export class StaticJob implements Job {
         })
       );
 
-    const poolRpcs = (jobsDef: JobDefinition[]) =>
-      new PoolRpcs(
-        statsRepo,
-        metadataRepo,
-        new PoolRpcsConfig(
-          jobsDef.map((jobDef) => ({
-            repository:
-              jobDef.source.repository == "evmRepo"
-                ? this.repos.evmRepo(jobDef.chain)
-                : this.repos[jobDef.source.repository as keyof Repos],
-            environment: jobDef.source.config.environment,
-            commitment: jobDef.source.config.commitment,
-            interval: jobDef.source.config.interval,
-            chainId: jobDef.source.config.chainId,
-            chain: jobDef.chain,
-            id: jobDef.id,
-          }))
-        )
-      );
-
     this.runPollingJob.set("PollEvm", pollEvm);
     this.runPollingJob.set("PollSolanaTransactions", pollSolanaTransactions);
     this.runPollingJob.set("PollSuiTransactions", pollSuiTransactions);

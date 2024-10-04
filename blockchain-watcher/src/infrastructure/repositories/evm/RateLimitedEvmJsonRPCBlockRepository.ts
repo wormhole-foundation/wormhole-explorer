@@ -1,6 +1,5 @@
 import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
-import { ProviderHealthCheck } from "../../../domain/poolRpcs/PoolRpcs";
-import { EvmBlockRepository } from "../../../domain/repositories";
+import { EvmBlockRepository, ProviderHealthCheck } from "../../../domain/repositories";
 import { Options } from "../common/rateLimitedOptions";
 import winston from "winston";
 import {

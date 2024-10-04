@@ -14,11 +14,16 @@ export class InstrumentedSuiClientWrapper extends InstrumentedSuiClient {
     this.health.serviceOfflineSince = new Date();
   }
 
-  public getUrl(): string {
-    return this.url;
+  public getLatency(): number | undefined {
+    const durations = this.health.lastRequestDurations;
+    return durations.length > 0 ? durations[durations.length - 1] : undefined;
   }
 
   public isHealthy(): boolean {
     return this.health.isHealthy;
+  }
+
+  public getUrl(): string {
+    return this.url;
   }
 }

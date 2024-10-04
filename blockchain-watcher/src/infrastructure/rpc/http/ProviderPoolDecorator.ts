@@ -2,7 +2,7 @@ import { InstrumentedConnectionWrapper } from "./InstrumentedConnectionWrapper";
 import { InstrumentedSuiClientWrapper } from "./InstrumentedSuiClientWrapper";
 import { InstrumentedHttpProvider } from "./InstrumentedHttpProvider";
 import { HealthyProvidersPool } from "./HealthyProvidersPool";
-import { ProviderHealthCheck } from "../../../domain/poolRpcs/PoolRpcs";
+import { ProviderHealthCheck } from "../../../domain/repositories";
 import { Logger } from "winston";
 import {
   InstrumentedEthersProvider,

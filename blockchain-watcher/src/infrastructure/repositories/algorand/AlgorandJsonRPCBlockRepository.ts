@@ -1,8 +1,7 @@
+import { AlgorandRepository, ProviderHealthCheck } from "../../../domain/repositories";
 import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
 import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
-import { ProviderHealthCheck } from "../../../domain/poolRpcs/PoolRpcs";
 import { AlgorandTransaction } from "../../../domain/entities/algorand";
-import { AlgorandRepository } from "../../../domain/repositories";
 import winston from "winston";
 
 type ProviderPoolMap = ProviderPoolDecorator<InstrumentedHttpProvider>;
@@ -29,26 +28,26 @@ export class AlgorandJsonRPCBlockRepository implements AlgorandRepository {
     finality: string,
     cursor: bigint
   ): Promise<ProviderHealthCheck[]> {
-    const providers = this.algoV2Pools.getProviders();
     const providersHealthCheck: ProviderHealthCheck[] = [];
-    let response: ResultStatus;
+    const providers = this.algoV2Pools.getProviders();
 
     for (const provider of providers) {
       const url = provider.getUrl();
       try {
-        const requestStartTime = performance.now();
-        response = await provider.get<typeof response>(STATUS_ENDPOINT);
-        const requestEndTime = performance.now();
-
+        const response = await provider.get<ResultStatus>(STATUS_ENDPOINT);
         const lastRound = response["last-round"] ? BigInt(response["last-round"]) : undefined;
-
         providersHealthCheck.push({
           isHealthy: lastRound !== undefined,
-          latency: Number(((requestEndTime - requestStartTime) / 1000).toFixed(2)),
+          latency: provider.getLatency(),
           height: lastRound,
           url: url,
         });
       } catch (e) {
+        this.logger.error(
+          `[${chain}][healthCheck] Error getting result on ${provider.getUrl()}: ${JSON.stringify(
+            e
+          )}`
+        );
         providersHealthCheck.push({ url: url, height: undefined, isHealthy: false });
       }
     }
@@ -57,8 +56,7 @@ export class AlgorandJsonRPCBlockRepository implements AlgorandRepository {
   }
 
   async getBlockHeight(): Promise<bigint | undefined> {
-    let result: ResultStatus;
-    result = await this.algoV2Pools.get().get<typeof result>(STATUS_ENDPOINT);
+    const result = await this.algoV2Pools.get().get<ResultStatus>(STATUS_ENDPOINT);
     return BigInt(result["last-round"]);
   }
 
@@ -68,10 +66,9 @@ export class AlgorandJsonRPCBlockRepository implements AlgorandRepository {
     toBlock: bigint
   ): Promise<AlgorandTransaction[]> {
     try {
-      let result: ResultTransactions;
-      result = await this.algoIndexerPools
+      const result = await this.algoIndexerPools
         .get()
-        .get<typeof result>(
+        .get<ResultTransactions>(
           `${TRANSACTIONS_ENDPOINT}?application-id=${Number(
             applicationId
           )}&min-round=${fromBlock}&max-round=${toBlock}`

@@ -4,7 +4,6 @@ import { SuiTransactionBlockReceipt } from "./entities/sui";
 import { Fallible, SolanaFailure } from "./errors";
 import { ConfirmedSignatureInfo } from "./entities/solana";
 import { AlgorandTransaction } from "./entities/algorand";
-import { ProviderHealthCheck } from "./poolRpcs/PoolRpcs";
 import { TransactionFilter } from "./actions/aptos/PollAptos";
 import { CosmosTransaction } from "./entities/cosmos";
 import { NearTransaction } from "./entities/near";
@@ -134,3 +133,10 @@ export interface StatRepository {
   measure(id: string, value: bigint | number, labels: Record<string, any>): void;
   report: () => Promise<string>;
 }
+
+export type ProviderHealthCheck = {
+  isHealthy: boolean;
+  latency?: number;
+  height: bigint | undefined;
+  url: string;
+};

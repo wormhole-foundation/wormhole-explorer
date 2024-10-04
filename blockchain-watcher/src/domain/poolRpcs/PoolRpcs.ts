@@ -37,15 +37,22 @@ export class PoolRpcs extends RunPoolRpcs {
         }
 
         const result = await repository.healthCheck(chain, commitment, normalizeCursor);
-        this.reportValues.push({
-          rpcs: result,
-          commitment,
+        return {
+          ...result,
           chain,
           id,
-        });
+        };
       });
 
-      await Promise.all(promises);
+      const results = await Promise.allSettled(promises);
+
+      results.forEach((result) => {
+        if (result.status === "fulfilled" && result?.value) {
+          this.reportValues.push(result.value);
+        } else if (result.status === "rejected") {
+          this.logger.error(`Promise rejected: ${result.reason}`);
+        }
+      });
     } catch (e) {
       this.logger.error(`Error setting providers: ${e}`);
     }
@@ -54,9 +61,9 @@ export class PoolRpcs extends RunPoolRpcs {
   protected report(): void {
     for (const report of this.reportValues) {
       let labels: Label = {
-        job: `pool-rpcs-${report.id}`,
-        chain: report.chain,
         commitment: report.commitment,
+        chain: report.chain,
+        job: `pool-rpcs-${report.id}`,
       };
 
       for (const rpc of report.rpcs) {
@@ -94,13 +101,6 @@ type Label = {
   chain: string;
   job: string;
   rpc?: string;
-};
-
-export type ProviderHealthCheck = {
-  isHealthy: boolean;
-  latency?: number;
-  height: bigint | undefined;
-  url: string;
 };
 
 export interface PoolRpcsConfigProps {

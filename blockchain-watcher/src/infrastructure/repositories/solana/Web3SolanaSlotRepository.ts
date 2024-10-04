@@ -1,13 +1,11 @@
+import { SolanaSlotRepository, ProviderHealthCheck } from "../../../domain/repositories";
 import { InstrumentedConnectionWrapper } from "../../rpc/http/InstrumentedConnectionWrapper";
 import { Fallible, SolanaFailure } from "../../../domain/errors";
 import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
-import { SolanaSlotRepository } from "../../../domain/repositories";
-import { ProviderHealthCheck } from "../../../domain/poolRpcs/PoolRpcs";
 import { solana } from "../../../domain/entities";
 import winston from "../../log";
 import {
   VersionedTransactionResponse,
-  VersionedBlockResponse,
   SolanaJSONRPCError,
   Commitment,
   PublicKey,
@@ -31,19 +29,19 @@ export class Web3SolanaSlotRepository implements SolanaSlotRepository {
 
     for (const provider of providers) {
       try {
-        const requestStartTime = performance.now();
         const response = await this.pool.get().getSlot(finality as Commitment);
-        const requestEndTime = performance.now();
 
         const height = response ? BigInt(response) : undefined;
-
         providersHealthCheck.push({
           isHealthy: height !== undefined,
-          latency: Number(((requestEndTime - requestStartTime) / 1000).toFixed(2)),
+          latency: provider.getLatency(),
           height: height,
           url: provider.getUrl(),
         });
       } catch (e) {
+        this.logger.error(
+          `[solana][healthCheck] Error getting result on ${provider.getUrl()}: ${JSON.stringify(e)}`
+        );
         providersHealthCheck.push({ url: provider.getUrl(), height: undefined, isHealthy: false });
       }
     }

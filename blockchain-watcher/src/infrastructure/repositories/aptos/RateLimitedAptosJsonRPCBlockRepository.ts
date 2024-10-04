@@ -1,8 +1,7 @@
+import { AptosRepository, ProviderHealthCheck } from "../../../domain/repositories";
 import { AptosEvent, AptosTransaction } from "../../../domain/entities/aptos";
 import { Range, TransactionFilter } from "../../../domain/actions/aptos/PollAptos";
 import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
-import { ProviderHealthCheck } from "../../../domain/poolRpcs/PoolRpcs";
-import { AptosRepository } from "../../../domain/repositories";
 import { Options } from "../common/rateLimitedOptions";
 import winston from "winston";
 

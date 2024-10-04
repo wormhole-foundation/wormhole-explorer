@@ -20,6 +20,11 @@ export class InstrumentedConnectionWrapper extends Connection {
     this.health.serviceOfflineSince = new Date();
   }
 
+  public getLatency(): number | undefined {
+    const durations = this.health.lastRequestDurations;
+    return durations.length > 0 ? durations[durations.length - 1] : undefined;
+  }
+
   public getUrl(): string {
     return this.url;
   }

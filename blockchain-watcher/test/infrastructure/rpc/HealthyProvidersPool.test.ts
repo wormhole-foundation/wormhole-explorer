@@ -56,10 +56,10 @@ describe("HealthyProvidersPool", () => {
     // Then
     expect(pool).toBeInstanceOf(HealthyProvidersPool);
     expect(JSON.stringify(result[0])).toBe(
-      '{"initialDelay":1000,"maxDelay":60000,"retries":0,"timeout":5000,"url":"https://rpc2/v1","chain":"ethereum","health":{},"logger":{}}'
+      '{"initialDelay":1000,"maxDelay":60000,"retries":0,"timeout":5000,"url":"https://rpc2/v1","chain":"ethereum","health":{"lastRequestDurations":[0.1232]},"logger":{}}'
     );
     expect(JSON.stringify(result[1])).toBe(
-      '{"initialDelay":1000,"maxDelay":60000,"retries":0,"timeout":5000,"url":"https://rpc1/v1","chain":"ethereum","health":{},"logger":{}}'
+      '{"initialDelay":1000,"maxDelay":60000,"retries":0,"timeout":5000,"url":"https://rpc1/v1","chain":"ethereum","health":{"lastRequestDurations":[0.1232]},"logger":{}}'
     );
   });
 
@@ -117,13 +117,13 @@ describe("HealthyProvidersPool", () => {
     // Then
     expect(pool).toBeInstanceOf(HealthyProvidersPool);
     expect(JSON.stringify(result[0])).toBe(
-      '{"initialDelay":1000,"maxDelay":60000,"retries":0,"timeout":5000,"url":"https://rpc1/v1","chain":"ethereum","health":{},"logger":{}}'
+      '{"initialDelay":1000,"maxDelay":60000,"retries":0,"timeout":5000,"url":"https://rpc1/v1","chain":"ethereum","health":{"lastRequestDurations":[0.1232]},"logger":{}}'
     );
     expect(JSON.stringify(result[1])).toBe(
-      '{"initialDelay":1000,"maxDelay":60000,"retries":0,"timeout":5000,"url":"https://rpc3/v1","chain":"ethereum","health":{},"logger":{}}'
+      '{"initialDelay":1000,"maxDelay":60000,"retries":0,"timeout":5000,"url":"https://rpc3/v1","chain":"ethereum","health":{"lastRequestDurations":[0.1232]},"logger":{}}'
     );
     expect(JSON.stringify(result[2])).toBe(
-      '{"initialDelay":1000,"maxDelay":60000,"retries":0,"timeout":5000,"url":"https://rpc2/v1","chain":"ethereum","health":{},"logger":{}}'
+      '{"initialDelay":1000,"maxDelay":60000,"retries":0,"timeout":5000,"url":"https://rpc2/v1","chain":"ethereum","health":{"lastRequestDurations":[0.1232]},"logger":{}}'
     );
   });
 

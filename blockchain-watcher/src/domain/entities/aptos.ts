@@ -45,3 +45,7 @@ export type AptosTransactionByVersion = {
 export type AptosBlockByVersion = {
   block_height?: string;
 };
+
+export type LedgerInfo = {
+  ledger_version: string;
+};

@@ -15,6 +15,7 @@ export class ProviderHealthInstrumentationMock {
       json: () => res.data,
     };
   };
+  lastRequestDurations = [0.1232];
 }
 
 class WeightedProvidersPool {

@@ -1,7 +1,6 @@
+import { CosmosRepository, ProviderHealthCheck } from "../../../domain/repositories";
 import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
-import { ProviderHealthCheck } from "../../../domain/poolRpcs/PoolRpcs";
 import { CosmosTransaction } from "../../../domain/entities/cosmos";
-import { CosmosRepository } from "../../../domain/repositories";
 import { Options } from "../common/rateLimitedOptions";
 import { Filter } from "../../../domain/actions/cosmos/types";
 import winston from "winston";
