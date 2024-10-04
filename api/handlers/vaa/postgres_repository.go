@@ -150,6 +150,11 @@ func (q VaaQuery) toQueryByIds() (string, []any) {
 
 	conditions := make([]string, 0, len(q.ids))
 	params := make([]any, 0, len(q.ids))
+
+	// only get active vaas
+	conditions = append(conditions, "v.active = TRUE")
+
+	// only get vaas with the given ids
 	for i, id := range q.ids {
 		conditions = append(conditions, fmt.Sprintf("v.vaa_id = $%d", i+1))
 		params = append(params, id)
@@ -195,14 +200,20 @@ func (q *VaaQuery) toQueryWithFilters() (string, []any) {
 		query += "\n"
 	}
 
-	query += "FROM wormholescan.wh_attestation_vaas as v \n"
+	isPyth := q.chainId == sdk.ChainIDPythNet
+	if !isPyth {
+		query += "FROM wormholescan.wh_attestation_vaas as v \n"
+	} else {
+		query += "FROM wormholescan.wh_attestation_vaas_pythnet as v \n"
+	}
+
 	query += "LEFT JOIN wormholescan.wh_operation_transactions as t ON v.id = t.attestation_vaas_id \n"
 
 	if q.includeParsedPayload {
 		query += "LEFT JOIN wormholescan.wh_attestation_vaa_properties as p ON v.id = p.id \n"
 	}
 
-	query += "WHERE 1 = 1 \n"
+	query += "WHERE v.active = TRUE \n"
 	if q.chainId > 0 {
 		query += "AND v.emitter_chain_id = $1 \n"
 		params = append(params, q.chainId)
@@ -210,6 +221,10 @@ func (q *VaaQuery) toQueryWithFilters() (string, []any) {
 	if q.emitter != "" {
 		query += "AND v.emitter_address = $2 \n"
 		params = append(params, q.emitter)
+	}
+	if q.sequence != "" {
+		query += "AND v.sequence = $3 \n"
+		params = append(params, q.sequence)
 	}
 
 	query += fmt.Sprintf("ORDER BY v.timestamp %s \n", q.SortOrder)
@@ -229,7 +244,7 @@ func (q *VaaQuery) toQueryByToChain() (string, []any) {
 	}
 
 	query += "FROM wormholescan.wh_attestation_vaa_properties as p \n"
-	query += "INNER JOIN wormholescan.wh_attestation_vaas as v ON v.id = p.id \n"
+	query += "INNER JOIN wormholescan.wh_attestation_vaas as v ON v.id = p.id AND v.active = TRUE \n"
 	query += "LEFT JOIN wormholescan.wh_operation_transactions as t ON p.id = t.attestation_vaas_id \n"
 
 	if q.toChain > 0 {
