@@ -1,7 +1,7 @@
 apiVersion: keda.sh/v1alpha1
 kind: TriggerAuthentication
 metadata:
-  name: keda-auth-aws-{{ .NAME }}
+  name: keda-auth-{{ .NAME }}
   namespace: {{ .NAMESPACE }}
 spec:
   podIdentity:
@@ -20,7 +20,7 @@ spec:
   triggers:
   - type: {{ .SCALE_TYPE }}
     authenticationRef:
-      name: keda-auth-aws-{{ .NAME }}
+      name: keda-auth-{{ .NAME }}
     metadata:
       awsRegion: {{ .SQS_AWS_REGION }}
       queueURL: {{ .PIPELINE_SQS_URL }}
