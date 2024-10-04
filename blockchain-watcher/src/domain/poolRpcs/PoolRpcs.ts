@@ -38,7 +38,7 @@ export class PoolRpcs extends RunPoolRpcs {
 
         const result = await repository.healthCheck(chain, commitment, normalizeCursor);
         return {
-          ...result,
+          rpcsStatus: result,
           chain,
           id,
         };
@@ -66,7 +66,7 @@ export class PoolRpcs extends RunPoolRpcs {
         job: `pool-rpcs-${report.id}`,
       };
 
-      for (const rpc of report.rpcs) {
+      for (const rpc of report.rpcsStatus) {
         labels.rpc = rpc.url;
         this.statsRepo.measure("pool_rpc_latency", rpc.latency, {
           ...labels,

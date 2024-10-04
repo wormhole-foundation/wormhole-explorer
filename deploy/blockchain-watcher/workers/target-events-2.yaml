@@ -786,6 +786,7 @@ data:
         "source": {
           "action": "PollEvm",
           "records": "GetEvmTransactions",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "finalized",
@@ -872,6 +873,7 @@ data:
         "source": {
           "action": "PollEvm",
           "records": "GetEvmTransactions",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 1000,
             "commitment": "finalized",
@@ -964,6 +966,7 @@ data:
         "source": {
           "action": "PollEvm",
           "records": "GetEvmTransactions",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "finalized",
@@ -1050,6 +1053,7 @@ data:
         "source": {
           "action": "PollEvm",
           "records": "GetEvmTransactions",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "finalized",
