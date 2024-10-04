@@ -38,6 +38,12 @@ func manualMainnetTokenList() []TokenMetadata {
 
 		{TokenChain: sdk.ChainIDSolana, TokenAddress: "20dedacad378f74d6cb4bdb1caf262228d4083d411f1dc92473de4d00ea9d0b8", Symbol: "REZ", CoingeckoID: "renzo", Decimals: 9},    // Addr: 3DK98MXPz8TRuim7rfQnebSLpA7VSoc79Bgiee1m4Zw5
 		{TokenChain: sdk.ChainIDEthereum, TokenAddress: "0000000000000000000000003b50805453023a91a8bf641e279401a0b23fa6f9", Symbol: "REZ", CoingeckoID: "renzo", Decimals: 18}, // Addr: 0x3B50805453023a91a8bf641e279401a0b23FA6F9
+
+		{TokenChain: sdk.ChainIDEthereum, TokenAddress: "000000000000000000000000dc035d45d973e3ec169d2276ddab16f1e407384f", Symbol: "USDS", CoingeckoID: "usds", Decimals: 18}, // Addr: 0xdC035D45d973E3EC169d2276DDab16f1e407384F
+		{TokenChain: sdk.ChainIDSolana, TokenAddress: "0707312938a310834eb96d9a917a2d235fb55c4bd63c62d3d2063fad48eaac97", Symbol: "USDS", CoingeckoID: "usds", Decimals: 6},    // Addr: USDSmbcVPUStXmCNeH6i13LmRPMZic7Afz7uu7nVgrJ
+
+		{TokenChain: sdk.ChainIDEthereum, TokenAddress: "00000000000000000000000056072c95faa701256059aa122697b133aded9279", Symbol: "SKY", CoingeckoID: "sky", Decimals: 18}, // Addr: 0x56072C95FAA701256059aa122697B133aDEd9279
+		{TokenChain: sdk.ChainIDSolana, TokenAddress: "067c7a69702d4523c88fb07eb91510c1615dd8886ab41767c2461170efc7f703", Symbol: "SKY", CoingeckoID: "sky", Decimals: 6},    // Addr: SKY3ns1PY4rCyyu1n5WCNGnh7MPSjJai3fRcba12NZ8
 	}
 }
 
