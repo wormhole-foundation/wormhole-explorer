@@ -24,4 +24,4 @@ spec:
     metadata:
       awsRegion: {{ .SQS_AWS_REGION }}
       queueURL: {{ .PIPELINE_SQS_URL }}
-      queueLength: {{ .SCALE_VALUE }}
+      queueLength: "{{ .SCALE_VALUE }}"
