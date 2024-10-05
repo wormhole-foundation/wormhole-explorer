@@ -11,6 +11,7 @@ export type Config = {
   port: number;
   logLevel: LogLevel;
   dryRun: boolean;
+  rpcHealthcheckInterval: number;
   sns: SnsConfig;
   influx?: InfluxConfig;
   metadata?: {

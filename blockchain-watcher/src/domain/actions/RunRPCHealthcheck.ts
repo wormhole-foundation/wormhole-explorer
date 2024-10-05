@@ -1,15 +1,17 @@
 import { StatRepository } from "../repositories";
 import winston from "winston";
 
-export abstract class RunPoolRpcs {
+export abstract class RunRPCHealthcheck {
   private statRepo?: StatRepository;
+  private interval: number;
 
   protected abstract logger: winston.Logger;
   protected abstract set(): Promise<void>;
   protected abstract report(): void;
 
-  constructor(statsRepo: StatRepository) {
+  constructor(statsRepo: StatRepository, interval: number) {
     this.statRepo = statsRepo;
+    this.interval = interval;
   }
 
   public async run(): Promise<void> {
@@ -17,14 +19,14 @@ export abstract class RunPoolRpcs {
       this.startInterval();
     } catch (e: Error | any) {
       this.logger.error("[run] Error starting interval for pool providers", e);
-      this.statRepo?.count("pool_runs_total", { id: "pool-rpcs", status: "error" });
+      this.statRepo?.count("pool_runs_total", { id: "rpc-healthcheck", status: "error" });
     }
   }
 
   private startInterval(): void {
     setInterval(async () => {
       await this.executePoolTask();
-    }, 10 * 60 * 1000); // 10 minutes
+    }, this.interval);
   }
 
   private async executePoolTask(): Promise<void> {
@@ -37,10 +39,10 @@ export abstract class RunPoolRpcs {
       const poolEndTime = performance.now();
       const poolExecutionTime = Number(((poolEndTime - poolStartTime) / 1000).toFixed(2));
 
-      this.statRepo?.measure("pool_execution_time", poolExecutionTime, { job: "pool-rpcs" });
+      this.statRepo?.measure("pool_execution_time", poolExecutionTime, { job: "rpc-healthcheck" });
     } catch (e: Error | any) {
       this.logger.error("[executePoolTask] Error processing pool providers", e);
-      this.statRepo?.count("pool_runs_total", { id: "pool-rpcs", status: "error" });
+      this.statRepo?.count("pool_runs_total", { id: "rpc-healthcheck", status: "error" });
     }
   }
 }

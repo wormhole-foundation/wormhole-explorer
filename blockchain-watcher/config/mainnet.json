@@ -1,5 +1,6 @@
 {
   "environment": "mainnet",
+  "rpcHealthcheckInterval": 600000,
   "chains": {
     "solana": {
       "network": "mainnet-beta",

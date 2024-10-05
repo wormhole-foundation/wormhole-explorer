@@ -37,7 +37,7 @@ describe("StaticJob", () => {
     if (fs.existsSync(dirPath)) {
       fs.rmSync(dirPath, { recursive: true, force: true });
     }
-    job = new StaticJob("testnet", dirPath, false, {
+    job = new StaticJob("testnet", dirPath, false, 1200000, {
       evmRepo: () => blockRepo,
       metadataRepo,
       statsRepo,

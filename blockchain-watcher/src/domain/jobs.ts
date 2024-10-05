@@ -1,10 +1,10 @@
 import { Handler, JobDefinition } from "./entities";
 import { RunPollingJob } from "./actions";
-import { RunPoolRpcs } from "./actions/RunPoolRpcs";
+import { RunRPCHealthcheck } from "./actions/RunRPCHealthcheck";
 
 export interface Job {
   getJobDefinitions(): Promise<JobDefinition[]>;
+  getRPCHealthcheck(jobsDef: JobDefinition[]): RunRPCHealthcheck;
   getPollingJob(jobDef: JobDefinition): RunPollingJob;
-  getPoolRpcs(jobsDef: JobDefinition[]): RunPoolRpcs;
   getHandlers(jobDef: JobDefinition): Promise<Handler[]>;
 }

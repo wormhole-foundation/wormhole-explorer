@@ -22,7 +22,6 @@ import { HandleAlgorandTransactions } from "../../domain/actions/algorand/Handle
 import { HandleSolanaTransactions } from "../../domain/actions/solana/HandleSolanaTransactions";
 import { HandleCosmosTransactions } from "../../domain/actions/cosmos/HandleCosmosTransactions";
 import { evmNttTransferSentMapper } from "../mappers/evm/evmNttTransferSentMapper";
-import { PoolRpcs, PoolRpcsConfig } from "../../domain/poolRpcs/PoolRpcs";
 import { HandleAptosTransactions } from "../../domain/actions/aptos/HandleAptosTransactions";
 import { HandleNearTransactions } from "../../domain/actions/near/HandleNearTransactions";
 import { HandleWormchainRedeems } from "../../domain/actions/wormchain/HandleWormchainRedeems";
@@ -30,7 +29,8 @@ import { HandleEvmTransactions } from "../../domain/actions/evm/HandleEvmTransac
 import { HandleSuiTransactions } from "../../domain/actions/sui/HandleSuiTransactions";
 import { InfluxEventRepository } from "./target/InfluxEventRepository";
 import { HandleWormchainLogs } from "../../domain/actions/wormchain/HandleWormchainLogs";
-import { RunPoolRpcs } from "../../domain/actions/RunPoolRpcs";
+import { RunRPCHealthcheck } from "../../domain/actions/RunRPCHealthcheck";
+import { RPCHealthcheck } from "../../domain/RPCHealthcheck/RPCHealthcheck";
 import { Job } from "../../domain/jobs";
 import log from "../log";
 import {
@@ -89,6 +89,7 @@ export class StaticJob implements Job {
   private fileRepo: FileMetadataRepository;
   private environment: string;
   private dryRun: boolean = false;
+  private rpcHealthcheckInterval;
   private runPollingJob: Map<string, (jobDef: JobDefinition) => RunPollingJob> = new Map();
   private handlers: Map<string, (cfg: any, target: string, mapper: any) => Promise<Handler>> =
     new Map();
@@ -96,7 +97,14 @@ export class StaticJob implements Job {
   private targets: Map<string, () => Promise<(items: any[]) => Promise<void>>> = new Map();
   private repos: Repos;
 
-  constructor(environment: string, path: string, dryRun: boolean, repos: Repos) {
+  constructor(
+    environment: string,
+    path: string,
+    dryRun: boolean,
+    rpcHealthcheckInterval: number,
+    repos: Repos
+  ) {
+    this.rpcHealthcheckInterval = rpcHealthcheckInterval;
     this.fileRepo = new FileMetadataRepository(path);
     this.environment = environment;
     this.dryRun = dryRun;
@@ -120,27 +128,26 @@ export class StaticJob implements Job {
     return action(jobDef);
   }
 
-  getPoolRpcs(jobsDef: JobDefinition[]): RunPoolRpcs {
-    const poolRpcs = (jobsDef: JobDefinition[]) =>
-      new PoolRpcs(
+  getRPCHealthcheck(jobsDef: JobDefinition[]): RunRPCHealthcheck {
+    const rpcHealthcheck = (jobsDef: JobDefinition[]) =>
+      new RPCHealthcheck(
         this.repos.statsRepo,
         this.repos.metadataRepo,
-        new PoolRpcsConfig(
-          jobsDef.map((jobDef) => ({
-            repository:
-              jobDef.source.repository == "evmRepo"
-                ? this.repos.evmRepo(jobDef.chain)
-                : this.repos[jobDef.source.repository as keyof Repos],
-            environment: jobDef.source.config.environment,
-            commitment: jobDef.source.config.commitment,
-            interval: jobDef.source.config.interval,
-            chainId: jobDef.source.config.chainId,
-            chain: jobDef.chain,
-            id: jobDef.id,
-          }))
-        )
+        jobsDef.map((jobDef) => ({
+          repository:
+            jobDef.source.repository == "evmRepo"
+              ? this.repos.evmRepo(jobDef.chain)
+              : this.repos[jobDef.source.repository as keyof Repos],
+          environment: jobDef.source.config.environment,
+          commitment: jobDef.source.config.commitment,
+          interval: jobDef.source.config.interval,
+          chainId: jobDef.source.config.chainId,
+          chain: jobDef.chain,
+          id: jobDef.id,
+        })),
+        this.rpcHealthcheckInterval
       );
-    return poolRpcs(jobsDef);
+    return rpcHealthcheck(jobsDef);
   }
 
   async getHandlers(jobDef: JobDefinition): Promise<Handler[]> {

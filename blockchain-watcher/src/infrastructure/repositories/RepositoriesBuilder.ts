@@ -131,20 +131,26 @@ export class RepositoriesBuilder {
 
     this.repositories.set(
       "jobs",
-      new StaticJob(this.cfg.environment, this.cfg.jobs.dir, this.cfg.dryRun, {
-        evmRepo: (chain: string) => this.getEvmBlockRepository(chain),
-        metadataRepo: this.getMetadataRepository(),
-        statsRepo: this.getStatsRepository(),
-        snsRepo: this.getSnsEventRepository(),
-        influxRepo: this.getInfluxEventRepository(),
-        solanaSlotRepo: this.getSolanaSlotRepository(),
-        suiRepo: this.getSuiRepository(),
-        aptosRepo: this.getAptosRepository(),
-        wormchainRepo: this.getWormchainRepository(),
-        cosmosRepo: this.getCosmosRepository(),
-        algorandRepo: this.getAlgorandRepository(),
-        nearRepo: this.getNearRepository(),
-      })
+      new StaticJob(
+        this.cfg.environment,
+        this.cfg.jobs.dir,
+        this.cfg.dryRun,
+        this.cfg.rpcHealthcheckInterval,
+        {
+          evmRepo: (chain: string) => this.getEvmBlockRepository(chain),
+          metadataRepo: this.getMetadataRepository(),
+          statsRepo: this.getStatsRepository(),
+          snsRepo: this.getSnsEventRepository(),
+          influxRepo: this.getInfluxEventRepository(),
+          solanaSlotRepo: this.getSolanaSlotRepository(),
+          suiRepo: this.getSuiRepository(),
+          aptosRepo: this.getAptosRepository(),
+          wormchainRepo: this.getWormchainRepository(),
+          cosmosRepo: this.getCosmosRepository(),
+          algorandRepo: this.getAlgorandRepository(),
+          nearRepo: this.getNearRepository(),
+        }
+      )
     );
   }
 

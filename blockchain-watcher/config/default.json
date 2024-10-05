@@ -3,6 +3,7 @@
   "port": 9090,
   "logLevel": "debug",
   "dryRun": true,
+  "rpcHealthcheckInterval": 1200000,
   "enabledPlatforms": ["solana", "evm", "sui", "aptos", "wormchain", "cosmos", "algorand", "near"],
   "sns": {
     "topicArn": "arn:aws:sns:us-east-1:000000000000:localstack-topic.fifo",

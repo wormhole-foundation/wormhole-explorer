@@ -1,19 +1,24 @@
-import { StatRepository } from "../repositories";
-import { RunPoolRpcs } from "../actions/RunPoolRpcs";
+import { MetadataRepository, StatRepository } from "../repositories";
+import { RunRPCHealthcheck } from "../actions/RunRPCHealthcheck";
 import winston from "winston";
 
-export class PoolRpcs extends RunPoolRpcs {
+export class RPCHealthcheck extends RunRPCHealthcheck {
   protected readonly logger: winston.Logger;
 
-  private cfg: PoolRpcsConfig;
+  private cfg: RPCHealthcheckConfig[];
   private reportValues: any[] = [];
 
   private readonly statsRepo: StatRepository;
   private readonly metadataRepo: any;
 
-  constructor(statsRepo: StatRepository, metadataRepo: any, cfg: PoolRpcsConfig) {
-    super(statsRepo);
-    this.logger = winston.child({ module: "PoolRpcs", label: "pool-rpcs" });
+  constructor(
+    statsRepo: StatRepository,
+    metadataRepo: MetadataRepository<any>,
+    cfg: RPCHealthcheckConfig[],
+    interval: number
+  ) {
+    super(statsRepo, interval);
+    this.logger = winston.child({ module: "RunRPCHealthcheck", label: "rpc-healthcheck" });
     this.statsRepo = statsRepo;
     this.metadataRepo = metadataRepo;
     this.cfg = cfg;
@@ -21,7 +26,7 @@ export class PoolRpcs extends RunPoolRpcs {
 
   protected async set(): Promise<void> {
     try {
-      const promises = this.cfg.getProps().map(async (cfg) => {
+      const promises = this.cfg.map(async (cfg) => {
         const { id, repository, chain, commitment } = cfg;
 
         let normalizeCursor;
@@ -63,16 +68,16 @@ export class PoolRpcs extends RunPoolRpcs {
       let labels: Label = {
         commitment: report.commitment,
         chain: report.chain,
-        job: `pool-rpcs-${report.id}`,
+        job: `rpc-healthcheck-${report.id}`,
       };
 
       for (const rpc of report.rpcsStatus) {
         labels.rpc = rpc.url;
-        this.statsRepo.measure("pool_rpc_latency", rpc.latency, {
+        this.statsRepo.measure("rpc_healthcheck_latency", rpc.latency, {
           ...labels,
         });
 
-        this.statsRepo.measure("pool_rpc_height", rpc.height, {
+        this.statsRepo.measure("rpc_healthcheck_height", rpc.height, {
           ...labels,
         });
       }
@@ -103,7 +108,7 @@ type Label = {
   rpc?: string;
 };
 
-export interface PoolRpcsConfigProps {
+export interface RPCHealthcheckConfig {
   environment: string;
   commitment: string;
   repository: any;
@@ -112,15 +117,4 @@ export interface PoolRpcsConfigProps {
   chain: string;
   id: string;
 }
-
-export class PoolRpcsConfig {
-  private props: PoolRpcsConfigProps[];
-
-  constructor(props: PoolRpcsConfigProps[]) {
-    this.props = props;
-  }
-
-  public getProps(): PoolRpcsConfigProps[] {
-    return this.props;
-  }
-}
+[];

@@ -1,9 +1,9 @@
+import { RunRPCHealthcheck } from "./RunRPCHealthcheck";
 import { JobDefinition } from "../entities";
-import { RunPoolRpcs } from "./RunPoolRpcs";
 import winston from "winston";
 import { Job } from "../jobs";
 
-const POOL_RPCS = "pool-rpcs";
+const RPC_HEALTHCHECK = "rpc-healthcheck";
 
 export class StartJobs {
   private readonly logger = winston.child({ module: "StartJobs" });
@@ -19,7 +19,7 @@ export class StartJobs {
     for (const job of jobs) {
       await this.runJob(job);
     }
-    await this.runPool(jobs);
+    await this.runRPCHealthcheck(jobs);
     return jobs;
   }
 
@@ -41,10 +41,10 @@ export class StartJobs {
     return job;
   }
 
-  public async runPool(jobs: JobDefinition[]): Promise<RunPoolRpcs> {
-    const runPool = this.job.getPoolRpcs(jobs);
-    this.runnables.set(POOL_RPCS, () => runPool.run());
-    this.runnables.get(POOL_RPCS)!();
-    return runPool;
+  public async runRPCHealthcheck(jobs: JobDefinition[]): Promise<RunRPCHealthcheck> {
+    const runRPCHealthcheck = this.job.getRPCHealthcheck(jobs);
+    this.runnables.set(RPC_HEALTHCHECK, () => runRPCHealthcheck.run());
+    this.runnables.get(RPC_HEALTHCHECK)!();
+    return runRPCHealthcheck;
   }
 }

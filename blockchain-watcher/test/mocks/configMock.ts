@@ -298,6 +298,7 @@ export const configMock = (): Config => {
     dryRun: false,
     sns: snsConfig,
     influx: influxConfig,
+    rpcHealthcheckInterval: 1200000,
     metadata: {
       dir: "./metadata-repo/jobs",
     },
