@@ -18,31 +18,41 @@ export abstract class RunRPCHealthcheck {
     try {
       this.startInterval();
     } catch (e: Error | any) {
-      this.logger.error("[run] Error starting interval for pool providers", e);
-      this.statRepo?.count("pool_runs_total", { id: "rpc-healthcheck", status: "error" });
+      this.logger.error("[run] Error starting interval for rpcHealthCheck providers", e);
+      this.statRepo?.count("rpc_healthcheck_runs_total", {
+        id: "rpc-healthcheck",
+        status: "error",
+      });
     }
   }
 
   private startInterval(): void {
     setInterval(async () => {
-      await this.executePoolTask();
+      await this.executeRpcHealthcheckTask();
     }, this.interval);
   }
 
-  private async executePoolTask(): Promise<void> {
+  private async executeRpcHealthcheckTask(): Promise<void> {
     try {
-      const poolStartTime = performance.now();
+      const rpcHealthCheckStartTime = performance.now();
 
       await this.set();
       this.report();
 
-      const poolEndTime = performance.now();
-      const poolExecutionTime = Number(((poolEndTime - poolStartTime) / 1000).toFixed(2));
+      const rpcHealthCheckEndTime = performance.now();
+      const rpcHealthCheckExecutionTime = Number(
+        ((rpcHealthCheckEndTime - rpcHealthCheckStartTime) / 1000).toFixed(2)
+      );
 
-      this.statRepo?.measure("pool_execution_time", poolExecutionTime, { job: "rpc-healthcheck" });
+      this.statRepo?.measure("rpc_healthcheck_execution_time", rpcHealthCheckExecutionTime, {
+        job: "rpc-healthcheck",
+      });
     } catch (e: Error | any) {
-      this.logger.error("[executePoolTask] Error processing pool providers", e);
-      this.statRepo?.count("pool_runs_total", { id: "rpc-healthcheck", status: "error" });
+      this.logger.error("[executeRpcHealthcheckTask] Error processing rpcHealthCheck providers", e);
+      this.statRepo?.count("rpc_healthcheck_runs_total", {
+        id: "rpc-healthcheck",
+        status: "error",
+      });
     }
   }
 }

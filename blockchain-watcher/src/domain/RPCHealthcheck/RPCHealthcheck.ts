@@ -28,17 +28,16 @@ export class RPCHealthcheck extends RunRPCHealthcheck {
     try {
       const promises = this.cfg.map(async (cfg) => {
         const { id, repository, chain, commitment } = cfg;
+        if (!repository) {
+          this.logger.error(`Repository not found: [chain: ${chain} - repository: ${repository}]`);
+          return;
+        }
 
         let normalizeCursor;
         const metadata = await this.metadataRepo.get(id);
 
         if (metadata) {
           normalizeCursor = this.normalizeCursor(metadata);
-        }
-
-        if (!repository) {
-          this.logger.error(`Repository not found: [chain: ${chain} - repository: ${repository}]`);
-          return;
         }
 
         const result = await repository.healthCheck(chain, commitment, normalizeCursor);
