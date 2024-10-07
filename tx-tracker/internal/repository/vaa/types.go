@@ -6,6 +6,7 @@ import (
 
 type VAARepository interface {
 	GetVaa(ctx context.Context, id string) (*VaaDoc, error)
+	GetTxHash(ctx context.Context, vaaDigest string) (string, error)
 }
 
 type VaaDoc struct {

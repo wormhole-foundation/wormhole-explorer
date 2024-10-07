@@ -39,7 +39,9 @@
             "6afkDMjQCod662yV22tBQGArRnwhCCWHKXTpnZPqxd8",
             "NTt198zrFsZkvfFH5juBK98frhDNooPtd5PGefd7vNb",
             "NtTtwqVX4SCNECrZ8ZmEaxAPFcm5r7Szx4tBmYLU17p",
-            "NttXP2tPLxGkNA3yrSfFZbtDbfKPKBrJUR6Jcqh6sRi"
+            "NttXP2tPLxGkNA3yrSfFZbtDbfKPKBrJUR6Jcqh6sRi",
+            "A7VwadM5nSiCtmEe5XZ3AjyXBKfePF2EPnY5wZbaWJjq",
+            "BopVWeP7ctdHU4x2GrbZX7XM13RPrfC45hUmcQz621Y8"
           ],
           "type": "NTT",
           "methods": [
@@ -77,6 +79,16 @@
             {
               "methodId": "ddb2b82bf7f85aa0",
               "method": "executeSlowOrderCctp"
+            }
+          ]
+        },
+        {
+          "addresses": ["FC4eXxkyrMPTjiYUpp4EAnkmwMbQyZ6NDCh1kfLn6vsf"],
+          "type": "Mayan",
+          "methods": [
+            {
+              "methodId": "64",
+              "method": "MethodCreateAccount"
             }
           ]
         }

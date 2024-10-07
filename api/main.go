@@ -225,7 +225,7 @@ func main() {
 	relaysService := relays.NewService(mongoRelaysRepo, postgresRelaysRepo, rootLogger)
 	operationsService := operations.NewService(operationsRepo, rootLogger)
 	statsService := stats.NewService(statsRepo, statsAddressRepo, statsHolderRepo, cache, expirationTime, metrics, rootLogger)
-	protocolsService := protocols.NewService(cfg.Protocols, []string{protocols.CCTP, protocols.PortalTokenBridge, protocols.NTT}, protocolsRepo, rootLogger, cache, cfg.Cache.ProtocolsStatsKey, cfg.Cache.ProtocolsStatsExpiration, metrics, tvl)
+	protocolsService := protocols.NewService(cfg.Protocols, protocolsRepo, rootLogger, cache, cfg.Cache.ProtocolsStatsKey, cfg.Cache.ProtocolsStatsExpiration, metrics, tvl)
 	guardianService := guardianHandlers.NewService(guardianSetRepository, cfg.P2pNetwork, cache, metrics, rootLogger)
 
 	// Set up a custom error handler

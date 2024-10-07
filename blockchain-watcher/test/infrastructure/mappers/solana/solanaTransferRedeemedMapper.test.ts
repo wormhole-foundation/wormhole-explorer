@@ -1155,4 +1155,200 @@ describe("solanaTransferRedeemedMapper", () => {
     );
     expect(events[0].attributes.sequence).toBe(11);
   });
+
+  it("should map a mayan tx (e.g Mayan Swap)", async () => {
+    const mockGetPostedMessage = getPostedMessage as jest.MockedFunction<typeof getPostedMessage>;
+    mockGetPostedMessage.mockResolvedValueOnce({
+      message: {
+        sequence: 10364n,
+        emitterChain: 23,
+        emitterAddress: Buffer.from([
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 191, 95, 63, 101, 16, 42, 231, 69, 164, 139, 213, 33,
+          209, 11, 171, 91, 240, 42, 158, 244,
+        ]),
+        payload: Buffer.from("41QVZTrdrRxb", "base64"),
+      } as any,
+    });
+
+    const programs = {
+      FC4eXxkyrMPTjiYUpp4EAnkmwMbQyZ6NDCh1kfLn6vsf: [
+        {
+          instructions: ["64"],
+          vaaAccountIndex: 2,
+        },
+      ],
+    };
+    const tx = {
+      blockTime: 1727886251,
+      meta: {
+        computeUnitsConsumed: 39778,
+        err: null,
+        fee: 205000,
+        innerInstructions: [
+          {
+            index: 1,
+            instructions: [
+              {
+                accounts: [0, 2],
+                data: "111183uzQbvYqJhYsuUqDALMEpDcPoDyV3HRNAjKrwzyrnxKTJsDS2a637jUDf9G88hN8D",
+                programIdIndex: 4,
+                stackHeight: 2,
+              },
+              { accounts: [1, 3, 11], data: "3DYhamUpKWDM", programIdIndex: 16, stackHeight: 2 },
+            ],
+          },
+        ],
+        loadedAddresses: { readonly: [], writable: [] },
+        logMessages: [
+          "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+          "Program ComputeBudget111111111111111111111111111111 success",
+          "Program FC4eXxkyrMPTjiYUpp4EAnkmwMbQyZ6NDCh1kfLn6vsf invoke [1]",
+          "Program log: mayan-swap v0.2 (build  at 1708743373)",
+          "Program 11111111111111111111111111111111 invoke [2]",
+          "Program 11111111111111111111111111111111 success",
+          "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]",
+          "Program log: Instruction: Transfer",
+          "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 4645 of 164877 compute units",
+          "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success",
+          "Program FC4eXxkyrMPTjiYUpp4EAnkmwMbQyZ6NDCh1kfLn6vsf consumed 39628 of 199850 compute units",
+          "Program FC4eXxkyrMPTjiYUpp4EAnkmwMbQyZ6NDCh1kfLn6vsf success",
+        ],
+        postBalances: [
+          10541196636, 2039280, 3814080, 2039280, 1, 25653059827, 2477760, 0, 3118080, 960480, 1,
+          1000001, 1141440, 897840, 1169280, 1009200, 934087680,
+        ],
+        postTokenBalances: [
+          {
+            accountIndex: 1,
+            mint: "3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh",
+            owner: "Dqfqb9Xr19tzQd5JjDwKnoK4RGrMa6AdaXzCjZJauhJP",
+            programId: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+            uiTokenAmount: { amount: "0", decimals: 8, uiAmount: null, uiAmountString: "0" },
+          },
+          {
+            accountIndex: 3,
+            mint: "3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh",
+            owner: "BSgCgeNT1nfrya8WJYBJcKGx4W7AQv6TiYHJGC46JAtV",
+            programId: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+            uiTokenAmount: {
+              amount: "60000000",
+              decimals: 8,
+              uiAmount: 0.6,
+              uiAmountString: "0.6",
+            },
+          },
+        ],
+        preBalances: [
+          10545215716, 2039280, 0, 2039280, 1, 25653059827, 2477760, 0, 3118080, 960480, 1, 1000001,
+          1141440, 897840, 1169280, 1009200, 934087680,
+        ],
+        preTokenBalances: [
+          {
+            accountIndex: 1,
+            mint: "3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh",
+            owner: "Dqfqb9Xr19tzQd5JjDwKnoK4RGrMa6AdaXzCjZJauhJP",
+            programId: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+            uiTokenAmount: {
+              amount: "60000000",
+              decimals: 8,
+              uiAmount: 0.6,
+              uiAmountString: "0.6",
+            },
+          },
+          {
+            accountIndex: 3,
+            mint: "3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh",
+            owner: "BSgCgeNT1nfrya8WJYBJcKGx4W7AQv6TiYHJGC46JAtV",
+            programId: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+            uiTokenAmount: { amount: "0", decimals: 8, uiAmount: null, uiAmountString: "0" },
+          },
+        ],
+        rewards: [],
+        status: { Ok: null },
+      },
+      slot: 293299620,
+      transaction: {
+        message: {
+          header: {
+            numReadonlySignedAccounts: 0,
+            numReadonlyUnsignedAccounts: 13,
+            numRequiredSignatures: 1,
+          },
+          accountKeys: [
+            "7dm9am6Qx7cH64RB99Mzf7ZsLbEfmXM7ihXXCvMiT2X1",
+            "Akoxxmb8M4bRXFUeoJKZSNDJfX4j6JXgnPCrBkYkdSX9",
+            "BSgCgeNT1nfrya8WJYBJcKGx4W7AQv6TiYHJGC46JAtV",
+            "DQVttusgHNk2WjLvDfNmiNDnqYvkusjGBSmY9cqvCKaB",
+            "11111111111111111111111111111111",
+            "3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh",
+            "42CxR7Lg2WtxRrH1uLzuEpqEZirkhLH5bSJejcGYZSr9",
+            "461eEhHkU1vWAJfHRKFqLy27csP1dyBsU56EWRAM7h85",
+            "6vLXjuyvimYA1FtHx33o8B9Hn7WZUFGAzietkN5PMws9",
+            "74ouc5sSsfxjT6iDXwLeD3LB2ZyAP5vEgBui1JnSowCk",
+            "ComputeBudget111111111111111111111111111111",
+            "Dqfqb9Xr19tzQd5JjDwKnoK4RGrMa6AdaXzCjZJauhJP",
+            "FC4eXxkyrMPTjiYUpp4EAnkmwMbQyZ6NDCh1kfLn6vsf",
+            "mDE8wD13VPmMEsHFYJQfotytkKaioQpouuyZwzkUY2s",
+            "SysvarC1ock11111111111111111111111111111111",
+            "SysvarRent111111111111111111111111111111111",
+            "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+          ],
+          recentBlockhash: "DtdyoJFhevLweFzoXnNY7xYB3oo7dRWqU5SgEobChhTs",
+          instructions: [
+            { accounts: [], data: "3QCwqmHZ4mdq", programIdIndex: 10, stackHeight: null },
+            {
+              accounts: [0, 6, 8, 2, 11, 5, 5, 1, 3, 9, 7, 14, 13, 15, 4, 16],
+              data: "21Khf38C9n467sgn3ay13Ae9Gy6mvhmNzixHawErdJ2zGF8etqrYvzQDuNc5tKP2gfNySVgLdZZF5DEhq5eWttYF6TL9PNJ",
+              programIdIndex: 12,
+              stackHeight: null,
+            },
+          ],
+          indexToProgramIds: {},
+          compiledInstructions: [
+            {
+              programIdIndex: 10,
+              accountKeyIndexes: [],
+              data: { type: "Buffer", data: [3, 64, 66, 15, 0, 0, 0, 0, 0] },
+            },
+            {
+              programIdIndex: 12,
+              accountKeyIndexes: [0, 6, 8, 2, 11, 5, 5, 1, 3, 9, 7, 14, 13, 15, 4, 16],
+              data: {
+                type: "Buffer",
+                data: [
+                  100, 255, 255, 254, 255, 49, 128, 145, 17, 86, 181, 86, 152, 153, 152, 28, 205,
+                  60, 138, 178, 208, 160, 135, 38, 169, 173, 246, 133, 60, 62, 36, 236, 21, 192,
+                  237, 182, 18, 29, 102, 224, 100, 86, 174, 3, 104, 37, 20, 206, 190, 28, 77, 135,
+                  245, 63, 104, 186, 234, 115, 192, 44, 182, 83, 68, 140, 133, 167, 109, 36, 219,
+                ],
+              },
+            },
+          ],
+        },
+        signatures: [
+          "3HxPToyFuStoBjecXNaavxeSuLhB1ViXbtGnvuTHPxUnS5Koc7ywbkMoaaLyD37URpvSYr4MFyNhrGUR9j7Zbumt",
+        ],
+      },
+      version: "legacy",
+      chain: "solana",
+      chainId: 1,
+    } as any as solana.Transaction;
+
+    const events = await solanaTransferRedeemedMapper(tx, { programs });
+
+    expect(events).toHaveLength(1);
+    expect(events[0].name).toBe("transfer-redeemed");
+    expect(events[0].address).toBe("FC4eXxkyrMPTjiYUpp4EAnkmwMbQyZ6NDCh1kfLn6vsf");
+    expect(events[0].chainId).toBe(1);
+    expect(events[0].txHash).toBe(tx.transaction.signatures[0]);
+    expect(events[0].blockHeight).toBe(BigInt(tx.slot));
+    expect(events[0].blockTime).toBe(tx.blockTime);
+    expect(events[0].attributes.methodsByAddress).toBe("MethodCreateAccount");
+    expect(events[0].attributes.status).toBe("completed");
+    expect(events[0].attributes.emitterChain).toBe(23);
+    expect(events[0].attributes.emitterAddress).toBe(
+      "000000000000000000000000bf5f3f65102ae745a48bd521d10bab5bf02a9ef4"
+    );
+    expect(events[0].attributes.sequence).toBe(10364);
+  });
 });

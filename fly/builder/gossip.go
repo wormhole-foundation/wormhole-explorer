@@ -11,9 +11,11 @@ func NewGossipChannels(cfg *config.Configuration) *gossip.GossipChannels {
 
 	return &gossip.GossipChannels{
 
-		SendChannel: make(chan []byte),
-
 		ObsvChannel: make(chan *common.MsgWithTimeStamp[gossipv1.SignedObservation], cfg.ObservationsChannelSize),
+
+		// Check variable `inboundBatchObservationBufferSize` in `github.com/wormhole-foundation/wormhole/node/pkg/node/node.go` for adjusting the buffer size.
+		// Link: https://github.com/wormhole-foundation/wormhole/blob/main/node/pkg/node/node.go
+		BatchObsvC: make(chan *common.MsgWithTimeStamp[gossipv1.SignedObservationBatch], 1000),
 
 		ObsvReqChannel: make(chan *gossipv1.ObservationRequest, 50),
 
