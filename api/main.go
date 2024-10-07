@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/api/builder"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/protocols"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/supply"
 
@@ -31,7 +32,6 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/governor"
 	guardianHandlers "github.com/wormhole-foundation/wormhole-explorer/api/handlers/guardian"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/heartbeats"
-	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/infrastructure"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/observations"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/operations"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/relays"
@@ -153,14 +153,13 @@ func main() {
 
 	// Set up repositories
 	rootLogger.Info("initializing repositories")
-	addressRepo := address.NewRepository(storage.mongoDB.Database, rootLogger)
+	addressRepo := address.NewMongoRepository(storage.mongoDB.Database, rootLogger)
 	vaaMongoRepo := vaa.NewMongoRepository(storage.mongoDB.Database, rootLogger)
 	vaaPostgresRepo := vaa.NewPostgresRepository(storage.postgresDB, rootLogger)
 	obsMongoRepo := observations.NewMongoRepository(storage.mongoDB.Database, rootLogger)
 	obsPostgresRepo := observations.NewPostgresRepository(storage.postgresDB, rootLogger)
 	mongoGovernorRepo := governor.NewMongoRepository(storage.mongoDB.Database, rootLogger)
 	postgresGovernorRepo := governor.NewPostgresRepository(storage.postgresDB, rootLogger)
-	infrastructureRepo := infrastructure.NewRepository(storage.mongoDB.Database, rootLogger)
 	heartbeatsRepo := heartbeats.NewRepository(storage.mongoDB.Database, rootLogger)
 	transactionsRepo := transactions.NewRepository(
 		tvl,
@@ -171,6 +170,7 @@ func main() {
 		cfg.Influx.Bucket30Days,
 		cfg.Influx.BucketInfinite,
 		storage.mongoDB.Database,
+		storage.postgresDB,
 		rootLogger,
 	)
 	mongoRelaysRepo := relays.NewMongoRepository(storage.mongoDB.Database, rootLogger)
@@ -209,6 +209,11 @@ func main() {
 
 	metrics := metrics.NewPrometheusMetrics(cfg.Environment)
 
+	healthChecks, err := builder.NewHealthChecks(appCtx, storage.postgresDB, storage.mongoDB)
+	if err != nil {
+		rootLogger.Fatal("failed to create health checks", zap.Error(err))
+	}
+
 	// Set up services
 	rootLogger.Info("initializing services")
 	expirationTime := time.Duration(cfg.Cache.MetricExpiration) * time.Minute
@@ -216,7 +221,6 @@ func main() {
 	vaaService := vaa.NewService(vaaMongoRepo, vaaPostgresRepo, cache.Get, vaaParserFunc, rootLogger)
 	obsService := observations.NewService(obsMongoRepo, obsPostgresRepo, rootLogger)
 	governorService := governor.NewService(mongoGovernorRepo, postgresGovernorRepo, cache, metrics, rootLogger)
-	infrastructureService := infrastructure.NewService(infrastructureRepo, rootLogger)
 	heartbeatsService := heartbeats.NewService(heartbeatsRepo, rootLogger)
 	transactionsService := transactions.NewService(transactionsRepo, cache, expirationTime, tokenProvider, metrics, rootLogger)
 	relaysService := relays.NewService(mongoRelaysRepo, postgresRelaysRepo, rootLogger)
@@ -265,7 +269,7 @@ func main() {
 	notSupportedByEnv := middleware.NotSupportedByTestnetEnv(cfg.P2pNetwork)
 	// Set up route handlers
 	app.Get("/swagger.json", GetSwagger)
-	wormscan.RegisterRoutes(notSupportedByEnv, app, rootLogger, addressService, vaaService, obsService, governorService, infrastructureService, transactionsService, relaysService, operationsService, statsService, protocolsService, supplyService)
+	wormscan.RegisterRoutes(notSupportedByEnv, app, rootLogger, addressService, vaaService, obsService, governorService, transactionsService, relaysService, operationsService, statsService, protocolsService, supplyService, healthChecks...)
 	guardian.RegisterRoutes(cfg, app, rootLogger, vaaService, governorService, heartbeatsService, guardianService)
 
 	// Set up gRPC handlers

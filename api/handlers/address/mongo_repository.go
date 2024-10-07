@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
-type Repository struct {
+type MongoRepository struct {
 	db     *mongo.Database
 	logger *zap.Logger
 
@@ -20,8 +20,8 @@ type Repository struct {
 	}
 }
 
-func NewRepository(db *mongo.Database, logger *zap.Logger) *Repository {
-	return &Repository{db: db,
+func NewMongoRepository(db *mongo.Database, logger *zap.Logger) *MongoRepository {
+	return &MongoRepository{db: db,
 		logger: logger.With(zap.String("module", "AddressRepository")),
 		collections: struct {
 			parsedVaa *mongo.Collection
@@ -37,7 +37,7 @@ type GetAddressOverviewParams struct {
 	Limit   int64
 }
 
-func (r *Repository) GetAddressOverview(ctx context.Context, params *GetAddressOverviewParams) (*AddressOverview, error) {
+func (r *MongoRepository) GetAddressOverview(ctx context.Context, params *GetAddressOverviewParams) (*AddressOverview, error) {
 
 	ids, err := common.FindVaasIdsByFromAddressOrToAddress(ctx, r.db, params.Address)
 	if err != nil {

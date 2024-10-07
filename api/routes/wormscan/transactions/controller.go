@@ -76,7 +76,7 @@ func (c *Controller) GetLastTransactions(ctx *fiber.Ctx) error {
 func (c *Controller) GetScorecards(ctx *fiber.Ctx) error {
 
 	// Query indicators from the database
-	scorecards, err := c.srv.GetScorecards(ctx.Context())
+	scorecards, err := c.srv.GetScorecards(ctx.Context(), middleware.UsePostgres(ctx))
 	if err != nil {
 		c.logger.Error("failed to get scorecards", zap.Error(err))
 		return err
@@ -455,7 +455,8 @@ func (c *Controller) FindGlobalTransactionByID(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	globalTransaction, err := c.srv.FindGlobalTransactionByID(ctx.Context(), chainID, emitter, strconv.FormatUint(seq, 10))
+	globalTransaction, err := c.srv.FindGlobalTransactionByID(ctx.Context(),
+		middleware.UsePostgres(ctx), chainID, emitter, strconv.FormatUint(seq, 10))
 	if err != nil {
 		return err
 	}

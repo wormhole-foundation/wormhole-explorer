@@ -29,6 +29,7 @@ type AttestationVaaProperties struct {
 	VaaID             string           `json:"vaa_id" db:"vaa_id"`
 	AppID             []string         `json:"app_id" db:"app_id"`
 	Payload           *json.RawMessage `json:"payload" db:"payload"`
+	PayloadType       *int             `json:"payload_type" db:"payload_type"`
 	RawStandardFields *json.RawMessage `json:"raw_standard_fields" db:"raw_standard_fields"`
 	FromChainID       *sdk.ChainID     `json:"from_chain_id" db:"from_chain_id"`
 	FromAddress       *string          `json:"from_address" db:"from_address"`
