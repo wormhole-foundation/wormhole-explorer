@@ -285,6 +285,7 @@ data:
         "source": {
           "action": "PollEvm",
           "records": "GetEvmTransactions",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
