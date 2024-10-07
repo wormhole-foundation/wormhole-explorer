@@ -24,7 +24,7 @@ import (
 type Processor struct {
 	parser             vaaPayloadParser.ParserVAAAPIClient
 	dbMode             string
-	mongoRepository    *parser.Repository
+	mongoRepository    *parser.MongoRepository
 	postgresRepository *parser.PostgresRepository
 	alert              alert.AlertClient
 	metrics            metrics.Metrics
@@ -32,7 +32,7 @@ type Processor struct {
 	logger             *zap.Logger
 }
 
-func New(parser vaaPayloadParser.ParserVAAAPIClient, dbMode string, mongoRepository *parser.Repository,
+func New(parser vaaPayloadParser.ParserVAAAPIClient, dbMode string, mongoRepository *parser.MongoRepository,
 	postgresRepository *parser.PostgresRepository, alert alert.AlertClient, metrics metrics.Metrics,
 	tokenProvider *domain.TokenProvider, logger *zap.Logger) *Processor {
 	return &Processor{

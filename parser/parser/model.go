@@ -45,3 +45,12 @@ type AttestationVaaProperties struct {
 	CreatedAt         time.Time        `json:"created_at" db:"created_at"`
 	UpdatedAt         time.Time        `json:"updated_at" db:"updated_at"`
 }
+
+type OperationAddress struct {
+	ID          string    `db:"id"`
+	Address     string    `db:"address"`
+	AddressType string    `db:"address_type"`
+	Timestamp   time.Time `db:"timestamp"`
+	CreatedAt   time.Time `db:"created_at"`
+	UpdatedAt   time.Time `db:"updated_at"`
+}

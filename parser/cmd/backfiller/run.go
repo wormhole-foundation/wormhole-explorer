@@ -83,7 +83,7 @@ func runMongoBackfiller(ctx context.Context, logger *zap.Logger,
 		SortAsc:  cfg.SortAsc,
 	}
 
-	parserRepository := parser.NewRepository(db.Database, logger)
+	parserRepository := parser.NewMongoRepository(db.Database, logger)
 	vaaRepository := repository.NewVaaRepository(db.Database, logger)
 
 	// create a token provider
