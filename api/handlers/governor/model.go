@@ -56,9 +56,21 @@ type GovStatusChainEmitter struct {
 
 // NotionalLimit represent the notional limit value and maximun tranasction size for a chainID.
 type NotionalLimit struct {
-	ChainID           vaa.ChainID   `bson:"chainid" json:"chainId"`
-	NotionalLimit     *mongo.Uint64 `bson:"notionalLimit" json:"notionalLimit"`
-	MaxTrasactionSize *mongo.Uint64 `bson:"maxTransactionSize" json:"maxTransactionSize"`
+	ChainID            vaa.ChainID `json:"chainId"`
+	NotionalLimit      uint64      `json:"notionalLimit"`
+	MaxTransactionSize uint64      `json:"maxTransactionSize"`
+}
+
+type notionalLimitMongo struct {
+	ChainID            vaa.ChainID   `bson:"chainid"`
+	NotionalLimit      *mongo.Uint64 `bson:"notionallimit"`
+	MaxTransactionSize *mongo.Uint64 `bson:"maxtransactionsize"`
+}
+
+type notionalLimitSQL struct {
+	ChainID            vaa.ChainID `db:"chainid"`
+	NotionalLimit      string      `db:"notionallimit"`
+	MaxTransactionSize string      `db:"maxtransactionsize"`
 }
 
 // NotionalLimitDetail represent a notional limit value
