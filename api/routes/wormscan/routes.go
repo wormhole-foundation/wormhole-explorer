@@ -14,6 +14,7 @@ import (
 	protocolssvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/protocols"
 	relayssvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/relays"
 	statssvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/stats"
+	supplySvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/supply"
 	trxsvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/transactions"
 	vaasvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/address"
@@ -24,6 +25,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/protocols"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/relays"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/stats"
+	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/supply"
 
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/transactions"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/vaa"
@@ -46,6 +48,7 @@ func RegisterRoutes(
 	operationsService *opsvc.Service,
 	statsService *statssvc.Service,
 	protocolsService *protocolssvc.Service,
+	supplyService *supplySvc.Service,
 ) {
 
 	// Set up controllers
@@ -59,6 +62,7 @@ func RegisterRoutes(
 	opsCtrl := operations.NewController(operationsService, rootLogger)
 	statsCtrl := stats.NewController(statsService, rootLogger)
 	contributorsCtrl := protocols.NewController(rootLogger, protocolsService)
+	supplyCtrl := supply.NewController(supplyService, rootLogger)
 
 	// Set up route handlers
 	api := app.Group("/api/v1")
@@ -81,6 +85,10 @@ func RegisterRoutes(
 	api.Get("/health", infrastructureCtrl.HealthCheck)
 	api.Get("/ready", infrastructureCtrl.ReadyCheck)
 	api.Get("/version", infrastructureCtrl.Version)
+
+	// Circulating Supply
+	api.Get("/supply", supplyCtrl.GetCirculatingSupply)
+	api.Get("/total-supply", supplyCtrl.GetTotalSupply)
 
 	// accounts resource
 	api.Get("/address/:id", addressCtrl.FindById)
