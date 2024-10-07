@@ -75,6 +75,26 @@ type notionalLimitSQL struct {
 
 // NotionalLimitDetail represent a notional limit value
 type NotionalLimitDetail struct {
+	ID                 string      `json:"id"`
+	ChainID            vaa.ChainID `json:"chainId"`
+	NodeName           string      `json:"nodeName"`
+	NotionalLimit      uint64      `json:"notionalLimit"`
+	MaxTransactionSize uint64      `json:"maxTransactionSize"`
+	CreatedAt          *time.Time  `json:"createdAt"`
+	UpdatedAt          *time.Time  `json:"updatedAt"`
+}
+
+type notionalLimitDetailSQL struct {
+	ID                 string      `db:"id"`
+	ChainID            vaa.ChainID `db:"chainid"`
+	NodeName           string      `db:"guardian_name"`
+	NotionalLimit      string      `db:"notionallimit"`
+	MaxTransactionSize string      `db:"maxtransactionsize"`
+	CreatedAt          *time.Time  `db:"created_at"`
+	UpdatedAt          *time.Time  `db:"updated_at"`
+}
+
+type notionalLimitDetailMongo struct {
 	ID                string        `bson:"_id" json:"id"`
 	ChainID           vaa.ChainID   `bson:"chainId" json:"chainId"`
 	NodeName          string        `bson:"nodename" json:"nodeName"`

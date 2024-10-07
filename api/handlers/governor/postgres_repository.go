@@ -284,6 +284,68 @@ func (r *PostgresRepository) GetGovernorNotionalLimit(ctx context.Context, query
 
 }
 
+func (r *PostgresRepository) GetNotionalLimitByChainID(
+	ctx context.Context,
+	q *NotionalLimitQuery,
+) ([]*NotionalLimitDetail, error) {
+	limit := q.Pagination.Limit
+	offset := q.Pagination.Skip
+
+	query := `
+		SELECT 	wormholescan.wh_governor_config.id,
+		    	wormholescan.wh_governor_config.guardian_name,
+       		  	wormholescan.wh_governor_config.created_at,
+       			wormholescan.wh_governor_config.updated_at,
+       			(chain_data.value ->> 'chainid')::SMALLINT AS chainId,
+       			chain_data.value ->> 'notionallimit'       AS notionalLimit,
+      			chain_data.value ->> 'bigtransactionsize'  AS maxTransactionSize
+		FROM	wormholescan.wh_governor_config,
+     			jsonb_array_elements(chains) AS chain_data
+		WHERE chain_data.value ->> 'chainid' = $1
+		LIMIT $2 OFFSET $3;
+	`
+
+	var result []*NotionalLimitDetail
+	var response []notionalLimitDetailSQL
+
+	itoa := strconv.Itoa(int(q.chainID))
+	err := r.db.Select(ctx, &response, query, itoa, limit, offset)
+	if err != nil {
+		r.logger.Error("failed to execute query", zap.Error(err), zap.String("query", query))
+		return result, err
+	}
+
+	for _, nl := range response {
+
+		var notionalLimit float64
+		var maxTxSize float64
+
+		notionalLimit, err = strconv.ParseFloat(nl.NotionalLimit, 10)
+		if err != nil {
+			r.logger.Error("failed to parse notional limit", zap.Error(err), zap.String("notional_limit", nl.NotionalLimit))
+			break
+		}
+
+		maxTxSize, err = strconv.ParseFloat(nl.MaxTransactionSize, 10)
+		if err != nil {
+			r.logger.Error("failed to parse max transaction size", zap.Error(err), zap.String("max_transaction_size", nl.MaxTransactionSize))
+			break
+		}
+
+		result = append(result, &NotionalLimitDetail{
+			ID:                 nl.ID,
+			ChainID:            nl.ChainID,
+			NodeName:           nl.NodeName,
+			CreatedAt:          nl.CreatedAt,
+			UpdatedAt:          nl.UpdatedAt,
+			NotionalLimit:      uint64(notionalLimit),
+			MaxTransactionSize: uint64(maxTxSize),
+		})
+	}
+
+	return result, err
+}
+
 func (q *GovernorQuery) toQuery() (string, []any) {
 	var params []any
 	query := "SELECT id, guardian_name, message , created_at , updated_at FROM wormholescan.wh_governor_status \n "

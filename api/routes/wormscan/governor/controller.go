@@ -239,7 +239,7 @@ func (c *Controller) GetNotionalLimitByChainID(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	notionalLimit, err := c.srv.GetNotionalLimitByChainID(ctx.Context(), p, chainID)
+	notionalLimit, err := c.srv.GetNotionalLimitByChainID(ctx.Context(), middleware.UsePostgres(ctx), p, chainID)
 	if err != nil {
 		return err
 	}
