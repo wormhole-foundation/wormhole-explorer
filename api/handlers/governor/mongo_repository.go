@@ -431,8 +431,9 @@ func (r *MongoRepository) GetNotionalLimitByChainID(
 	}
 
 	// decode to []NotionalLimitRecord.
-	var notionalLimits []*NotionalLimitDetail
-	err = cur.All(ctx, &notionalLimits)
+	var result []*NotionalLimitDetail
+	var resp []*notionalLimitDetailMongo
+	err = cur.All(ctx, &resp)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
 		r.logger.Error("failed to decode cursor into []*NotionalLimitDetail",
@@ -443,7 +444,26 @@ func (r *MongoRepository) GetNotionalLimitByChainID(
 		return nil, errors.WithStack(err)
 	}
 
-	return notionalLimits, nil
+	for _, nld := range resp {
+
+		if nld == nil ||
+			nld.NotionalLimit == nil ||
+			nld.MaxTrasactionSize == nil {
+			continue
+		}
+
+		result = append(result, &NotionalLimitDetail{
+			ID:                 nld.ID,
+			ChainID:            nld.ChainID,
+			NodeName:           nld.NodeName,
+			NotionalLimit:      uint64(*nld.NotionalLimit),
+			MaxTransactionSize: uint64(*nld.MaxTrasactionSize),
+			CreatedAt:          nld.CreatedAt,
+			UpdatedAt:          nld.UpdatedAt,
+		})
+	}
+
+	return result, nil
 }
 
 // GetAvailableNotional get a list of *NotionalAvailable.

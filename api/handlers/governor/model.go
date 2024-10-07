@@ -95,13 +95,13 @@ type notionalLimitDetailSQL struct {
 }
 
 type notionalLimitDetailMongo struct {
-	ID                string        `bson:"_id" json:"id"`
-	ChainID           vaa.ChainID   `bson:"chainId" json:"chainId"`
-	NodeName          string        `bson:"nodename" json:"nodeName"`
-	NotionalLimit     *mongo.Uint64 `bson:"notionalLimit" json:"notionalLimit"`
-	MaxTrasactionSize *mongo.Uint64 `bson:"maxTransactionSize" json:"maxTransactionSize"`
-	CreatedAt         *time.Time    `bson:"createdAt" json:"createdAt"`
-	UpdatedAt         *time.Time    `bson:"updatedAt" json:"updatedAt"`
+	ID                string        `bson:"_id"`
+	ChainID           vaa.ChainID   `bson:"chainId"`
+	NodeName          string        `bson:"nodename"`
+	NotionalLimit     *mongo.Uint64 `bson:"notionalLimit"`
+	MaxTrasactionSize *mongo.Uint64 `bson:"maxTransactionSize"`
+	CreatedAt         *time.Time    `bson:"createdAt"`
+	UpdatedAt         *time.Time    `bson:"updatedAt"`
 }
 
 // NotionalAvailable represent the available notional for chainID.
