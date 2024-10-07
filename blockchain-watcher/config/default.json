@@ -233,6 +233,13 @@
       "rpcs": ["https://xlayertestrpc.okx.com", "https://testrpc.xlayer.tech"],
       "timeout": 10000
     },
+    "berachain": {
+      "name": "berachain",
+      "network": "testnet",
+      "chainId": 39,
+      "rpcs": ["https://bartio.rpc.berachain.com/"],
+      "timeout": 10000
+    },
     "snaxchain": {
       "name": "snaxchain",
       "network": "testnet",
