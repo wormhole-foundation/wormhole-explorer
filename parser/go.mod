@@ -21,6 +21,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.20.2
 	github.com/prometheus/client_golang v1.16.0
 	github.com/spf13/cobra v1.8.0
+	github.com/tidwall/gjson v1.15.0
 	github.com/wormhole-foundation/wormhole-explorer/common v0.0.0-20240422172607-688a0d0f718e
 )
 
@@ -96,6 +97,8 @@ require (
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/tidwall/match v1.1.1 // indirect
+	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.51.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect

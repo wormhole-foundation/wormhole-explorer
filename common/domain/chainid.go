@@ -215,6 +215,7 @@ func NormalizeTxHashByChainId(chainID sdk.ChainID, txHash string) string {
 
 func NormalizeAddressByChainId(chainID sdk.ChainID, address string) string {
 	switch chainID {
+	//EVMs
 	case sdk.ChainIDEthereum,
 		sdk.ChainIDBase,
 		sdk.ChainIDBSC,
@@ -242,6 +243,82 @@ func NormalizeAddressByChainId(chainID sdk.ChainID, address string) string {
 		sdk.ChainIDXLayer,
 		sdk.ChainIDSnaxchain:
 		return utils.NormalizeHex(address)
+	case sdk.ChainIDAptos:
+		return utils.NormalizeHex(address)
+	default:
+		return address
+	}
+}
+
+func DenormalizeTxHashByChainId(chainID sdk.ChainID, txHash string) string {
+	switch chainID {
+	case sdk.ChainIDEthereum,
+		sdk.ChainIDBase,
+		sdk.ChainIDBSC,
+		sdk.ChainIDPolygon,
+		sdk.ChainIDPolygonSepolia,
+		sdk.ChainIDAvalanche,
+		sdk.ChainIDOasis,
+		sdk.ChainIDAurora,
+		sdk.ChainIDFantom,
+		sdk.ChainIDKarura,
+		sdk.ChainIDAcala,
+		sdk.ChainIDKlaytn,
+		sdk.ChainIDCelo,
+		sdk.ChainIDMoonbeam,
+		sdk.ChainIDArbitrum,
+		sdk.ChainIDOptimism,
+		sdk.ChainIDMantle,
+		sdk.ChainIDSepolia,
+		sdk.ChainIDArbitrumSepolia,
+		sdk.ChainIDBaseSepolia,
+		sdk.ChainIDOptimismSepolia,
+		sdk.ChainIDHolesky,
+		sdk.ChainIDScroll,
+		sdk.ChainIDBlast,
+		sdk.ChainIDXLayer,
+		sdk.ChainIDSnaxchain:
+		if utils.StartsWith0x(txHash) {
+			return txHash
+		}
+		return utils.DenormalizeHex(txHash)
+	default:
+		return txHash
+	}
+}
+
+func DenormalizeAddressByChainId(chainID sdk.ChainID, address string) string {
+	switch chainID {
+	case sdk.ChainIDEthereum,
+		sdk.ChainIDBase,
+		sdk.ChainIDBSC,
+		sdk.ChainIDPolygon,
+		sdk.ChainIDPolygonSepolia,
+		sdk.ChainIDAvalanche,
+		sdk.ChainIDOasis,
+		sdk.ChainIDAurora,
+		sdk.ChainIDFantom,
+		sdk.ChainIDKarura,
+		sdk.ChainIDAcala,
+		sdk.ChainIDKlaytn,
+		sdk.ChainIDCelo,
+		sdk.ChainIDMoonbeam,
+		sdk.ChainIDArbitrum,
+		sdk.ChainIDOptimism,
+		sdk.ChainIDMantle,
+		sdk.ChainIDSepolia,
+		sdk.ChainIDArbitrumSepolia,
+		sdk.ChainIDBaseSepolia,
+		sdk.ChainIDOptimismSepolia,
+		sdk.ChainIDHolesky,
+		sdk.ChainIDScroll,
+		sdk.ChainIDBlast,
+		sdk.ChainIDXLayer,
+		sdk.ChainIDSnaxchain:
+		if utils.StartsWith0x(address) {
+			return address
+		}
+		return utils.DenormalizeHex(address)
 	default:
 		return address
 	}

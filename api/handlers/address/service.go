@@ -9,17 +9,15 @@ import (
 )
 
 type Service struct {
-	repo   *Repository
-	logger *zap.Logger
+	mongoRepo *MongoRepository
+	logger    *zap.Logger
 }
 
-func NewService(r *Repository, logger *zap.Logger) *Service {
-
+func NewService(r *MongoRepository, logger *zap.Logger) *Service {
 	srv := Service{
-		repo:   r,
-		logger: logger.With(zap.String("module", "AddressService")),
+		mongoRepo: r,
+		logger:    logger.With(zap.String("module", "AddressService")),
 	}
-
 	return &srv
 }
 
@@ -27,6 +25,7 @@ func (s *Service) GetAddressOverview(
 	ctx context.Context,
 	address string,
 	pagination *pagination.Pagination,
+	usePostgres bool,
 ) (*response.Response[*AddressOverview], error) {
 
 	response := &response.Response[*AddressOverview]{}
@@ -36,7 +35,17 @@ func (s *Service) GetAddressOverview(
 		Skip:    pagination.Skip,
 		Limit:   pagination.Limit,
 	}
-	overview, err := s.repo.GetAddressOverview(ctx, &p)
+
+	var overview *AddressOverview
+	var err error
+
+	if usePostgres {
+		// Deprecated endpoint.
+		overview = &AddressOverview{}
+	} else {
+		overview, err = s.mongoRepo.GetAddressOverview(ctx, &p)
+	}
+
 	if err != nil {
 		return response, err
 	}
