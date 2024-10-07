@@ -156,7 +156,7 @@ func (s *Service) FindNotionalLimit(ctx context.Context, usePostgres bool, p *pa
 	var notionalLimit []*NotionalLimit
 	var err error
 	if usePostgres {
-		notionalLimit, err = s.postgresRepo.GetGovernorNotionalLimit(ctx)
+		notionalLimit, err = s.postgresRepo.GetGovernorNotionalLimit(ctx, query)
 	} else {
 		notionalLimit, err = s.mongoRepo.FindNotionalLimit(ctx, query)
 	}

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"strconv"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/mongo"
@@ -226,7 +227,10 @@ func (r *PostgresRepository) FindOneGovernorStatus(
 	return createGovStatus(&result)
 }
 
-func (r *PostgresRepository) GetGovernorNotionalLimit(ctx context.Context) ([]*NotionalLimit, error) {
+func (r *PostgresRepository) GetGovernorNotionalLimit(ctx context.Context, queryFilter *NotionalLimitQuery) ([]*NotionalLimit, error) {
+
+	limit := queryFilter.Pagination.Limit
+	offset := queryFilter.Pagination.Skip
 
 	query := `
 		WITH RankedChains AS (SELECT (chain_data.value ->> 'chainid')::SMALLINT     AS chainId,
@@ -240,17 +244,43 @@ func (r *PostgresRepository) GetGovernorNotionalLimit(ctx context.Context) ([]*N
 		       maxTransactionSize
 		FROM RankedChains
 		WHERE rowNum = 13
-		ORDER BY chainId ASC;
+		ORDER BY chainId ASC
+		LIMIT $1 OFFSET $2;
 	`
 
 	var result []*NotionalLimit
-	err := r.db.Select(ctx, &result, query)
+	var response []notionalLimitSQL
+	err := r.db.Select(ctx, &response, query, limit, offset)
 	if err != nil {
 		r.logger.Error("failed to execute query", zap.Error(err), zap.String("query", query))
-		return nil, err
+		return result, err
 	}
 
-	return result, nil
+	for _, a := range response {
+
+		var notionalLimit float64
+		var maxTxSize float64
+
+		notionalLimit, err = strconv.ParseFloat(a.NotionalLimit, 10)
+		if err != nil {
+			r.logger.Error("failed to parse notional limit", zap.Error(err), zap.String("notional_limit", a.NotionalLimit))
+			break
+		}
+
+		maxTxSize, err = strconv.ParseFloat(a.MaxTransactionSize, 10)
+		if err != nil {
+			r.logger.Error("failed to parse max transaction size", zap.Error(err), zap.String("max_transaction_size", a.MaxTransactionSize))
+			break
+		}
+
+		result = append(result, &NotionalLimit{
+			ChainID:            a.ChainID,
+			NotionalLimit:      uint64(notionalLimit),
+			MaxTransactionSize: uint64(maxTxSize),
+		})
+	}
+
+	return result, err
 
 }
 
