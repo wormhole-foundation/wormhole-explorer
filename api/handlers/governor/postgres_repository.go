@@ -226,6 +226,34 @@ func (r *PostgresRepository) FindOneGovernorStatus(
 	return createGovStatus(&result)
 }
 
+func (r *PostgresRepository) GetGovernorNotionalLimit(ctx context.Context) ([]*NotionalLimit, error) {
+
+	query := `
+		WITH RankedChains AS (SELECT (chain_data.value ->> 'chainid')::SMALLINT     AS chainId,
+                             chain_data.value ->> 'notionallimit'       AS notionalLimit,
+                             chain_data.value ->> 'bigtransactionsize'  AS maxTransactionSize,
+                             ROW_NUMBER() OVER (PARTITION BY chain_data.value ->> 'chainid' ORDER BY chain_data.value ->> 'notionallimit' DESC, chain_data.value ->> 'bigtransactionsize' DESC) AS rowNum
+                      FROM wormholescan.wh_governor_config,
+                           jsonb_array_elements(chains) AS chain_data)
+		SELECT chainId,
+		       notionalLimit,
+		       maxTransactionSize
+		FROM RankedChains
+		WHERE rowNum = 13
+		ORDER BY chainId ASC;
+	`
+
+	var result []*NotionalLimit
+	err := r.db.Select(ctx, &result, query)
+	if err != nil {
+		r.logger.Error("failed to execute query", zap.Error(err), zap.String("query", query))
+		return nil, err
+	}
+
+	return result, nil
+
+}
+
 func (q *GovernorQuery) toQuery() (string, []any) {
 	var params []any
 	query := "SELECT id, guardian_name, message , created_at , updated_at FROM wormholescan.wh_governor_status \n "
