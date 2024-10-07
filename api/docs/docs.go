@@ -825,7 +825,7 @@ const docTemplate = `{
         },
         "/api/v1/native-token-transfer/top-holder": {
             "get": {
-                "description": "Returns a list of volume of the Native Token Transfer for holder.",
+                "description": "Returns a list of volume and chain of the Native Token Transfer for top holders.",
                 "tags": [
                     "wormholescan"
                 ],
@@ -1398,6 +1398,23 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/supply": {
+            "get": {
+                "description": "Get W token circulation supply.",
+                "tags": [
+                    "wormholescan"
+                ],
+                "operationId": "supply",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/supply.CirculatingSupplyResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/token/:chain_id/:token_address": {
             "get": {
                 "description": "Returns a token symbol, coingecko id and address by chain and token address.",
@@ -1553,6 +1570,23 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/v1/total-supply": {
+            "get": {
+                "description": "Get W token total supply.",
+                "tags": [
+                    "wormholescan"
+                ],
+                "operationId": "total-supply",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/supply.TotalSupplyResponse"
+                        }
                     }
                 }
             }
@@ -3264,6 +3298,9 @@ const docTemplate = `{
                 "error": {
                     "type": "string"
                 },
+                "last_24_hour_volume": {
+                    "type": "number"
+                },
                 "last_day_diff_percentage": {
                     "type": "string"
                 },
@@ -3784,6 +3821,22 @@ const docTemplate = `{
                 }
             }
         },
+        "supply.CirculatingSupplyResponse": {
+            "type": "object",
+            "properties": {
+                "circulating_supply": {
+                    "type": "string"
+                }
+            }
+        },
+        "supply.TotalSupplyResponse": {
+            "type": "object",
+            "properties": {
+                "total_supply": {
+                    "type": "string"
+                }
+            }
+        },
         "transactions.AssetWithVolume": {
             "type": "object",
             "properties": {
@@ -4140,6 +4193,8 @@ const docTemplate = `{
                 37,
                 38,
                 39,
+                40,
+                43,
                 3104,
                 4000,
                 4001,
@@ -4195,6 +4250,8 @@ const docTemplate = `{
                 "ChainIDXLayer",
                 "ChainIDLinea",
                 "ChainIDBerachain",
+                "ChainIDSeiEVM",
+                "ChainIDSnaxchain",
                 "ChainIDWormchain",
                 "ChainIDCosmoshub",
                 "ChainIDEvmos",

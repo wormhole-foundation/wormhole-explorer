@@ -551,6 +551,8 @@ definitions:
     properties:
       error:
         type: string
+      last_24_hour_volume:
+        type: number
       last_day_diff_percentage:
         type: string
       last_day_messages:
@@ -887,6 +889,16 @@ definitions:
       volume:
         type: number
     type: object
+  supply.CirculatingSupplyResponse:
+    properties:
+      circulating_supply:
+        type: string
+    type: object
+  supply.TotalSupplyResponse:
+    properties:
+      total_supply:
+        type: string
+    type: object
   transactions.AssetWithVolume:
     properties:
       emitterChain:
@@ -1142,6 +1154,8 @@ definitions:
     - 37
     - 38
     - 39
+    - 40
+    - 43
     - 3104
     - 4000
     - 4001
@@ -1197,6 +1211,8 @@ definitions:
     - ChainIDXLayer
     - ChainIDLinea
     - ChainIDBerachain
+    - ChainIDSeiEVM
+    - ChainIDSnaxchain
     - ChainIDWormchain
     - ChainIDCosmoshub
     - ChainIDEvmos
@@ -1820,7 +1836,8 @@ paths:
       - wormholescan
   /api/v1/native-token-transfer/top-holder:
     get:
-      description: Returns a list of volume of the Native Token Transfer for holder.
+      description: Returns a list of volume and chain of the Native Token Transfer
+        for top holders.
       operationId: /api/v1/native-token-transfer/top-holder
       parameters:
       - description: Symbol of the token. Currently only supports W.
@@ -2210,6 +2227,17 @@ paths:
           description: Internal Server Error
       tags:
       - wormholescan
+  /api/v1/supply:
+    get:
+      description: Get W token circulation supply.
+      operationId: supply
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/supply.CirculatingSupplyResponse'
+      tags:
+      - wormholescan
   /api/v1/token/:chain_id/:token_address:
     get:
       description: Returns a token symbol, coingecko id and address by chain and token
@@ -2319,6 +2347,17 @@ paths:
           description: Bad Request
         "500":
           description: Internal Server Error
+      tags:
+      - wormholescan
+  /api/v1/total-supply:
+    get:
+      description: Get W token total supply.
+      operationId: total-supply
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/supply.TotalSupplyResponse'
       tags:
       - wormholescan
   /api/v1/transactions/:
