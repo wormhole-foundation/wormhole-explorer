@@ -1,7 +1,7 @@
 import { mockRpcPool } from "../../mocks/mockRpcPool";
 mockRpcPool();
 
-import { SnsEventRepository, StaticJob } from "../../../src/infrastructure/repositories";
+import { SnsEventRepository, StaticJobRepository } from "../../../src/infrastructure/repositories";
 import { beforeEach, describe, expect, it } from "@jest/globals";
 import fs from "fs";
 import {
@@ -30,14 +30,14 @@ const cosmosRepo = {} as any as CosmosRepository;
 const algorandRepo = {} as any as AlgorandRepository;
 const nearRepo = {} as any as NearRepository;
 
-let job: StaticJob;
+let job: StaticJobRepository;
 
 describe("StaticJob", () => {
   beforeEach(() => {
     if (fs.existsSync(dirPath)) {
       fs.rmSync(dirPath, { recursive: true, force: true });
     }
-    job = new StaticJob("testnet", dirPath, false, 1200000, {
+    job = new StaticJobRepository("testnet", dirPath, false, 1200000, {
       evmRepo: () => blockRepo,
       metadataRepo,
       statsRepo,

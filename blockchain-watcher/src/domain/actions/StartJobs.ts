@@ -1,16 +1,16 @@
 import { RunRPCHealthcheck } from "./RunRPCHealthcheck";
+import { JobRepository } from "../repositories";
 import { JobDefinition } from "../entities";
 import winston from "winston";
-import { Job } from "../jobs";
 
 const RPC_HEALTHCHECK = "rpc-healthcheck";
 
 export class StartJobs {
   private readonly logger = winston.child({ module: "StartJobs" });
-  private readonly job: Job;
+  private readonly job: JobRepository;
   private runnables: Map<string, () => Promise<void>> = new Map();
 
-  constructor(job: Job) {
+  constructor(job: JobRepository) {
     this.job = job;
   }
 

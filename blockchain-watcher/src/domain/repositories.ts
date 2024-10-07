@@ -5,8 +5,10 @@ import { Fallible, SolanaFailure } from "./errors";
 import { ConfirmedSignatureInfo } from "./entities/solana";
 import { AlgorandTransaction } from "./entities/algorand";
 import { TransactionFilter } from "./actions/aptos/PollAptos";
+import { RunRPCHealthcheck } from "./actions/RunRPCHealthcheck";
 import { CosmosTransaction } from "./entities/cosmos";
 import { NearTransaction } from "./entities/near";
+import { RunPollingJob } from "./actions";
 import { Filter } from "./actions/cosmos/types";
 import {
   TransactionFilter as SuiTransactionFilter,
@@ -15,8 +17,10 @@ import {
 } from "@mysten/sui.js/client";
 import {
   ReceiptTransaction,
+  JobDefinition,
   EvmLogFilter,
   EvmBlock,
+  Handler,
   solana,
   EvmLog,
   EvmTag,
@@ -140,3 +144,10 @@ export type ProviderHealthCheck = {
   height: bigint | undefined;
   url: string;
 };
+
+export interface JobRepository {
+  getJobDefinitions(): Promise<JobDefinition[]>;
+  getRPCHealthcheck(jobsDef: JobDefinition[]): RunRPCHealthcheck;
+  getPollingJob(jobDef: JobDefinition): RunPollingJob;
+  getHandlers(jobDef: JobDefinition): Promise<Handler[]>;
+}

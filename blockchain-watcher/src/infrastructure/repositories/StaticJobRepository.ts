@@ -31,7 +31,6 @@ import { InfluxEventRepository } from "./target/InfluxEventRepository";
 import { HandleWormchainLogs } from "../../domain/actions/wormchain/HandleWormchainLogs";
 import { RunRPCHealthcheck } from "../../domain/actions/RunRPCHealthcheck";
 import { RPCHealthcheck } from "../../domain/RPCHealthcheck/RPCHealthcheck";
-import { Job } from "../../domain/jobs";
 import log from "../log";
 import {
   PollCosmosConfigProps,
@@ -54,6 +53,7 @@ import {
   NearRepository,
   StatRepository,
   SuiRepository,
+  JobRepository,
 } from "../../domain/repositories";
 import {
   PollSolanaTransactionsConfig,
@@ -85,7 +85,7 @@ import {
   PollAlgorand,
 } from "../../domain/actions/algorand/PollAlgorand";
 
-export class StaticJob implements Job {
+export class StaticJobRepository implements JobRepository {
   private fileRepo: FileMetadataRepository;
   private environment: string;
   private dryRun: boolean = false;

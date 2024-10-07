@@ -8,6 +8,7 @@ import { RateLimitedSuiJsonRPCBlockRepository } from "./sui/RateLimitedSuiJsonRP
 import { WormchainJsonRPCBlockRepository } from "./wormchain/WormchainJsonRPCBlockRepository";
 import { AlgorandJsonRPCBlockRepository } from "./algorand/AlgorandJsonRPCBlockRepository";
 import { InstrumentedConnectionWrapper } from "../rpc/http/InstrumentedConnectionWrapper";
+import { InstrumentedSuiClientWrapper } from "../rpc/http/InstrumentedSuiClientWrapper";
 import { CosmosJsonRPCBlockRepository } from "./cosmos/CosmosJsonRPCBlockRepository";
 import { AptosJsonRPCBlockRepository } from "./aptos/AptosJsonRPCBlockRepository";
 import { SNSClient, SNSClientConfig } from "@aws-sdk/client-sns";
@@ -17,7 +18,6 @@ import { ChainRPCConfig, Config } from "../config";
 import { InfluxEventRepository } from "./target/InfluxEventRepository";
 import { RpcConfig } from "@xlabs/rpc-pool";
 import { InfluxDB } from "@influxdata/influxdb-client";
-import { Job } from "../../domain/jobs";
 import {
   WormchainRepository,
   AlgorandRepository,
@@ -25,6 +25,7 @@ import {
   AptosRepository,
   NearRepository,
   SuiRepository,
+  JobRepository,
 } from "../../domain/repositories";
 import {
   MoonbeamEvmJsonRPCBlockRepository,
@@ -35,15 +36,14 @@ import {
   SuiJsonRPCBlockRepository,
   Web3SolanaSlotRepository,
   FileMetadataRepository,
+  StaticJobRepository,
   PromStatRepository,
   SnsEventRepository,
-  StaticJob,
 } from ".";
 import {
   extendedProviderPoolSupplier,
   ProviderPoolDecorator,
 } from "../rpc/http/ProviderPoolDecorator";
-import { InstrumentedSuiClientWrapper } from "../rpc/http/InstrumentedSuiClientWrapper";
 
 const WORMCHAIN_CHAIN = "wormchain";
 const ALGORAND_CHAIN = "algorand";
@@ -131,7 +131,7 @@ export class RepositoriesBuilder {
 
     this.repositories.set(
       "jobs",
-      new StaticJob(
+      new StaticJobRepository(
         this.cfg.environment,
         this.cfg.jobs.dir,
         this.cfg.dryRun,
@@ -187,7 +187,7 @@ export class RepositoriesBuilder {
     return this.getRepo("metrics");
   }
 
-  public getJobs(): Job {
+  public getJobs(): JobRepository {
     return this.getRepo("jobs");
   }
 
