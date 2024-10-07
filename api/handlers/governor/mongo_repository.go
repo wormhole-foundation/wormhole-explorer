@@ -315,7 +315,7 @@ func (r *MongoRepository) FindNotionalLimit(
 	}
 
 	// decodes to NotionalLimit.
-	var notionalLimits []*NotionalLimit
+	var notionalLimits []*notionalLimitMongo
 	err = cur.All(ctx, &notionalLimits)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
@@ -332,7 +332,32 @@ func (r *MongoRepository) FindNotionalLimit(
 		return nil, errs.ErrNotFound
 	}
 
-	return notionalLimits, nil
+	var result []*NotionalLimit
+	for _, nl := range notionalLimits {
+
+		if nl == nil {
+			continue
+		}
+
+		var notionalLimit uint64
+		var maxTransactionSize uint64
+
+		if nl.NotionalLimit != nil {
+			notionalLimit = uint64(*nl.NotionalLimit)
+		}
+
+		if nl.MaxTransactionSize != nil {
+			maxTransactionSize = uint64(*nl.MaxTransactionSize)
+		}
+
+		result = append(result, &NotionalLimit{
+			ChainID:            nl.ChainID,
+			NotionalLimit:      notionalLimit,
+			MaxTransactionSize: maxTransactionSize,
+		})
+	}
+
+	return result, nil
 }
 
 // GetNotionalLimitByChainID get a list *NotionalLimitDetail.
