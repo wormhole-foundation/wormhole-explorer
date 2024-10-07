@@ -847,6 +847,10 @@ spec:
             - name: POLYGON_RPCS
               value: '{{ .POLYGON_RPCS }}'
             {{ end }}
+            {{ if .BERACHAIN_RPCS }}
+            - name: BERACHAIN_RPCS
+              value: '{{ .BERACHAIN_RPCS }}'
+            {{ end }}
           resources:
             limits:
               cpu: {{ .RESOURCES_LIMITS_CPU }}
