@@ -309,4 +309,4 @@ CREATE TABLE wormholescan.wh_operation_addresses (
 CREATE INDEX "wh_operation_addresses_address_idx"
     ON wormholescan.wh_operation_addresses ("address");
 CREATE INDEX "wh_operation_addresses_timestamp_idx"
-    ON wormholescan.wh_attestation_vaas_address ("timestamp" desc);
+    ON wormholescan.wh_operation_addresses ("timestamp" desc);

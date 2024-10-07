@@ -99,10 +99,8 @@ func (r *PostgresRepository) upsertOperationAddress(ctx context.Context,
 
 	now := time.Now()
 
-	query := `INSERT INTO wormholescan.wh_operation_address (id, address, address_type, "timestamp", created_at, updated_at) 
-	VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (id) DO UPDATE SET address = $2, address_type = $3, 
-	"timestamp" = $4, updated_at = $5`
-
+	query := `INSERT INTO wormholescan.wh_operation_addresses ( id, address, address_type, "timestamp", created_at, updated_at ) 
+	VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (id, address) DO UPDATE SET address = $2, address_type = $3, "timestamp" = $4, updated_at = $6`
 	_, err := r.db.Exec(ctx,
 		query,
 		operationAddress.ID,
