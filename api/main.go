@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/protocols"
+	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/supply"
 
 	frs "github.com/XLabs/fiber-redis-storage"
 	"github.com/ansrivas/fiberprometheus/v2"
@@ -218,6 +219,7 @@ func main() {
 	statsService := stats.NewService(statsRepo, statsAddressRepo, statsHolderRepo, cache, expirationTime, metrics, rootLogger)
 	protocolsService := protocols.NewService(cfg.Protocols, protocolsRepo, rootLogger, cache, cfg.Cache.ProtocolsStatsKey, cfg.Cache.ProtocolsStatsExpiration, metrics, tvl)
 	guardianService := guardianHandlers.NewService(guardianSetRepository, cfg.P2pNetwork, cache, metrics, rootLogger)
+	supplyService := supply.NewService(rootLogger)
 
 	// Set up a custom error handler
 	response.SetEnableStackTrace(*cfg)
@@ -258,7 +260,7 @@ func main() {
 	notSupportedByEnv := middleware.NotSupportedByTestnetEnv(cfg.P2pNetwork)
 	// Set up route handlers
 	app.Get("/swagger.json", GetSwagger)
-	wormscan.RegisterRoutes(notSupportedByEnv, app, rootLogger, addressService, vaaService, obsService, governorService, infrastructureService, transactionsService, relaysService, operationsService, statsService, protocolsService)
+	wormscan.RegisterRoutes(notSupportedByEnv, app, rootLogger, addressService, vaaService, obsService, governorService, infrastructureService, transactionsService, relaysService, operationsService, statsService, protocolsService, supplyService)
 	guardian.RegisterRoutes(cfg, app, rootLogger, vaaService, governorService, heartbeatsService, guardianService)
 
 	// Set up gRPC handlers
