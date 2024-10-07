@@ -115,6 +115,9 @@ describe("RepositoriesBuilder", () => {
     expect(repos.getEvmBlockRepository("xlayer")).toBeInstanceOf(
       RateLimitedEvmJsonRPCBlockRepository
     );
+    expect(repos.getEvmBlockRepository("berachain")).toBeInstanceOf(
+      RateLimitedEvmJsonRPCBlockRepository
+    );
     expect(repos.getAlgorandRepository()).toBeInstanceOf(RateLimitedAlgorandJsonRPCBlockRepository);
     expect(repos.getAptosRepository()).toBeInstanceOf(RateLimitedAptosJsonRPCBlockRepository);
     expect(repos.getMetadataRepository()).toBeInstanceOf(FileMetadataRepository);
