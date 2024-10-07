@@ -186,6 +186,13 @@ export const configMock = (): Config => {
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
+    berachain: {
+      name: "berachain",
+      network: "testnet",
+      chainId: 39,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
     evmos: {
       name: "evmos",
       network: "testnet",

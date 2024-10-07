@@ -207,6 +207,13 @@
         "__format": "json"
       }
     },
+    "berachain": {
+      "network": "BERACHAIN_NETWORK",
+      "rpcs": {
+        "__name": "BERACHAIN_RPCS",
+        "__format": "json"
+      }
+    },
     "snaxchain": {
       "network": "SNAXCHAIN_NETWORK",
       "rpcs": {

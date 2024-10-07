@@ -464,6 +464,44 @@ data:
                 }
             }
         ]
+      },
+      {
+        "id": "poll-log-message-published-berachain-latest",
+        "chain": "berachain",
+        "source": {
+          "action": "PollEvm",
+          "config": {
+              "blockBatchSize": 100,
+              "commitment": "latest",
+              "interval": 5000,
+              "filters": [
+                {
+                  "addresses": ["0xBB73cB66C26740F31d1FabDC6b7A46a038A300dd"],
+                  "type": "Portal Token Bridge",
+                  "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+                }
+              ],
+              "chain": "berachain",
+              "chainId": 39
+          }
+        },
+        "handlers": [
+          {
+              "action": "HandleEvmLogs",
+              "target": "sns",
+              "mapper": "evmLogMessagePublishedMapper",
+              "config": {
+                "abis": [
+                  {
+                    "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                    "topic": "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2",
+                    "type": "Portal Token Bridge"
+                  }
+                ],
+                "metricName": "process_source_event"
+              }
+          }
+        ]
       }
     ]
 ---
@@ -527,6 +565,10 @@ spec:
             {{ if .SNAXCHAIN_RPCS }}
             - name: SNAXCHAIN_RPCS
               value: '{{ .SNAXCHAIN_RPCS }}'
+            {{ end }}
+            {{ if .BERACHAIN_RPCS }}
+            - name: BERACHAIN_RPCS
+              value: '{{ .BERACHAIN_RPCS }}'
             {{ end }}
           resources:
             limits:
