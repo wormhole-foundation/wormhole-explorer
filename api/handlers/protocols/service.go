@@ -39,14 +39,15 @@ type ProtocolTotalValuesDTO struct {
 }
 
 type ProtocolStats struct {
-	Protocol              string  `json:"protocol"`
-	TotalMessages         uint64  `json:"total_messages"`
-	TotalValueLocked      float64 `json:"total_value_locked,omitempty"`
-	TotalValueSecured     float64 `json:"total_value_secured,omitempty"`
-	TotalValueTransferred float64 `json:"total_value_transferred,omitempty"`
-	LastDayMessages       uint64  `json:"last_day_messages,omitempty"`
-	LastDayDiffPercentage string  `json:"last_day_diff_percentage,omitempty"`
-	Last24HourVolume      float64 `json:"last_24_hour_volume,omitempty"`
+	Protocol                    string  `json:"protocol"`
+	TotalMessages               uint64  `json:"total_messages"`
+	TotalValueLocked            float64 `json:"total_value_locked,omitempty"`
+	TotalValueSecured           float64 `json:"total_value_secured,omitempty"`
+	TotalValueTransferred       float64 `json:"total_value_transferred"`
+	LastDayMessages             uint64  `json:"last_day_messages"`
+	LastDayDiffPercentage       string  `json:"last_day_diff_percentage"`
+	LastDayVolumeDiffPercentage string  `json:"last_day_diff_volume_percentage"`
+	Last24HourVolume            float64 `json:"last_24_hour_volume"`
 }
 
 type tvlProvider interface {
@@ -181,18 +182,28 @@ func (s *Service) getAllProtocolStats(ctx context.Context, excludeProtocols []st
 		}
 
 		diffLastDay := protocolStats.DeltaLast24hr.TotalMessages
+		diffVolumeLastDay := protocolStats.DeltaLast24hr.TotalValueTransferred
+
 		val := ProtocolStats{
-			Protocol:              protocol,
-			TotalValueTransferred: protocolStats.Latest.TotalValueTransferred,
-			TotalMessages:         protocolStats.Latest.TotalMessages,
-			LastDayMessages:       diffLastDay,
-			Last24HourVolume:      protocolStats.DeltaLast24hr.TotalValueTransferred,
+			Protocol:                    protocol,
+			TotalValueTransferred:       protocolStats.Latest.TotalValueTransferred,
+			TotalMessages:               protocolStats.Latest.TotalMessages,
+			LastDayMessages:             diffLastDay,
+			Last24HourVolume:            protocolStats.DeltaLast24hr.TotalValueTransferred,
+			LastDayDiffPercentage:       "0.00%",
+			LastDayVolumeDiffPercentage: "0.00%",
 		}
 
 		lastDayTotalMessages := protocolStats.Latest.TotalMessages - diffLastDay
 		if lastDayTotalMessages != 0 {
 			percentage := strconv.FormatFloat(float64(diffLastDay)/float64(lastDayTotalMessages)*100, 'f', 2, 64) + "%"
 			val.LastDayDiffPercentage = percentage
+		}
+
+		volume24HourAgo := protocolStats.Latest.TotalValueTransferred - diffVolumeLastDay
+		if volume24HourAgo != 0 {
+			percentage := strconv.FormatFloat(diffVolumeLastDay/volume24HourAgo*100, 'f', 2, 64) + "%"
+			val.LastDayVolumeDiffPercentage = percentage
 		}
 
 		if PortalTokenBridge == protocol {
@@ -236,17 +247,25 @@ func (s *Service) getCCTPStats(ctx context.Context, protocol string) (ProtocolSt
 
 	diffLastDay := cctpStats.DeltaLast24hr.TotalMessages
 	val := ProtocolStats{
-		Protocol:              protocol,
-		TotalValueTransferred: cctpStats.Latest.TotalValueTransferred,
-		TotalMessages:         cctpStats.Latest.TotalMessages,
-		LastDayMessages:       diffLastDay,
-		Last24HourVolume:      cctpStats.DeltaLast24hr.TotalValueTransferred,
+		Protocol:                    protocol,
+		TotalValueTransferred:       cctpStats.Latest.TotalValueTransferred,
+		TotalMessages:               cctpStats.Latest.TotalMessages,
+		LastDayMessages:             diffLastDay,
+		Last24HourVolume:            cctpStats.DeltaLast24hr.TotalValueTransferred,
+		LastDayDiffPercentage:       "0.00%",
+		LastDayVolumeDiffPercentage: "0.00%",
 	}
 
 	lastDayTotalMessages := cctpStats.Latest.TotalMessages - diffLastDay
 	if lastDayTotalMessages != 0 {
 		percentage := strconv.FormatFloat(float64(diffLastDay)/float64(lastDayTotalMessages)*100, 'f', 2, 64) + "%"
 		val.LastDayDiffPercentage = percentage
+	}
+
+	lastDayVolume := cctpStats.Latest.TotalValueTransferred - cctpStats.DeltaLast24hr.TotalValueTransferred
+	if lastDayVolume != 0 {
+		percentage := strconv.FormatFloat(cctpStats.DeltaLast24hr.TotalValueTransferred/lastDayVolume*100, 'f', 2, 64) + "%"
+		val.LastDayVolumeDiffPercentage = percentage
 	}
 
 	return val, nil
@@ -266,14 +285,16 @@ func (s *Service) getMayanStats(ctx context.Context, _ string) (ProtocolStats, e
 	}
 
 	last24HrMessages := mayanNow.TotalMessages - mayan24hrAgo.TotalMessages
+	last24HrVolume := mayanNow.Volume - mayan24hrAgo.Volume
 	return ProtocolStats{
-		Protocol:              mayan,
-		TotalValueLocked:      mayanNow.TotalValueLocked,
-		TotalMessages:         mayanNow.TotalMessages,
-		TotalValueTransferred: mayanNow.Volume,
-		LastDayMessages:       last24HrMessages,
-		Last24HourVolume:      mayanNow.Volume - mayan24hrAgo.Volume,
-		LastDayDiffPercentage: strconv.FormatFloat(float64(last24HrMessages)/float64(mayan24hrAgo.TotalMessages)*100, 'f', 2, 64) + "%",
+		Protocol:                    mayan,
+		TotalValueLocked:            mayanNow.TotalValueLocked,
+		TotalMessages:               mayanNow.TotalMessages,
+		TotalValueTransferred:       mayanNow.Volume,
+		LastDayMessages:             last24HrMessages,
+		Last24HourVolume:            mayanNow.Volume - mayan24hrAgo.Volume,
+		LastDayDiffPercentage:       strconv.FormatFloat(float64(last24HrMessages)/float64(mayan24hrAgo.TotalMessages)*100, 'f', 2, 64) + "%",
+		LastDayVolumeDiffPercentage: strconv.FormatFloat(last24HrVolume/mayan24hrAgo.Volume*100, 'f', 2, 64) + "%",
 	}, nil
 }
 
@@ -313,10 +334,12 @@ func (s *Service) getAllbridgeStats(ctx context.Context, _ string) (ProtocolStat
 	}
 
 	dto := ProtocolStats{
-		Protocol:              allbridge,
-		TotalMessages:         rStats.result.Latest.TotalMessages,
-		TotalValueTransferred: activity.TotalValueTransferred,
-		Last24HourVolume:      activity.Last24HrTotalValueTransferred,
+		Protocol:                    allbridge,
+		TotalMessages:               rStats.result.Latest.TotalMessages,
+		TotalValueTransferred:       activity.TotalValueTransferred,
+		Last24HourVolume:            activity.Last24HrTotalValueTransferred,
+		LastDayDiffPercentage:       "0.00%",
+		LastDayVolumeDiffPercentage: "0.00%",
 	}
 
 	totalMsgNow := rStats.result.Latest.TotalMessages
@@ -325,6 +348,12 @@ func (s *Service) getAllbridgeStats(ctx context.Context, _ string) (ProtocolStat
 		last24HrMessages := totalMsgNow - totalMessagesAsFromLast24hr
 		dto.LastDayMessages = last24HrMessages
 		dto.LastDayDiffPercentage = strconv.FormatFloat(float64(last24HrMessages)/float64(totalMessagesAsFromLast24hr)*100, 'f', 2, 64) + "%"
+	}
+
+	totalVolumeAsFromLast24Hr := activity.TotalValueTransferred - activity.Last24HrTotalValueTransferred
+	if totalVolumeAsFromLast24Hr != 0 {
+		last24HrVolume := activity.Last24HrTotalValueTransferred
+		dto.LastDayVolumeDiffPercentage = strconv.FormatFloat(last24HrVolume/totalVolumeAsFromLast24Hr*100, 'f', 2, 64) + "%"
 	}
 
 	return dto, nil
