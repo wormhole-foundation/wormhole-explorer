@@ -112,12 +112,30 @@ type NotionalAvailable struct {
 
 // NotionalAvailableDetail represent a notional available value.
 type NotionalAvailableDetail struct {
-	ID                string        `bson:"_id" json:"id"`
-	ChainID           vaa.ChainID   `bson:"chainId" json:"chainId"`
-	NodeName          string        `bson:"nodeName" json:"nodeName"`
-	NotionalAvailable *mongo.Uint64 `bson:"availableNotional" json:"availableNotional"`
-	CreatedAt         *time.Time    `bson:"createdAt" json:"createdAt"`
-	UpdatedAt         *time.Time    `bson:"updatedAt" json:"updatedAt"`
+	ID                string      `bson:"_id" json:"id"`
+	ChainID           vaa.ChainID `bson:"chainId" json:"chainId"`
+	NodeName          string      `bson:"nodeName" json:"nodeName"`
+	NotionalAvailable uint64      `bson:"availableNotional" json:"availableNotional"`
+	CreatedAt         *time.Time  `bson:"createdAt" json:"createdAt"`
+	UpdatedAt         *time.Time  `bson:"updatedAt" json:"updatedAt"`
+}
+
+type notionalAvailableDetailSQL struct {
+	ID                string      `db:"id"`
+	ChainID           vaa.ChainID `db:"chainid"`
+	NodeName          string      `db:"guardian_name"`
+	NotionalAvailable string      `db:"availablenotional"`
+	CreatedAt         *time.Time  `db:"created_at"`
+	UpdatedAt         *time.Time  `db:"updated_at"`
+}
+
+type notionalAvailableDetailMongo struct {
+	ID                string        `bson:"_id"`
+	ChainID           vaa.ChainID   `bson:"chainId"`
+	NodeName          string        `bson:"nodeName"`
+	NotionalAvailable *mongo.Uint64 `bson:"availableNotional"`
+	CreatedAt         *time.Time    `bson:"createdAt"`
+	UpdatedAt         *time.Time    `bson:"updatedAt"`
 }
 
 type Emitter struct {

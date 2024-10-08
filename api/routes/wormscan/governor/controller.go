@@ -305,7 +305,7 @@ func (c *Controller) GetAvailableNotionalByChainID(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	response, err := c.srv.GetAvailableNotionalByChainID(ctx.Context(), p, chainID)
+	response, err := c.srv.GetAvailableNotionalByChainID(ctx.Context(), middleware.UsePostgres(ctx), p, chainID)
 	if err != nil {
 		return err
 	}

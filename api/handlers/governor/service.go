@@ -191,14 +191,21 @@ func (s *Service) GetAvailableNotional(ctx context.Context, p *pagination.Pagina
 }
 
 // GetAvailableNotionalByChainID get a available notional by chainID.
-func (s *Service) GetAvailableNotionalByChainID(ctx context.Context, p *pagination.Pagination, chainID vaa.ChainID) (*response.Response[[]*NotionalAvailableDetail], error) {
+func (s *Service) GetAvailableNotionalByChainID(ctx context.Context, usePostgres bool, p *pagination.Pagination, chainID vaa.ChainID) (*response.Response[[]*NotionalAvailableDetail], error) {
 	// check if chainID is valid
 	if _, ok := s.supportedChainIDs[chainID]; !ok {
 		return nil, errs.ErrNotFound
 	}
 	query := QueryNotionalLimit().SetPagination(p).SetChain(chainID)
-	notionaLAvailability, err := s.mongoRepo.GetAvailableNotionalByChainID(ctx, query)
-	res := response.Response[[]*NotionalAvailableDetail]{Data: notionaLAvailability}
+	var notionalAvailability []*NotionalAvailableDetail
+	var err error
+
+	if usePostgres {
+		notionalAvailability, err = s.postgresRepo.GetAvailableNotionalByChainID(ctx, query)
+	} else {
+		notionalAvailability, err = s.mongoRepo.GetAvailableNotionalByChainID(ctx, query)
+	}
+	res := response.Response[[]*NotionalAvailableDetail]{Data: notionalAvailability}
 	return &res, err
 }
 
