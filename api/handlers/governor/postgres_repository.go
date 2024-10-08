@@ -346,6 +346,61 @@ func (r *PostgresRepository) GetNotionalLimitByChainID(
 	return result, err
 }
 
+func (r *PostgresRepository) GetAvailableNotionalByChainID(
+	ctx context.Context,
+	q *NotionalLimitQuery,
+) ([]*NotionalAvailableDetail, error) {
+
+	limit := q.Pagination.Limit
+	offset := q.Pagination.Skip
+
+	query := `
+	SELECT 	wormholescan.wh_governor_status.id,
+	        wormholescan.wh_governor_status.guardian_name,
+	       	wormholescan.wh_governor_status.created_at,
+	       	wormholescan.wh_governor_status.updated_at,
+	       	(message.value ->> 'chainid')::SMALLINT AS chainId,
+	       	message.value ->> 'remainingavailablenotional' AS availableNotional
+	FROM    wormholescan.wh_governor_status,
+	     	jsonb_array_elements(wormholescan.wh_governor_status.message) AS message
+	WHERE message.value ->> 'chainid' = $1
+	ORDER BY wormholescan.wh_governor_status.id DESC
+	LIMIT $2 OFFSET $3;
+	`
+
+	var result []*NotionalAvailableDetail
+	var response []notionalAvailableDetailSQL
+
+	itoa := strconv.Itoa(int(q.chainID))
+	err := r.db.Select(ctx, &response, query, itoa, limit, offset)
+	if err != nil {
+		r.logger.Error("failed to execute query", zap.Error(err), zap.String("query", query))
+		return result, err
+	}
+
+	for _, nl := range response {
+
+		var notionalAvailable float64
+
+		notionalAvailable, err = strconv.ParseFloat(nl.NotionalAvailable, 10)
+		if err != nil {
+			r.logger.Error("failed to parse notional limit", zap.Error(err), zap.String("notional_limit", nl.NotionalAvailable))
+			break
+		}
+
+		result = append(result, &NotionalAvailableDetail{
+			ID:                nl.ID,
+			ChainID:           nl.ChainID,
+			NodeName:          nl.NodeName,
+			CreatedAt:         nl.CreatedAt,
+			UpdatedAt:         nl.UpdatedAt,
+			NotionalAvailable: uint64(notionalAvailable),
+		})
+	}
+
+	return result, err
+}
+
 func (q *GovernorQuery) toQuery() (string, []any) {
 	var params []any
 	query := "SELECT id, guardian_name, message , created_at , updated_at FROM wormholescan.wh_governor_status \n "
