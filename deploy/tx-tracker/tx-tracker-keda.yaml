@@ -25,3 +25,10 @@ spec:
       awsRegion: {{ .SQS_AWS_REGION }}
       queueURL: {{ .PIPELINE_SQS_URL }}
       queueLength: "{{ .SCALE_VALUE }}"
+  - type: {{ .SCALE_TYPE }}
+    authenticationRef:
+      name: keda-auth-{{ .NAME }}
+    metadata:
+      awsRegion: {{ .SQS_AWS_REGION }}
+      queueURL: {{ .NOTIFICATIONS_SQS_URL }}
+      queueLength: "{{ .SCALE_VALUE }}"
