@@ -356,7 +356,7 @@ func (r *PostgresRepository) GetAvailableNotionalByChainID(
 
 	query := `
 	SELECT 	wormholescan.wh_governor_status.id,
-		    wormholescan.wh_governor_status.guardian_name,
+	        wormholescan.wh_governor_status.guardian_name,
 	       	wormholescan.wh_governor_status.created_at,
 	       	wormholescan.wh_governor_status.updated_at,
 	       	(message.value ->> 'chainid')::SMALLINT AS chainId,
