@@ -296,3 +296,17 @@ CREATE INDEX "wh_relays_transactions_from_tx_hash_idx"
 CREATE INDEX "wh_relays_transactions_to_tx_hash_idx"
     ON wormholescan.wh_relays ("to_tx_hash");
 
+-- create table wormholescan.wh_operation_addresses
+CREATE TABLE wormholescan.wh_operation_addresses (
+    "id" varchar not null,
+    "address" varchar not null,
+    "address_type" varchar not null,
+    "timestamp" timestamptz not null,
+    "created_at" timestamptz not null,
+    "updated_at" timestamptz not null,
+     PRIMARY KEY (id, address)
+);
+CREATE INDEX "wh_operation_addresses_address_idx"
+    ON wormholescan.wh_operation_addresses ("address");
+CREATE INDEX "wh_operation_addresses_timestamp_idx"
+    ON wormholescan.wh_operation_addresses ("timestamp" desc);
