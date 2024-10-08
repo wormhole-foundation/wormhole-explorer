@@ -112,12 +112,12 @@ type NotionalAvailable struct {
 
 // NotionalAvailableDetail represent a notional available value.
 type NotionalAvailableDetail struct {
-	ID                string      `bson:"_id" json:"id"`
-	ChainID           vaa.ChainID `bson:"chainId" json:"chainId"`
-	NodeName          string      `bson:"nodeName" json:"nodeName"`
-	NotionalAvailable uint64      `bson:"availableNotional" json:"availableNotional"`
-	CreatedAt         *time.Time  `bson:"createdAt" json:"createdAt"`
-	UpdatedAt         *time.Time  `bson:"updatedAt" json:"updatedAt"`
+	ID                string      `json:"id"`
+	ChainID           vaa.ChainID `json:"chainId"`
+	NodeName          string      `json:"nodeName"`
+	NotionalAvailable uint64      `json:"availableNotional"`
+	CreatedAt         *time.Time  `json:"createdAt"`
+	UpdatedAt         *time.Time  `json:"updatedAt"`
 }
 
 type notionalAvailableDetailSQL struct {

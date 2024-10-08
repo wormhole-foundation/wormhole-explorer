@@ -364,7 +364,7 @@ func (r *PostgresRepository) GetAvailableNotionalByChainID(
 	FROM    wormholescan.wh_governor_status,
 	     	jsonb_array_elements(wormholescan.wh_governor_status.message) AS message
 	WHERE message.value ->> 'chainid' = $1
-	ORDER BY availableNotional DESC
+	ORDER BY wormholescan.wh_governor_status.id DESC
 	LIMIT $2 OFFSET $3;
 	`
 
