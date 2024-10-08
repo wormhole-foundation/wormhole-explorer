@@ -147,20 +147,34 @@ func (s *Service) FindGovernorStatusByGuardianAddress(
 }
 
 // FindNotionalLimit get a notional limit for each chainID.
-func (s *Service) FindNotionalLimit(ctx context.Context, p *pagination.Pagination) (*response.Response[[]*NotionalLimit], error) {
+func (s *Service) FindNotionalLimit(ctx context.Context, usePostgres bool, p *pagination.Pagination) (*response.Response[[]*NotionalLimit], error) {
 	if p == nil {
 		p = pagination.Default()
 	}
 	query := QueryNotionalLimit().SetPagination(p)
-	notionalLimit, err := s.mongoRepo.FindNotionalLimit(ctx, query)
+	var notionalLimit []*NotionalLimit
+	var err error
+	if usePostgres {
+		notionalLimit, err = s.postgresRepo.GetGovernorNotionalLimit(ctx, query)
+	} else {
+		notionalLimit, err = s.mongoRepo.FindNotionalLimit(ctx, query)
+	}
 	res := response.Response[[]*NotionalLimit]{Data: notionalLimit}
 	return &res, err
 }
 
 // GetNotionalLimitByChainID get a notional limit by chainID.
-func (s *Service) GetNotionalLimitByChainID(ctx context.Context, p *pagination.Pagination, chainID vaa.ChainID) (*response.Response[[]*NotionalLimitDetail], error) {
+func (s *Service) GetNotionalLimitByChainID(ctx context.Context, usePostgres bool, p *pagination.Pagination, chainID vaa.ChainID) (*response.Response[[]*NotionalLimitDetail], error) {
 	query := QueryNotionalLimit().SetPagination(p).SetChain(chainID)
-	notionalLimit, err := s.mongoRepo.GetNotionalLimitByChainID(ctx, query)
+
+	var notionalLimit []*NotionalLimitDetail
+	var err error
+	if usePostgres {
+		notionalLimit, err = s.postgresRepo.GetNotionalLimitByChainID(ctx, query)
+	} else {
+		notionalLimit, err = s.mongoRepo.GetNotionalLimitByChainID(ctx, query)
+	}
+
 	res := response.Response[[]*NotionalLimitDetail]{Data: notionalLimit}
 	return &res, err
 }

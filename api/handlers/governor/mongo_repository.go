@@ -315,7 +315,7 @@ func (r *MongoRepository) FindNotionalLimit(
 	}
 
 	// decodes to NotionalLimit.
-	var notionalLimits []*NotionalLimit
+	var notionalLimits []*notionalLimitMongo
 	err = cur.All(ctx, &notionalLimits)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
@@ -332,7 +332,32 @@ func (r *MongoRepository) FindNotionalLimit(
 		return nil, errs.ErrNotFound
 	}
 
-	return notionalLimits, nil
+	var result []*NotionalLimit
+	for _, nl := range notionalLimits {
+
+		if nl == nil {
+			continue
+		}
+
+		var notionalLimit uint64
+		var maxTransactionSize uint64
+
+		if nl.NotionalLimit != nil {
+			notionalLimit = uint64(*nl.NotionalLimit)
+		}
+
+		if nl.MaxTransactionSize != nil {
+			maxTransactionSize = uint64(*nl.MaxTransactionSize)
+		}
+
+		result = append(result, &NotionalLimit{
+			ChainID:            nl.ChainID,
+			NotionalLimit:      notionalLimit,
+			MaxTransactionSize: maxTransactionSize,
+		})
+	}
+
+	return result, nil
 }
 
 // GetNotionalLimitByChainID get a list *NotionalLimitDetail.
@@ -406,8 +431,9 @@ func (r *MongoRepository) GetNotionalLimitByChainID(
 	}
 
 	// decode to []NotionalLimitRecord.
-	var notionalLimits []*NotionalLimitDetail
-	err = cur.All(ctx, &notionalLimits)
+	var result []*NotionalLimitDetail
+	var resp []*notionalLimitDetailMongo
+	err = cur.All(ctx, &resp)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
 		r.logger.Error("failed to decode cursor into []*NotionalLimitDetail",
@@ -418,7 +444,26 @@ func (r *MongoRepository) GetNotionalLimitByChainID(
 		return nil, errors.WithStack(err)
 	}
 
-	return notionalLimits, nil
+	for _, nld := range resp {
+
+		if nld == nil ||
+			nld.NotionalLimit == nil ||
+			nld.MaxTrasactionSize == nil {
+			continue
+		}
+
+		result = append(result, &NotionalLimitDetail{
+			ID:                 nld.ID,
+			ChainID:            nld.ChainID,
+			NodeName:           nld.NodeName,
+			NotionalLimit:      uint64(*nld.NotionalLimit),
+			MaxTransactionSize: uint64(*nld.MaxTrasactionSize),
+			CreatedAt:          nld.CreatedAt,
+			UpdatedAt:          nld.UpdatedAt,
+		})
+	}
+
+	return result, nil
 }
 
 // GetAvailableNotional get a list of *NotionalAvailable.

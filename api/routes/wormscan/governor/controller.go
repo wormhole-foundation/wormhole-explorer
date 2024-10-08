@@ -204,7 +204,7 @@ func (c *Controller) FindNotionalLimit(ctx *fiber.Ctx) error {
 		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
 	}
 
-	notionalLimit, err := c.srv.FindNotionalLimit(ctx.Context(), p)
+	notionalLimit, err := c.srv.FindNotionalLimit(ctx.Context(), middleware.UsePostgres(ctx), p)
 	if err != nil {
 		return err
 	}
@@ -239,7 +239,7 @@ func (c *Controller) GetNotionalLimitByChainID(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	notionalLimit, err := c.srv.GetNotionalLimitByChainID(ctx.Context(), p, chainID)
+	notionalLimit, err := c.srv.GetNotionalLimitByChainID(ctx.Context(), middleware.UsePostgres(ctx), p, chainID)
 	if err != nil {
 		return err
 	}
