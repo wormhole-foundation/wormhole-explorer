@@ -11,20 +11,24 @@ import (
 )
 
 type Service struct {
-	repo   *Repository
-	logger *zap.Logger
+	mongoRepo    *MongoRepository
+	postgresRepo *PostgresRepository
+	logger       *zap.Logger
 }
 
 // NewService create a new Service.
-func NewService(repo *Repository, logger *zap.Logger) *Service {
-	return &Service{repo: repo, logger: logger.With(zap.String("module", "OperationService"))}
+func NewService(mongoRepo *MongoRepository, postgresRepo *PostgresRepository, logger *zap.Logger) *Service {
+	return &Service{mongoRepo: mongoRepo, postgresRepo: postgresRepo, logger: logger.With(zap.String("module", "OperationService"))}
 }
 
 // FindById returns the operations for the given chainID/emitter/seq.
-func (s *Service) FindById(ctx context.Context, chainID vaa.ChainID,
+func (s *Service) FindById(ctx context.Context, usePostgres bool, chainID vaa.ChainID,
 	emitter *types.Address, seq string) (*OperationDto, error) {
 	id := fmt.Sprintf("%d/%s/%s", chainID, emitter.Hex(), seq)
-	operation, err := s.repo.FindById(ctx, id)
+	if usePostgres {
+		return s.postgresRepo.FindById(ctx, id)
+	}
+	operation, err := s.mongoRepo.FindById(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -61,10 +65,10 @@ func (s *Service) FindAll(ctx context.Context, filter OperationFilter) ([]*Opera
 	}
 
 	if len(operationQuery.AppIDs) != 0 || len(operationQuery.SourceChainIDs) > 0 || len(operationQuery.TargetChainIDs) > 0 || len(operationQuery.PayloadType) > 0 {
-		return s.repo.FindFromParsedVaa(ctx, operationQuery)
+		return s.mongoRepo.FindFromParsedVaa(ctx, operationQuery)
 	}
 
-	operations, err := s.repo.FindAll(ctx, operationQuery)
+	operations, err := s.mongoRepo.FindAll(ctx, operationQuery)
 	if err != nil {
 		return nil, err
 	}

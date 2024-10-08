@@ -178,7 +178,7 @@ func createOriginTx(operationTxs []*operationTxResult) *OriginTx {
 
 		attribute = &AttributeDoc{
 			Type:  "wormchain-gateway",
-			Value: nestedSourceTx.RPCResponse,
+			Value: values,
 		}
 	}
 	originTx.Attribute = attribute

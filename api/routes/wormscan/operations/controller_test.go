@@ -2,6 +2,11 @@ package operations_test
 
 import (
 	"context"
+	"io"
+	"net/http"
+	"slices"
+	"testing"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/test-go/testify/mock"
 	ops "github.com/wormhole-foundation/wormhole-explorer/api/handlers/operations"
@@ -10,10 +15,6 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/types"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
-	"io"
-	"net/http"
-	"slices"
-	"testing"
 )
 
 func Test_FindAll(t *testing.T) {
@@ -101,8 +102,8 @@ type mockOpsService struct {
 	mock.Mock
 }
 
-func (m *mockOpsService) FindById(ctx context.Context, chainID vaa.ChainID, emitter *types.Address, seq string) (*ops.OperationDto, error) {
-	args := m.Called(ctx, chainID, emitter, seq)
+func (m *mockOpsService) FindById(ctx context.Context, usePostgres bool, chainID vaa.ChainID, emitter *types.Address, seq string) (*ops.OperationDto, error) {
+	args := m.Called(ctx, usePostgres, chainID, emitter, seq)
 	return args.Get(0).(*ops.OperationDto), args.Error(1)
 }
 func (m *mockOpsService) FindAll(ctx context.Context, filter ops.OperationFilter) ([]*ops.OperationDto, error) {

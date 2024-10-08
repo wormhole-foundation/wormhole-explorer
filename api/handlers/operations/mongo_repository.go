@@ -16,8 +16,8 @@ import (
 	"go.uber.org/zap"
 )
 
-// Repository definition
-type Repository struct {
+// MongoRepository definition
+type MongoRepository struct {
 	db          *mongo.Database
 	logger      *zap.Logger
 	collections struct {
@@ -27,10 +27,10 @@ type Repository struct {
 	}
 }
 
-// NewRepository create a new Repository.
-func NewRepository(db *mongo.Database, logger *zap.Logger) *Repository {
-	return &Repository{db: db,
-		logger: logger.With(zap.String("module", "OperationRepository")),
+// NewMongoRepository create a new Repository.
+func NewMongoRepository(db *mongo.Database, logger *zap.Logger) *MongoRepository {
+	return &MongoRepository{db: db,
+		logger: logger.With(zap.String("module", "MongoOperationRepository")),
 		collections: struct {
 			vaas               *mongo.Collection
 			parsedVaa          *mongo.Collection
@@ -44,7 +44,7 @@ func NewRepository(db *mongo.Database, logger *zap.Logger) *Repository {
 }
 
 // FindById returns the operations for the given chainID/emitter/seq.
-func (r *Repository) FindById(ctx context.Context, id string) (*OperationDto, error) {
+func (r *MongoRepository) FindById(ctx context.Context, id string) (*OperationDto, error) {
 
 	var pipeline mongo.Pipeline
 
@@ -196,7 +196,7 @@ func findOperationsIdByAddress(ctx context.Context, db *mongo.Database, address 
 }
 
 // matchOperationByTxHash returns a mongo pipeline to match operations by txHash.
-func (r *Repository) matchOperationByTxHash(ctx context.Context, txHash string) primitive.D {
+func (r *MongoRepository) matchOperationByTxHash(ctx context.Context, txHash string) primitive.D {
 	// build txHash field to search in mongo
 	txHashHex := strings.ToLower(txHash)
 	if !utils.StartsWith0x(txHash) {
@@ -229,7 +229,7 @@ func (r *Repository) matchOperationByTxHash(ctx context.Context, txHash string) 
 	}}}}}
 }
 
-func (r *Repository) FindFromParsedVaa(ctx context.Context, query OperationQuery) ([]*OperationDto, error) {
+func (r *MongoRepository) FindFromParsedVaa(ctx context.Context, query OperationQuery) ([]*OperationDto, error) {
 
 	pipeline := BuildPipelineSearchFromParsedVaa(query)
 
@@ -304,7 +304,7 @@ func BuildPipelineSearchFromParsedVaa(query OperationQuery) mongo.Pipeline {
 }
 
 // FindAll returns all operations filtered by q.
-func (r *Repository) FindAll(ctx context.Context, query OperationQuery) ([]*OperationDto, error) {
+func (r *MongoRepository) FindAll(ctx context.Context, query OperationQuery) ([]*OperationDto, error) {
 
 	var pipeline mongo.Pipeline
 
