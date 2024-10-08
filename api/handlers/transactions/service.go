@@ -37,7 +37,7 @@ type repository interface {
 	FindChainActivity(ctx context.Context, q *ChainActivityQuery) ([]ChainActivityResult, error)
 	GetScorecards(ctx context.Context, usePostgres bool) (*Scorecards, error)
 	FindGlobalTransactionByID(ctx context.Context, usePostgres bool, q *GlobalTransactionQuery) (*GlobalTransactionDoc, error)
-	FindTransactions(ctx context.Context, input *FindTransactionsInput) ([]TransactionDto, error)
+	FindTransactions(ctx context.Context, usePostgres bool, input *FindTransactionsInput) ([]TransactionDto, error)
 	ListTransactionsByAddress(ctx context.Context, address string, pagination *pagination.Pagination) ([]TransactionDto, error)
 	FindChainActivityTops(ctx *fasthttp.RequestCtx, q ChainActivityTopsQuery) ([]ChainActivityTopResult, error)
 	FindApplicationActivity(ctx *fasthttp.RequestCtx, q ApplicationActivityQuery) ([]ApplicationActivityTotalsResult, []ApplicationActivityResult, error)
@@ -169,7 +169,8 @@ func (s *Service) ListTransactions(
 		sort:       true,
 		pagination: pagination,
 	}
-	return s.repo.FindTransactions(ctx, &input)
+	// TODO change usePostgres = false when add this implementation.
+	return s.repo.FindTransactions(ctx, false, &input)
 }
 
 func (s *Service) ListTransactionsByAddress(
@@ -183,6 +184,7 @@ func (s *Service) ListTransactionsByAddress(
 
 func (s *Service) GetTransactionByID(
 	ctx context.Context,
+	usePostgres bool,
 	chain vaa.ChainID,
 	emitter *types.Address,
 	seq string,
@@ -192,7 +194,8 @@ func (s *Service) GetTransactionByID(
 	input := FindTransactionsInput{
 		id: fmt.Sprintf("%d/%s/%s", chain, emitter.Hex(), seq),
 	}
-	output, err := s.repo.FindTransactions(ctx, &input)
+
+	output, err := s.repo.FindTransactions(ctx, usePostgres, &input)
 	if err != nil {
 		return nil, err
 	}

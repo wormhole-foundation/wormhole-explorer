@@ -621,6 +621,7 @@ func (c *Controller) GetTransactionByID(ctx *fiber.Ctx) error {
 	// Look up the VAA by ID
 	dto, err := c.srv.GetTransactionByID(
 		ctx.Context(),
+		middleware.UsePostgres(ctx),
 		chainID,
 		emitter,
 		strconv.FormatUint(seq, 10),
