@@ -33,23 +33,44 @@ describe("EvmJsonRPCBlockRepository", () => {
     topics: [],
   };
 
+  it("should be able to validate rpcs", async () => {
+    // Given
+    givenARepo();
+    givenBlockHeightIs(1980809n, "latest");
+
+    // When
+    const result = await repo.healthCheck("ethereum", "latest", 1980809n);
+
+    // Then
+    expect(result).toBeInstanceOf(Array);
+    expect(result[0].isHealthy).toEqual(false);
+    expect(result[0].height).toEqual(undefined);
+    expect(result[0].url).toEqual("http://localhost");
+  });
+
   it("should be able to get block height", async () => {
+    // Given
     const expectedHeight = 1980809n;
     givenARepo();
     givenBlockHeightIs(expectedHeight, "latest");
 
+    // When
     const result = await repo.getBlockHeight(eth, "latest");
 
+    // Then
     expect(result).toBe(expectedHeight);
   });
 
   it("should be able to get several blocks", async () => {
+    // Given
     const blockNumbers = [2n, 3n, 4n];
     givenARepo();
     givenBlocksArePresent(blockNumbers);
 
+    // When
     const result = await repo.getBlocks(eth, new Set(blockNumbers));
 
+    // Then
     expect(Object.keys(result)).toHaveLength(blockNumbers.length);
     blockNumbers.forEach((blockNumber) => {
       expect(result[blockHash(blockNumber)].number).toBe(blockNumber);
@@ -57,10 +78,13 @@ describe("EvmJsonRPCBlockRepository", () => {
   });
 
   it("should be able to get logs", async () => {
+    // Given
     givenLogsPresent(filter);
 
+    // When
     const logs = await repo.getFilteredLogs(eth, filter);
 
+    // Then
     expect(logs).toHaveLength(1);
     expect(logs[0].blockNumber).toBe(1n);
     expect(logs[0].blockHash).toBe(blockHash(1n));
@@ -68,6 +92,7 @@ describe("EvmJsonRPCBlockRepository", () => {
   });
 
   it("should be able to return empty array logs", async () => {
+    // Given
     const response = {
       jsonrpc: "2.0",
       id: 1,
@@ -76,12 +101,15 @@ describe("EvmJsonRPCBlockRepository", () => {
 
     nock(rpc).post("/").reply(200, response);
 
+    // When
     const logs = await repo.getFilteredLogs(eth, filter);
 
+    // Then
     expect(logs).toHaveLength(0);
   });
 
   it("should be able to return transaction receipt", async () => {
+    // Given
     const hashNumbers = [
       "0x4fca53c6b7be889436df1f02137c97d59a14b014857335d4b10b7d861738b2d2",
       "0x4fca53c6b7be889436df1f02137c97d59a14b014857335d4b10b7d861738b2d3",
@@ -97,8 +125,10 @@ describe("EvmJsonRPCBlockRepository", () => {
     givenARepo();
     givenTransactionReceipt(hashNumbers);
 
+    // When
     const result = await repo.getTransactionReceipt(eth, new Set(hashNumbers));
 
+    // Then
     expect(Object.keys(result)).toHaveLength(hashNumbers.length);
   });
 });
@@ -112,7 +142,11 @@ const givenARepo = () => {
       environment: "testnet",
     },
     {
-      ethereum: { get: () => new InstrumentedHttpProvider({ url: rpc, chain: "ethereum" }) },
+      ethereum: {
+        get: () => new InstrumentedHttpProvider({ url: rpc, chain: "ethereum" }),
+        getProviders: () => [new InstrumentedHttpProvider({ url: rpc, chain: "ethereum" })],
+        setProviders: () => {},
+      },
     } as any
   );
 };

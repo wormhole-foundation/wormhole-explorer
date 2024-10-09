@@ -15,6 +15,7 @@ export class ProviderHealthInstrumentationMock {
       json: () => res.data,
     };
   };
+  lastRequestDurations = [0.1232];
 }
 
 class WeightedProvidersPool {
@@ -39,19 +40,22 @@ const providerPoolSupplier: PoolSupplier = <T>(
   };
 };
 
-export function mockRpcPool() {
+export function mockRpcPool(mockHealthyProvider = true) {
   jest.mock("@xlabs/rpc-pool", () => {
     return {
       ProviderHealthInstrumentation: ProviderHealthInstrumentationMock,
+      InstrumentedSuiClient: ProviderHealthInstrumentationMock,
       providerPoolRegistry: new prometheus.Registry(),
       WeightedProvidersPool,
       providerPoolSupplier,
     };
   });
 
-  jest.mock("../../src/infrastructure/rpc/http/HealthyProvidersPool", () => ({
-    HealthyProvidersPool: {
-      fromConfigs: jest.fn().mockReturnValue({}),
-    },
-  }));
+  if (mockHealthyProvider) {
+    jest.mock("../../src/infrastructure/rpc/http/HealthyProvidersPool", () => ({
+      HealthyProvidersPool: {
+        fromConfigs: jest.fn().mockReturnValue({}),
+      },
+    }));
+  }
 }

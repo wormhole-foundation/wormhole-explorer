@@ -1,7 +1,7 @@
+import { AptosRepository, ProviderHealthCheck } from "../../../domain/repositories";
 import { AptosEvent, AptosTransaction } from "../../../domain/entities/aptos";
 import { Range, TransactionFilter } from "../../../domain/actions/aptos/PollAptos";
 import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
-import { AptosRepository } from "../../../domain/repositories";
 import { Options } from "../common/rateLimitedOptions";
 import winston from "winston";
 
@@ -16,6 +16,10 @@ export class RateLimitedAptosJsonRPCBlockRepository
   ) {
     super(delegate, chain, opts);
     this.logger = winston.child({ module: "RateLimitedAptosJsonRPCBlockRepository" });
+  }
+
+  healthCheck(chain: string, finality: string, cursor: bigint): Promise<ProviderHealthCheck[]> {
+    return this.breaker.fn(() => this.delegate.healthCheck(chain, finality, cursor)).execute();
   }
 
   getTransactions(range: Range | undefined): Promise<any[]> {

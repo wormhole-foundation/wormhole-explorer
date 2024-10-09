@@ -1,6 +1,6 @@
+import { AlgorandRepository, ProviderHealthCheck } from "../../../domain/repositories";
 import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
 import { AlgorandTransaction } from "../../../domain/entities/algorand";
-import { AlgorandRepository } from "../../../domain/repositories";
 import { Options } from "../common/rateLimitedOptions";
 import winston from "winston";
 
@@ -15,6 +15,10 @@ export class RateLimitedAlgorandJsonRPCBlockRepository
   ) {
     super(delegate, chain, opts);
     this.logger = winston.child({ module: "RateLimitedAlgorandJsonRPCBlockRepository" });
+  }
+
+  healthCheck(chain: string, finality: string, cursor: bigint): Promise<ProviderHealthCheck[]> {
+    return this.breaker.fn(() => this.delegate.healthCheck(chain, finality, cursor)).execute();
   }
 
   getTransactions(

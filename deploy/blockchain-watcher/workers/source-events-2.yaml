@@ -45,8 +45,10 @@ data:
         "chain": "optimism-sepolia",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -83,8 +85,10 @@ data:
         "chain": "base-sepolia",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -121,8 +125,10 @@ data:
         "chain": "celo",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -159,8 +165,10 @@ data:
         "chain": "oasis",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -197,8 +205,10 @@ data:
         "chain": "klaytn",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -235,8 +245,10 @@ data:
         "chain": "polygon-sepolia",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -273,8 +285,10 @@ data:
         "chain": "scroll",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -307,13 +321,15 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-wormchain-latest",
+        "id": "poll-log-message-published-wormchain-immediate",
         "chain": "wormchain",
         "source": {
           "action": "PollWormchain",
+          "repository": "wormchainRepo",
           "config": {
             "blockBatchSize": 100,
-            "commitment": "latest",
+            "environment": "testnet",
+            "commitment": "immediate",
             "interval": 5000,
             "addresses": ["wormhole16jzpxp0e8550c9aht6q9svcux30vtyyyyxv5w2l2djjra46580wsazcjwp"],
             "chain": "wormchain",
@@ -339,8 +355,10 @@ data:
         "chain": "blast",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 5000,
             "filters": [
@@ -377,8 +395,10 @@ data:
         "chain": "mantle",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 5000,
             "filters": [
@@ -415,8 +435,10 @@ data:
         "chain": "xlayer",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 4,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 5000,
             "filters": [
@@ -456,8 +478,10 @@ data:
         "chain": "optimism",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 5000,
             "filters": [
@@ -494,8 +518,10 @@ data:
         "chain": "base",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 5000,
             "filters": [
@@ -532,8 +558,10 @@ data:
         "chain": "celo",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 5000,
             "filters": [
@@ -570,8 +598,10 @@ data:
         "chain": "oasis",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 5000,
             "filters": [
@@ -608,8 +638,10 @@ data:
         "chain": "klaytn",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 5000,
             "filters": [
@@ -646,8 +678,10 @@ data:
         "chain": "polygon",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 5000,
             "filters": [
@@ -684,6 +718,7 @@ data:
         "chain": "wormchain",
         "source": {
           "action": "PollWormchain",
+          "repository": "wormchainRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "immediate",
@@ -718,8 +753,10 @@ data:
         "chain": "blast",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 5000,
             "filters": [
@@ -756,8 +793,10 @@ data:
         "chain": "scroll",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -794,8 +833,10 @@ data:
         "chain": "xlayer",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 5000,
             "filters": [
@@ -832,8 +873,10 @@ data:
         "chain": "mantle",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 5000,
             "filters": [

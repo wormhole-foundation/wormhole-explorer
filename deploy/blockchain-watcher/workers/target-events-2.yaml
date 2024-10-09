@@ -45,9 +45,11 @@ data:
         "chain": "fantom",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 35000,
             "filters": [
@@ -84,9 +86,11 @@ data:
         "chain": "oasis",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 35000,
             "filters": [
@@ -123,9 +127,11 @@ data:
         "chain": "moonbeam",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 35000,
             "filters": [
@@ -181,9 +187,11 @@ data:
         "chain": "celo",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 35000,
             "filters": [
@@ -239,9 +247,11 @@ data:
         "chain": "scroll",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 35000,
             "filters": [
@@ -272,9 +282,11 @@ data:
         "chain": "mantle",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 35000,
             "filters": [
@@ -305,9 +317,11 @@ data:
         "chain": "karura",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 10,
+            "environment": "testnet",
             "commitment": "finalized",
             "interval": 60000,
             "filters": [
@@ -338,9 +352,11 @@ data:
         "chain": "snaxchain",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 35000,
             "filters": [
@@ -370,6 +386,7 @@ data:
         "id": "poll-redeemed-transactions-berachain-latest",
         "chain": "berachain",
         "source": {
+          "repository": "evmRepo",
           "action": "PollEvm",
           "records": "GetEvmTransactions",
           "config": {
@@ -407,9 +424,11 @@ data:
         "chain": "fantom",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -465,9 +484,11 @@ data:
         "chain": "oasis",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -504,9 +525,11 @@ data:
         "chain": "moonbeam",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -556,9 +579,11 @@ data:
         "chain": "celo",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -608,9 +633,11 @@ data:
         "chain": "scroll",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -654,9 +681,11 @@ data:
         "chain": "mantle",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -687,9 +716,11 @@ data:
         "chain": "karura",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 10,
+            "environment": "mainnet",
             "commitment": "finalized",
             "interval": 60000,
             "filters": [
@@ -720,8 +751,10 @@ data:
         "chain": "near",
         "source": {
           "action": "PollNear",
+          "repository": "nearRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "final",
             "interval": 35000,
             "contracts": ["contract.portalbridge.near"],
@@ -745,9 +778,11 @@ data:
         "chain": "snaxchain",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -785,6 +820,7 @@ data:
         "source": {
           "action": "PollEvm",
           "records": "GetEvmTransactions",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "finalized",
@@ -871,6 +907,7 @@ data:
         "source": {
           "action": "PollEvm",
           "records": "GetEvmTransactions",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 1000,
             "commitment": "finalized",
@@ -963,6 +1000,7 @@ data:
         "source": {
           "action": "PollEvm",
           "records": "GetEvmTransactions",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "finalized",
@@ -1013,6 +1051,87 @@ data:
             ],
             "chain": "optimism",
             "chainId": 24
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "abis": [
+                {
+                  "abi": "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
+                  "topic": "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
+                  "type": "Standard Relayer"
+                },
+                {
+                  "abi": "fulfillOrder(bytes cctpMsg, bytes cctpSigs, bytes encodedVm, address swapProtocol, bytes swapData)",
+                  "topic": "0xcc5626df3b699006387b64eca775dbdfecd5ae542e2d6ab22923082e1320dfcb",
+                  "type": "Mayan with Swift"
+                },
+                {
+                  "abi": "redeemWithFee(bytes cctpMsg, bytes cctpSigs, bytes encodedVm)",
+                  "topic": "0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d",
+                  "type": "MCTP"
+                }
+              ],
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-redeemed-transactions-polygon-finalized",
+        "chain": "polygon",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "repository": "evmRepo",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "finalized",
+            "interval": 15000,
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "CCTP",
+                "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": ["0xF18f923480dC144326e6C65d4F3D47Aa459bb41C"],
+                "type": "MCTP",
+                "topics": ["0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "Standard Relayer",
+                "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "Mayan with Swift",                
+                "topics": ["0xcc5626df3b699006387b64eca775dbdfecd5ae542e2d6ab22923082e1320dfcb"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": ["0x90BBd86a6Fe93D3bc3ed6335935447E75fAb7fCf", "0x0C79503A24e6C7f89b0dF2b1Bf6761A01252D4ee"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              }
+            ],
+            "chain": "polygon",
+            "chainId": 5
           }
         },
         "handlers": [
@@ -1151,8 +1270,8 @@ spec:
               value: '{{ .ARBITRUM_RPCS }}'
             {{ end }}
             {{ if .OPTIMISM_RPCS }}
-            - name: ALGORAND_RPCS
-              value: '{{ .ALGORAND_RPCS }}'
+            - name: OPTIMISM_RPCS
+              value: '{{ .OPTIMISM_RPCS }}'
             {{ end }}
             {{ if .BERACHAIN_RPCS }}
             - name: BERACHAIN_RPCS

@@ -42,8 +42,8 @@ describe("RepositoriesBuilder", () => {
     // When
     const repos = new RepositoriesBuilder(configMock());
     // Then
-    const job = repos.getJobsRepository();
-    expect(job).toBeTruthy();
+    const jobs = repos.getJobs();
+    expect(jobs).toBeTruthy();
 
     expect(repos.getEvmBlockRepository("ethereum")).toBeInstanceOf(
       RateLimitedEvmJsonRPCBlockRepository

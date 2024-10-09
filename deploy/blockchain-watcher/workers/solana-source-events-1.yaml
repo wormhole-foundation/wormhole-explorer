@@ -45,9 +45,11 @@ data:
         "chain": "solana",
         "source": {
           "action": "PollSolanaTransactions",
+          "repository": "solanaSlotRepo",
           "config": {
             "slotBatchSize": 1000,
             "commitment": "finalized",
+            "environment": "testnet",
             "interval": 15000,
             "signaturesLimit": 100,
             "programIds": ["3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"],
@@ -76,9 +78,11 @@ data:
         "chain": "solana",
         "source": {
           "action": "PollSolanaTransactions",
+          "repository": "solanaSlotRepo",
           "config": {
             "slotBatchSize": 1000,
             "commitment": "finalized",
+            "environment": "mainnet",
             "interval": 15000,
             "signaturesLimit": 200,
             "programIds": ["worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth"],

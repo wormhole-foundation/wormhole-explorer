@@ -52,6 +52,15 @@ export class InstrumentedHttpProvider {
     this.health.serviceOfflineSince = new Date();
   }
 
+  public getLatency(): number | undefined {
+    const durations = this.health.lastRequestDurations;
+    return durations.length > 0 ? durations[durations.length - 1] : undefined;
+  }
+
+  public isHealthy(): boolean {
+    return this.health.isHealthy;
+  }
+
   public getUrl(): string {
     return this.url;
   }
@@ -85,7 +94,8 @@ export class InstrumentedHttpProvider {
           e?.message ?? `${e}`
         }`
       );
-
+      // Set up provider offline
+      this.setProviderOffline();
       // Connection / timeout error:
       if (e instanceof AxiosError) {
         throw new HttpClientError(e.message ?? e.code, { status: e?.status ?? 0 }, e);

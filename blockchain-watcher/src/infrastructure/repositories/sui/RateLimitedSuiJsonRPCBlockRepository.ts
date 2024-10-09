@@ -1,9 +1,9 @@
 import { Checkpoint, SuiEventFilter, TransactionFilter } from "@mysten/sui.js/client";
+import { SuiRepository, ProviderHealthCheck } from "../../../domain/repositories";
 import { SuiTransactionBlockReceipt } from "../../../domain/entities/sui";
 import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
-import { SuiRepository } from "../../../domain/repositories";
-import { Options } from "../common/rateLimitedOptions";
 import { Range } from "../../../domain/entities";
+import { Options } from "../common/rateLimitedOptions";
 import winston from "winston";
 
 export class RateLimitedSuiJsonRPCBlockRepository
@@ -17,6 +17,10 @@ export class RateLimitedSuiJsonRPCBlockRepository
   ) {
     super(delegate, chain, opts);
     this.logger = winston.child({ module: "RateLimitedSuiJsonRPCBlockRepository" });
+  }
+
+  healthCheck(chain: string, finality: string, cursor: bigint): Promise<ProviderHealthCheck[]> {
+    return this.breaker.fn(() => this.delegate.healthCheck(chain, finality, cursor)).execute();
   }
 
   getLastCheckpointNumber(): Promise<bigint> {

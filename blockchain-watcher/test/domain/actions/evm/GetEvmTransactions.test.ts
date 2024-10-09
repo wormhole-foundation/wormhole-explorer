@@ -1,4 +1,8 @@
+import { mockRpcPool } from "../../../mocks/mockRpcPool";
+mockRpcPool();
+
 import { afterAll, afterEach, describe, it, expect, jest } from "@jest/globals";
+import { InstrumentedHttpProvider } from "../../../../src/infrastructure/rpc/http/InstrumentedHttpProvider";
 import { GetEvmTransactions } from "../../../../src/domain/actions/evm/GetEvmTransactions";
 import { EvmBlockRepository } from "../../../../src/domain/repositories";
 import { randomBytes } from "crypto";
@@ -353,6 +357,7 @@ const givenEvmBlockRepository = (
     getFilteredLogs: () => Promise.resolve(logsResponse),
     getTransactionReceipt: () => Promise.resolve(receiptResponse),
     getBlock: () => Promise.resolve(blocks ? blocks[`0x01`] : new BlockBuilder().create()),
+    healthCheck: () => Promise.resolve([]),
   };
 
   getBlocksSpy = jest.spyOn(evmBlockRepo, "getBlocks");

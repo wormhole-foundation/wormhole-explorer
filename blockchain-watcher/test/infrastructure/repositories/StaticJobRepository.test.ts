@@ -30,14 +30,15 @@ const cosmosRepo = {} as any as CosmosRepository;
 const algorandRepo = {} as any as AlgorandRepository;
 const nearRepo = {} as any as NearRepository;
 
-let repo: StaticJobRepository;
+let job: StaticJobRepository;
 
-describe("StaticJobRepository", () => {
+describe("StaticJob", () => {
   beforeEach(() => {
     if (fs.existsSync(dirPath)) {
       fs.rmSync(dirPath, { recursive: true, force: true });
     }
-    repo = new StaticJobRepository("testnet", dirPath, false, () => blockRepo, {
+    job = new StaticJobRepository("testnet", dirPath, false, 1200000, {
+      evmRepo: () => blockRepo,
       metadataRepo,
       statsRepo,
       snsRepo,
@@ -52,13 +53,13 @@ describe("StaticJobRepository", () => {
   });
 
   it("should return empty when no file available", async () => {
-    const jobs = await repo.getJobDefinitions();
+    const jobs = await job.getJobDefinitions();
     expect(jobs).toHaveLength(0);
   });
 
   it("should read jobs from file", async () => {
     givenJobsPresent();
-    const jobs = await repo.getJobDefinitions();
+    const jobs = await job.getJobDefinitions();
     expect(jobs).toHaveLength(1);
     expect(jobs[0].id).toEqual("poll-redeemed-transactions-ethereum");
   });

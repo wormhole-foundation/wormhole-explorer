@@ -45,8 +45,10 @@ data:
         "chain": "karura",
         "source": {
             "action": "PollEvm",
+            "repository": "evmRepo",
             "config": {
                 "blockBatchSize": 100,
+                "environment": "testnet",
                 "commitment": "finalized",
                 "interval": 15000,
                 "filters": [
@@ -83,8 +85,10 @@ data:
         "chain": "fantom",
         "source": {
             "action": "PollEvm",
+            "repository": "evmRepo",
             "config": {
                 "blockBatchSize": 100,
+                "environment": "testnet",
                 "commitment": "latest",
                 "interval": 15000,
                 "filters": [
@@ -121,8 +125,10 @@ data:
         "chain": "acala",
         "source": {
             "action": "PollEvm",
+            "repository": "evmRepo",
             "config": {
                 "blockBatchSize": 100,
+                "environment": "testnet",
                 "commitment": "finalized",
                 "interval": 15000,
                 "filters": [
@@ -159,8 +165,10 @@ data:
         "chain": "avalanche",
         "source": {
             "action": "PollEvm",
+            "repository": "evmRepo",
             "config": {
                 "blockBatchSize": 100,
+                "environment": "testnet",
                 "commitment": "finalized",
                 "interval": 15000,
                 "filters": [
@@ -198,8 +206,10 @@ data:
         "chain": "bsc",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -236,8 +246,10 @@ data:
         "chain": "moonbeam",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -274,8 +286,10 @@ data:
         "chain": "arbitrum-sepolia",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 1000,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 30000,
             "filters": [
@@ -312,8 +326,10 @@ data:
         "chain": "ethereum-sepolia",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -350,8 +366,10 @@ data:
         "chain": "ethereum-holesky",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -391,8 +409,10 @@ data:
         "chain": "karura",
         "source": {
             "action": "PollEvm",
+            "repository": "evmRepo",
             "config": {
                 "blockBatchSize": 100,
+                "environment": "mainnet",
                 "commitment": "finalized",
                 "interval": 5000,
                 "filters": [
@@ -429,8 +449,10 @@ data:
         "chain": "fantom",
         "source": {
             "action": "PollEvm",
+            "repository": "evmRepo",
             "config": {
                 "blockBatchSize": 100,
+                "environment": "mainnet",
                 "commitment": "latest",
                 "interval": 5000,
                 "filters": [
@@ -467,8 +489,10 @@ data:
         "chain": "acala",
         "source": {
             "action": "PollEvm",
+            "repository": "evmRepo",
             "config": {
                 "blockBatchSize": 100,
+                "environment": "mainnet",
                 "commitment": "finalized",
                 "interval": 5000,
                 "filters": [
@@ -505,8 +529,10 @@ data:
         "chain": "avalanche",
         "source": {
             "action": "PollEvm",
+            "repository": "evmRepo",
             "config": {
                 "blockBatchSize": 100,
+                "environment": "mainnet",
                 "commitment": "finalized",
                 "interval": 5000,
                 "filters": [
@@ -544,8 +570,10 @@ data:
         "chain": "bsc",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 5000,
             "filters": [
@@ -582,8 +610,10 @@ data:
         "chain": "moonbeam",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 5000,
             "filters": [
@@ -620,8 +650,10 @@ data:
         "chain": "arbitrum",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 1000,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 5000,
             "filters": [
@@ -658,8 +690,10 @@ data:
         "chain": "ethereum",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 15000,
             "filters": [

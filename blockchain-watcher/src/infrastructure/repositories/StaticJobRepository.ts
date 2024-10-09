@@ -29,6 +29,8 @@ import { HandleEvmTransactions } from "../../domain/actions/evm/HandleEvmTransac
 import { HandleSuiTransactions } from "../../domain/actions/sui/HandleSuiTransactions";
 import { InfluxEventRepository } from "./target/InfluxEventRepository";
 import { HandleWormchainLogs } from "../../domain/actions/wormchain/HandleWormchainLogs";
+import { RunRPCHealthcheck } from "../../domain/actions/RunRPCHealthcheck";
+import { RPCHealthcheck } from "../../domain/RPCHealthcheck/RPCHealthcheck";
 import log from "../log";
 import {
   PollCosmosConfigProps,
@@ -50,8 +52,8 @@ import {
   AptosRepository,
   NearRepository,
   StatRepository,
-  JobRepository,
   SuiRepository,
+  JobRepository,
 } from "../../domain/repositories";
 import {
   PollSolanaTransactionsConfig,
@@ -87,58 +89,26 @@ export class StaticJobRepository implements JobRepository {
   private fileRepo: FileMetadataRepository;
   private environment: string;
   private dryRun: boolean = false;
-  private sources: Map<string, (def: JobDefinition) => RunPollingJob> = new Map();
+  private rpcHealthcheckInterval;
+  private runPollingJob: Map<string, (jobDef: JobDefinition) => RunPollingJob> = new Map();
   private handlers: Map<string, (cfg: any, target: string, mapper: any) => Promise<Handler>> =
     new Map();
   private mappers: Map<string, any> = new Map();
   private targets: Map<string, () => Promise<(items: any[]) => Promise<void>>> = new Map();
-  private evmRepo: (chain: string) => EvmBlockRepository;
-  private metadataRepo: MetadataRepository<any>;
-  private statsRepo: StatRepository;
-  private snsRepo?: SnsEventRepository;
-  private influxRepo?: InfluxEventRepository;
-  private solanaSlotRepo: SolanaSlotRepository;
-  private suiRepo: SuiRepository;
-  private aptosRepo: AptosRepository;
-  private wormchainRepo: WormchainRepository;
-  private cosmosRepo: CosmosRepository;
-  private algorandRepo: AlgorandRepository;
-  private nearRepo: NearRepository;
+  private repos: Repos;
 
   constructor(
     environment: string,
     path: string,
     dryRun: boolean,
-    evmRepo: (chain: string) => EvmBlockRepository,
-    repos: {
-      metadataRepo: MetadataRepository<any>;
-      statsRepo: StatRepository;
-      snsRepo?: SnsEventRepository;
-      influxRepo?: InfluxEventRepository;
-      solanaSlotRepo: SolanaSlotRepository;
-      suiRepo: SuiRepository;
-      aptosRepo: AptosRepository;
-      wormchainRepo: WormchainRepository;
-      cosmosRepo: CosmosRepository;
-      algorandRepo: AlgorandRepository;
-      nearRepo: NearRepository;
-    }
+    rpcHealthcheckInterval: number,
+    repos: Repos
   ) {
+    this.rpcHealthcheckInterval = rpcHealthcheckInterval;
     this.fileRepo = new FileMetadataRepository(path);
-    this.evmRepo = evmRepo;
-    this.metadataRepo = repos.metadataRepo;
-    this.statsRepo = repos.statsRepo;
-    this.snsRepo = repos.snsRepo;
-    this.influxRepo = repos.influxRepo;
-    this.solanaSlotRepo = repos.solanaSlotRepo;
-    this.suiRepo = repos.suiRepo;
-    this.aptosRepo = repos.aptosRepo;
-    this.wormchainRepo = repos.wormchainRepo;
-    this.cosmosRepo = repos.cosmosRepo;
-    this.algorandRepo = repos.algorandRepo;
-    this.nearRepo = repos.nearRepo;
     this.environment = environment;
     this.dryRun = dryRun;
+    this.repos = repos;
     this.fill();
   }
 
@@ -150,12 +120,34 @@ export class StaticJobRepository implements JobRepository {
     return persisted;
   }
 
-  getSource(jobDef: JobDefinition): RunPollingJob {
-    const src = this.sources.get(jobDef.source.action);
-    if (!src) {
+  getPollingJob(jobDef: JobDefinition): RunPollingJob {
+    const action = this.runPollingJob.get(jobDef.source.action);
+    if (!action) {
       throw new Error(`Source ${jobDef.source.action} not found`);
     }
-    return src(jobDef);
+    return action(jobDef);
+  }
+
+  getRPCHealthcheck(jobsDef: JobDefinition[]): RunRPCHealthcheck {
+    const rpcHealthcheck = (jobsDef: JobDefinition[]) =>
+      new RPCHealthcheck(
+        this.repos.statsRepo,
+        this.repos.metadataRepo,
+        jobsDef.map((jobDef) => ({
+          repository:
+            jobDef.source.repository == "evmRepo"
+              ? this.repos.evmRepo(jobDef.chain)
+              : this.repos[jobDef.source.repository as keyof Repos],
+          environment: jobDef.source.config.environment,
+          commitment: jobDef.source.config.commitment,
+          interval: jobDef.source.config.interval,
+          chainId: jobDef.source.config.chainId,
+          chain: jobDef.chain,
+          id: jobDef.id,
+        })),
+        this.rpcHealthcheckInterval
+      );
+    return rpcHealthcheck(jobsDef);
   }
 
   async getHandlers(jobDef: JobDefinition): Promise<Handler[]> {
@@ -195,11 +187,24 @@ export class StaticJobRepository implements JobRepository {
   }
 
   private loadActions(): void {
+    const {
+      evmRepo,
+      metadataRepo,
+      statsRepo,
+      solanaSlotRepo,
+      suiRepo,
+      aptosRepo,
+      wormchainRepo,
+      cosmosRepo,
+      algorandRepo,
+      nearRepo,
+    } = this.repos;
+
     const pollEvm = (jobDef: JobDefinition) =>
       new PollEvm(
-        this.evmRepo(jobDef.source.config.chain),
-        this.metadataRepo,
-        this.statsRepo,
+        evmRepo(jobDef.source.config.chain),
+        metadataRepo,
+        statsRepo,
         new PollEvmLogsConfig({
           ...(jobDef.source.config as PollEvmLogsConfigProps),
           id: jobDef.id,
@@ -208,16 +213,16 @@ export class StaticJobRepository implements JobRepository {
         jobDef.source.records
       );
     const pollSolanaTransactions = (jobDef: JobDefinition) =>
-      new PollSolanaTransactions(this.metadataRepo, this.solanaSlotRepo, this.statsRepo, {
+      new PollSolanaTransactions(metadataRepo, solanaSlotRepo, statsRepo, {
         ...(jobDef.source.config as PollSolanaTransactionsConfig),
         id: jobDef.id,
       });
     const pollSuiTransactions = (jobDef: JobDefinition) =>
       new PollSuiTransactions(
         new PollSuiTransactionsConfig({ ...jobDef.source.config, id: jobDef.id }),
-        this.statsRepo,
-        this.metadataRepo,
-        this.suiRepo
+        statsRepo,
+        metadataRepo,
+        suiRepo
       );
     const pollAptos = (jobDef: JobDefinition) =>
       new PollAptos(
@@ -226,16 +231,16 @@ export class StaticJobRepository implements JobRepository {
           id: jobDef.id,
           environment: this.environment,
         }),
-        this.statsRepo,
-        this.metadataRepo,
-        this.aptosRepo,
+        statsRepo,
+        metadataRepo,
+        aptosRepo,
         jobDef.source.records
       );
     const pollWormchain = (jobDef: JobDefinition) =>
       new PollWormchain(
-        this.wormchainRepo,
-        this.metadataRepo,
-        this.statsRepo,
+        wormchainRepo,
+        metadataRepo,
+        statsRepo,
         new PollWormchainLogsConfig({
           ...(jobDef.source.config as PollWormchainLogsConfigProps),
           id: jobDef.id,
@@ -244,9 +249,9 @@ export class StaticJobRepository implements JobRepository {
       );
     const pollComsos = (jobDef: JobDefinition) =>
       new PollCosmos(
-        this.cosmosRepo,
-        this.metadataRepo,
-        this.statsRepo,
+        cosmosRepo,
+        metadataRepo,
+        statsRepo,
         new PollCosmosConfig({
           ...(jobDef.source.config as PollCosmosConfigProps),
           id: jobDef.id,
@@ -254,9 +259,9 @@ export class StaticJobRepository implements JobRepository {
       );
     const pollAlgorand = (jobDef: JobDefinition) =>
       new PollAlgorand(
-        this.algorandRepo,
-        this.metadataRepo,
-        this.statsRepo,
+        algorandRepo,
+        metadataRepo,
+        statsRepo,
         new PollAlgorandConfig({
           ...(jobDef.source.config as PollAlgorandConfigProps),
           id: jobDef.id,
@@ -264,23 +269,23 @@ export class StaticJobRepository implements JobRepository {
       );
     const pollNear = (jobDef: JobDefinition) =>
       new PollNear(
-        this.nearRepo,
-        this.metadataRepo,
-        this.statsRepo,
+        nearRepo,
+        metadataRepo,
+        statsRepo,
         new PollNearConfig({
           ...(jobDef.source.config as PollNearConfigProps),
           id: jobDef.id,
         })
       );
 
-    this.sources.set("PollEvm", pollEvm);
-    this.sources.set("PollSolanaTransactions", pollSolanaTransactions);
-    this.sources.set("PollSuiTransactions", pollSuiTransactions);
-    this.sources.set("PollAptos", pollAptos);
-    this.sources.set("PollWormchain", pollWormchain);
-    this.sources.set("PollCosmos", pollComsos);
-    this.sources.set("PollAlgorand", pollAlgorand);
-    this.sources.set("PollNear", pollNear);
+    this.runPollingJob.set("PollEvm", pollEvm);
+    this.runPollingJob.set("PollSolanaTransactions", pollSolanaTransactions);
+    this.runPollingJob.set("PollSuiTransactions", pollSuiTransactions);
+    this.runPollingJob.set("PollAptos", pollAptos);
+    this.runPollingJob.set("PollWormchain", pollWormchain);
+    this.runPollingJob.set("PollCosmos", pollComsos);
+    this.runPollingJob.set("PollAlgorand", pollAlgorand);
+    this.runPollingJob.set("PollNear", pollNear);
   }
 
   private loadMappers(): void {
@@ -315,24 +320,28 @@ export class StaticJobRepository implements JobRepository {
   }
 
   private loadTargets(): void {
-    const snsTarget = () => this.snsRepo!.asTarget();
-    const influxTarget = () => this.influxRepo!.asTarget();
+    const { snsRepo, influxRepo } = this.repos;
+
+    const snsTarget = () => snsRepo!.asTarget();
+    const influxTarget = () => influxRepo!.asTarget();
     const dummyTarget = async () => async (events: any[]) => {
       log.info(`[target dummy] Got ${events.length} events`);
     };
 
-    this.snsRepo && this.targets.set("sns", snsTarget);
-    this.influxRepo && this.targets.set("influx", influxTarget);
+    snsRepo && this.targets.set("sns", snsTarget);
+    influxRepo && this.targets.set("influx", influxTarget);
     this.targets.set("dummy", dummyTarget);
   }
 
   private loadHandlers(): void {
+    const { statsRepo } = this.repos;
+
     const handleEvmLogs = async (config: any, target: string, mapper: any) => {
       const instance = new HandleEvmLogs<LogFoundEvent<any>>(
         config,
         mapper,
         await this.targets.get(this.dryRun ? "dummy" : target)!(),
-        this.statsRepo
+        statsRepo
       );
       return instance.handle.bind(instance);
     };
@@ -341,7 +350,7 @@ export class StaticJobRepository implements JobRepository {
         config,
         mapper,
         await this.targets.get(this.dryRun ? "dummy" : target)!(),
-        this.statsRepo
+        statsRepo
       );
       return instance.handle.bind(instance);
     };
@@ -350,7 +359,7 @@ export class StaticJobRepository implements JobRepository {
         config,
         mapper,
         await this.getTarget(target),
-        this.statsRepo
+        statsRepo
       );
       return instance.handle.bind(instance);
     };
@@ -359,7 +368,7 @@ export class StaticJobRepository implements JobRepository {
         config,
         mapper,
         await this.getTarget(target),
-        this.statsRepo
+        statsRepo
       );
       return instance.handle.bind(instance);
     };
@@ -368,7 +377,7 @@ export class StaticJobRepository implements JobRepository {
         config,
         mapper,
         await this.getTarget(target),
-        this.statsRepo
+        statsRepo
       );
       return instance.handle.bind(instance);
     };
@@ -378,7 +387,7 @@ export class StaticJobRepository implements JobRepository {
         config,
         mapper,
         await this.getTarget(target),
-        this.statsRepo
+        statsRepo
       );
       return instance.handle.bind(instance);
     };
@@ -388,7 +397,7 @@ export class StaticJobRepository implements JobRepository {
         config,
         mapper,
         await this.getTarget(target),
-        this.statsRepo
+        statsRepo
       );
       return instance.handle.bind(instance);
     };
@@ -398,7 +407,7 @@ export class StaticJobRepository implements JobRepository {
         config,
         mapper,
         await this.getTarget(target),
-        this.statsRepo
+        statsRepo
       );
       return instance.handle.bind(instance);
     };
@@ -408,7 +417,7 @@ export class StaticJobRepository implements JobRepository {
         config,
         mapper,
         await this.getTarget(target),
-        this.statsRepo
+        statsRepo
       );
       return instance.handle.bind(instance);
     };
@@ -418,7 +427,7 @@ export class StaticJobRepository implements JobRepository {
         config,
         mapper,
         await this.getTarget(target),
-        this.statsRepo
+        statsRepo
       );
       return instance.handle.bind(instance);
     };
@@ -443,3 +452,18 @@ export class StaticJobRepository implements JobRepository {
     return maybeTarget();
   }
 }
+
+export type Repos = {
+  evmRepo: (chain: string) => EvmBlockRepository;
+  metadataRepo: MetadataRepository<any>;
+  statsRepo: StatRepository;
+  snsRepo?: SnsEventRepository;
+  influxRepo?: InfluxEventRepository;
+  solanaSlotRepo: SolanaSlotRepository;
+  suiRepo: SuiRepository;
+  aptosRepo: AptosRepository;
+  wormchainRepo: WormchainRepository;
+  cosmosRepo: CosmosRepository;
+  algorandRepo: AlgorandRepository;
+  nearRepo: NearRepository;
+};

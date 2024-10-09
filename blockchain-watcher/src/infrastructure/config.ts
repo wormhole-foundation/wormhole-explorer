@@ -11,6 +11,7 @@ export type Config = {
   port: number;
   logLevel: LogLevel;
   dryRun: boolean;
+  rpcHealthcheckInterval: number;
   sns: SnsConfig;
   influx?: InfluxConfig;
   metadata?: {
@@ -49,6 +50,7 @@ export const configuration = {
   port: config.get<number>("port") ?? 9090,
   logLevel: config.get<string>("logLevel")?.toLowerCase() ?? "info",
   dryRun: config.get<string>("dryRun") === "true" ? true : false,
+  rpcHealthcheckInterval: config.get<number>("rpcHealthcheckInterval") ?? 600000,
   sns: config.get<SnsConfig>("sns"),
   influx: config.get<InfluxConfig>("influx"),
   metadata: {
