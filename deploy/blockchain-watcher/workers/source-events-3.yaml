@@ -201,8 +201,8 @@ data:
       {
         "id": "poll-log-message-published-berachain-latest",
         "chain": "berachain",
-        "repository": "evmRepo",
         "source": {
+          "repository": "evmRepo",
           "action": "PollEvm",
           "config": {
               "blockBatchSize": 100,

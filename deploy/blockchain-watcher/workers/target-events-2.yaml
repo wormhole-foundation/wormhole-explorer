@@ -386,6 +386,7 @@ data:
         "id": "poll-redeemed-transactions-berachain-latest",
         "chain": "berachain",
         "source": {
+          "repository": "evmRepo",
           "action": "PollEvm",
           "records": "GetEvmTransactions",
           "config": {
