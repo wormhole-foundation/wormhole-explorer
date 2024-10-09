@@ -152,19 +152,6 @@ type EnqueuedVAA struct {
 	TxHash      string     `bson:"txhash" json:"txHash"`
 }
 
-type emitterMongo struct {
-	Address           string        `bson:"emitteraddress" json:"emitteraddress"`
-	TotalEnqueuedVaas mongo.Uint64  `bson:"totalenqueuedvaas" json:"totalenqueuedvaas"`
-	EnqueuedVaas      []EnqueuedVAA `bson:"enqueuedvaas" json:"enqueuedvaas"`
-}
-
-type enqueuedVAAMongo struct {
-	Sequence    string        `bson:"sequence" json:"sequence"`
-	ReleaseTime *time.Time    `bson:"releasetime" json:"releaseTime"`
-	Notional    *mongo.Uint64 `bson:"notionalvalue" json:"notionalValue"`
-	TxHash      string        `bson:"txhash" json:"txHash"`
-}
-
 // MaxNotionalAvailableRecord definition.
 type MaxNotionalAvailableRecord struct {
 	ID                string      `json:"id"`
