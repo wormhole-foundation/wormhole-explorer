@@ -84,7 +84,6 @@ data:
         "chain": "sui",
         "source": {
           "action": "PollSuiTransactions",
-          "repository": "suiRepo",
           "config": {
             "interval": 35000,
             "chain": "sui",
@@ -293,10 +292,8 @@ data:
         "chain": "sui",
         "source": {
           "action": "PollSuiTransactions",
-          "repository": "suiRepo",
           "config": {
             "interval": 5000,
-            "environment": "mainnet",
             "chain": "sui",
             "filters": [
               {
