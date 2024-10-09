@@ -94,7 +94,8 @@ export class InstrumentedHttpProvider {
           e?.message ?? `${e}`
         }`
       );
-
+      // Set up provider offline
+      this.setProviderOffline();
       // Connection / timeout error:
       if (e instanceof AxiosError) {
         throw new HttpClientError(e.message ?? e.code, { status: e?.status ?? 0 }, e);
