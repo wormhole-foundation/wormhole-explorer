@@ -346,6 +346,57 @@ func (r *PostgresRepository) GetNotionalLimitByChainID(
 	return result, err
 }
 
+func (r *PostgresRepository) GetAvailableNotional(
+	ctx context.Context,
+	q *NotionalLimitQuery,
+) ([]*NotionalAvailable, error) {
+
+	limit := q.Pagination.Limit
+	offset := q.Pagination.Skip
+
+	query := `
+	WITH RankedChains AS (SELECT (chain_data.value ->> 'chainid')::SMALLINT     AS chainId,
+                             chain_data.value ->> 'remainingavailablenotional'  AS remainingavailablenotional,
+                             ROW_NUMBER()
+                             OVER (PARTITION BY chain_data.value ->> 'chainid' ORDER BY chain_data.value ->> 'remainingavailablenotional' DESC) AS rowNum
+                      FROM wormholescan.wh_governor_status,
+                           jsonb_array_elements(wormholescan.wh_governor_status.message) AS chain_data)
+	SELECT chainId,
+	       remainingavailablenotional as availableNotional
+	FROM RankedChains
+	WHERE rowNum = 13
+	ORDER BY chainId
+	LIMIT $1 OFFSET $2;
+	`
+
+	var result []*NotionalAvailable
+	var response []notionalAvailableSQL
+
+	err := r.db.Select(ctx, &response, query, limit, offset)
+	if err != nil {
+		r.logger.Error("failed to execute query", zap.Error(err), zap.String("query", query))
+		return result, err
+	}
+
+	for _, nl := range response {
+
+		var notionalAvailable float64
+
+		notionalAvailable, err = strconv.ParseFloat(nl.AvailableNotional, 10)
+		if err != nil {
+			r.logger.Error("failed to parse notional limit", zap.Error(err), zap.String("notional_limit", nl.AvailableNotional))
+			break
+		}
+
+		result = append(result, &NotionalAvailable{
+			ChainID:           nl.ChainID,
+			AvailableNotional: uint64(notionalAvailable),
+		})
+	}
+
+	return result, err
+}
+
 func (r *PostgresRepository) GetAvailableNotionalByChainID(
 	ctx context.Context,
 	q *NotionalLimitQuery,
