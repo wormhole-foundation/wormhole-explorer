@@ -394,18 +394,40 @@ func (r *PostgresRepository) GetMaxNotionalAvailableByChainID(
 		return nil, err
 	}
 
-	var emitters []*Emitter
+	var emitters []*emitterSQL
 	err = json.Unmarshal([]byte(response[0].Emitters), &emitters)
 	if err != nil {
 		r.logger.Error("failed to parse emitters", zap.Error(err), zap.String("emitters", response[0].Emitters))
 		return nil, err
 	}
 
+	var finalEmittes []*Emitter
+
+	for _, e := range emitters {
+		val := &Emitter{
+			Address:           e.Address,
+			TotalEnqueuedVaas: uint64(e.TotalEnqueuedVaas),
+		}
+		var enqueueVaas []EnqueuedVAA
+		for _, ev := range e.EnqueuedVaas {
+			elems := EnqueuedVAA{
+				Sequence:    ev.Sequence,
+				ReleaseTime: ev.ReleaseTime,
+				Notional:    ev.Notional,
+				TxHash:      ev.TxHash,
+			}
+			enqueueVaas = append(enqueueVaas, elems)
+		}
+
+		val.EnqueuedVaas = enqueueVaas
+		finalEmittes = append(finalEmittes, val)
+	}
+
 	return &MaxNotionalAvailableRecord{
 		ID:                response[0].ID,
 		ChainID:           response[0].ChainID,
 		NotionalAvailable: uint64(availableNotional),
-		Emitters:          emitters,
+		Emitters:          finalEmittes,
 		NodeName:          response[0].NodeName,
 		CreatedAt:         response[0].CreatedAt,
 		UpdatedAt:         response[0].UpdatedAt,

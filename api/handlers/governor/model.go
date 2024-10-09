@@ -139,9 +139,22 @@ type notionalAvailableDetailMongo struct {
 }
 
 type Emitter struct {
-	Address           string        `bson:"emitteraddress" json:"emitteraddress"`
-	TotalEnqueuedVaas float64       `bson:"totalenqueuedvaas" json:"totalenqueuedvaas"`
-	EnqueuedVaas      []EnqueuedVAA `bson:"enqueuedvaas" json:"enqueuedvaas"`
+	Address           string        `bson:"emitteraddress" json:"emitterAddress"`
+	TotalEnqueuedVaas uint64        `bson:"totalenqueuedvaas" json:"totalEnqueuedVaas"`
+	EnqueuedVaas      []EnqueuedVAA `bson:"enqueuedvaas" json:"enqueuedVaas"`
+}
+
+type emitterSQL struct {
+	Address           string           `json:"emitteraddress"`
+	TotalEnqueuedVaas float64          `json:"totalenqueuedvaas"`
+	EnqueuedVaas      []enqueuedVAASQL `json:"enqueuedvaas"`
+}
+
+type enqueuedVAASQL struct {
+	Sequence    string     `json:"sequence"`
+	ReleaseTime *time.Time `json:"releasetime"`
+	Notional    uint64     `json:"notionalvalue"`
+	TxHash      string     `json:"txhash"`
 }
 
 // EnqueuedVAA definition.
