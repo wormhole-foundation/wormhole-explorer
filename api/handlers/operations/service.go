@@ -47,7 +47,7 @@ type OperationFilter struct {
 }
 
 // FindAll returns all operations filtered by q.
-func (s *Service) FindAll(ctx context.Context, filter OperationFilter) ([]*OperationDto, error) {
+func (s *Service) FindAll(ctx context.Context, usePostgres bool, filter OperationFilter) ([]*OperationDto, error) {
 	var txHash string
 	if filter.TxHash != nil {
 		txHash = filter.TxHash.String()
@@ -64,13 +64,13 @@ func (s *Service) FindAll(ctx context.Context, filter OperationFilter) ([]*Opera
 		PayloadType:    filter.PayloadType,
 	}
 
+	if usePostgres {
+		return s.postgresRepo.FindAll(ctx, operationQuery)
+	}
+
 	if len(operationQuery.AppIDs) != 0 || len(operationQuery.SourceChainIDs) > 0 || len(operationQuery.TargetChainIDs) > 0 || len(operationQuery.PayloadType) > 0 {
 		return s.mongoRepo.FindFromParsedVaa(ctx, operationQuery)
 	}
 
-	operations, err := s.mongoRepo.FindAll(ctx, operationQuery)
-	if err != nil {
-		return nil, err
-	}
-	return operations, nil
+	return s.mongoRepo.FindAll(ctx, operationQuery)
 }

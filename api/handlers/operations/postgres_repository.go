@@ -4,17 +4,57 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/lib/pq"
 	"github.com/shopspring/decimal"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
+	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"github.com/wormhole-foundation/wormhole-explorer/common/db"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
+var baseQuery = `
+SELECT
+    wot.attestation_vaas_id as transaction_attestation_vaas_id,
+    wot.message_id as transaction_message_id,
+    wot.chain_id as transaction_chain_id,
+    wot.tx_hash as transaction_tx_hash,
+    wot."type" as transaction_type,
+    wot.status as transaction_status,
+    wot.from_address as transaction_from_address,
+    wot.to_address as transaction_to_address,
+    wot.timestamp as transaction_timestamp,
+    wot.blockchain_method as transaction_blockchain_method,
+    wot.block_number as transaction_block_number,
+    wot.fee_detail as transaction_fee_detail,
+    wop.symbol as price_symbol,
+    wop.total_usd as price_total_usd,
+    wop.total_token as price_total_token,
+    wav.version as vaa_version,
+    wav.emitter_chain_id as vaa_emitter_chain_id,
+    wav.emitter_address as vaa_emitter_address,
+    wav.sequence as vaa_sequence,
+    wav.guardian_set_index as vaa_guardian_set_index,
+    wav.raw as vaa_raw,
+    wav.timestamp as vaa_timestamp,
+    wav.updated_at as vaa_updated_at,
+    wav.created_at as vaa_created_at,
+    wav.is_duplicated as vaa_is_duplicated,
+    wavp.payload as properties_payload,
+    wavp.raw_standard_fields as properties_raw_standard_fields
+FROM wormholescan.wh_operation_transactions wot
+LEFT JOIN wormholescan.wh_attestation_vaas wav ON  wav.id = wot.attestation_vaas_id
+LEFT JOIN wormholescan.wh_operation_prices wop ON wop.id = wot.attestation_vaas_id
+LEFT JOIN wormholescan.wh_attestation_vaa_properties wavp ON wavp.id = wot.attestation_vaas_id
+`
+
 type operationResult struct {
+	TransactionAttestationID    string           `db:"transaction_attestation_vaas_id"`
+	TransactionMessageID        string           `db:"transaction_message_id"`
 	TransactionChainID          uint16           `db:"transaction_chain_id"`
 	TransactionTxHash           string           `db:"transaction_tx_hash"`
 	TransactionType             string           `db:"transaction_type"`
@@ -57,39 +97,7 @@ func NewPostgresRepository(db *db.DB, logger *zap.Logger) *PostgresRepository {
 
 // FindById returns the operations for the given chainID/emitter/seq.
 func (r *PostgresRepository) FindById(ctx context.Context, messageID string) (*OperationDto, error) {
-	query := `
-SELECT 	
-        wot.chain_id as transaction_chain_id,
-        wot.tx_hash as transaction_tx_hash,
-        wot."type" as transaction_type,
-        wot.status as transaction_status,
-        wot.from_address as transaction_from_address,
-        wot.to_address as transaction_to_address,
-        wot.timestamp as transaction_timestamp,
-        wot.blockchain_method as transaction_blockchain_method,
-        wot.block_number as transaction_block_number,
-        wot.fee_detail as transaction_fee_detail,
-        wop.symbol as price_symbol,
-        wop.total_usd as price_total_usd,
-        wop.total_token as price_total_token,
-        wav.version as vaa_version,
-        wav.emitter_chain_id as vaa_emitter_chain_id,
-        wav.emitter_address as vaa_emitter_address,
-        wav.sequence as vaa_sequence,
-        wav.guardian_set_index as vaa_guardian_set_index,
-        wav.raw as vaa_raw,
-        wav.timestamp as vaa_timestamp,
-        wav.updated_at as vaa_updated_at,
-        wav.created_at as vaa_created_at,
-        wav.is_duplicated as vaa_is_duplicated,
-        wavp.payload as properties_payload,
-        wavp.raw_standard_fields as properties_raw_standard_fields
-FROM wormholescan.wh_operation_transactions wot 
-LEFT JOIN wormholescan.wh_attestation_vaas wav ON  wav.id = wot.attestation_vaas_id AND wav.active = true
-LEFT JOIN wormholescan.wh_operation_prices wop ON wop.id = wot.attestation_vaas_id 
-LEFT JOIN wormholescan.wh_attestation_vaa_properties wavp ON wavp.id = wot.attestation_vaas_id 
-WHERE wot.message_id = $1
-	`
+	query := baseQuery + `WHERE wot.message_id = $1 AND (wav.active IS NULL OR wav.active = true)`
 	var ops []*operationResult
 	err := r.db.Select(ctx, &ops, query, messageID)
 	if err != nil {
@@ -101,14 +109,57 @@ WHERE wot.message_id = $1
 		return nil, errors.ErrNotFound
 	}
 
-	return r.toOperationDto(ops, messageID)
+	return r.toOperationDto(ops)
 }
 
-func (r *PostgresRepository) FindAll(ctx context.Context, filter OperationFilter) ([]*OperationDto, error) {
-	return nil, nil
+func (r *PostgresRepository) FindAll(ctx context.Context, query OperationQuery) ([]*OperationDto, error) {
+
+	var querySql string
+	var params []any
+
+	// filter operations by address or txHash
+	if query.Address != "" {
+		querySql, params = r.buildQueryForAddress(query.Address, query.Pagination)
+	} else if query.TxHash != "" {
+		querySql, params = r.buildQueryForTxHash(query.TxHash, query.Pagination)
+	} else {
+		querySql, params = r.buildQueryForQuery(query, query.Pagination)
+	}
+
+	var ops []*operationResult
+	err := r.db.Select(ctx, &ops, querySql, params...)
+	if err != nil {
+		r.logger.Error("failed to execute query", zap.Error(err), zap.String("query", querySql), zap.Any("params", params))
+		return nil, err
+	}
+
+	if len(ops) == 0 {
+		return []*OperationDto{}, nil
+	}
+
+	var operationsByAttestationID = make(map[string][]*operationResult)
+	for _, op := range ops {
+		attestationID := op.TransactionAttestationID
+		if _, ok := operationsByAttestationID[attestationID]; !ok {
+			operationsByAttestationID[attestationID] = []*operationResult{}
+		}
+		operationsByAttestationID[attestationID] = append(operationsByAttestationID[attestationID], op)
+	}
+
+	var result []*OperationDto
+	for _, ops := range operationsByAttestationID {
+		operationDto, err := r.toOperationDto(ops)
+		if err != nil {
+			r.logger.Error("failed to convert operation to dto", zap.Error(err))
+			return nil, err
+		}
+		result = append(result, operationDto)
+	}
+
+	return result, nil
 }
 
-func (r *PostgresRepository) toOperationDto(ops []*operationResult, messageID string) (*OperationDto, error) {
+func (r *PostgresRepository) toOperationDto(ops []*operationResult) (*OperationDto, error) {
 
 	var sourceTx *OriginTx
 	var nestedSourceTx *AttributeDoc
@@ -117,9 +168,9 @@ func (r *PostgresRepository) toOperationDto(ops []*operationResult, messageID st
 	var payload *map[string]any
 	var standardizedProperties *StandardizedProperties
 	var price *operationPrices
-
+	var messageID string
 	for _, op := range ops {
-
+		messageID = op.TransactionMessageID
 		if sourceTx == nil {
 			sourceTxDto, err := r.toOriginTx(op)
 			if err != nil {
@@ -427,4 +478,87 @@ func (r *PostgresRepository) toPrices(op *operationResult) *operationPrices {
 		TotalUSD:   priceUsdAmount,
 		TotalToken: priceTokenAmount,
 	}
+}
+
+func (r *PostgresRepository) buildQueryForTxHash(txHash string, pagination pagination.Pagination) (string, []any) {
+	sort := pagination.SortOrder
+	filter := fmt.Sprintf(` WHERE wot.attestation_vaas_id IN (
+		SELECT t.attestation_vaas_id FROM wormholescan.wh_operation_transactions t WHERE t.tx_hash = $1
+		ORDER BY t.timestamp %s, t.attestation_vaas_id DESC
+		LIMIT $2 OFFSET $3
+	) ORDER BY wot.timestamp %s, wot.attestation_vaas_id DESC`, sort, sort)
+	query := baseQuery + filter
+	return query, []any{txHash, pagination.Limit, pagination.Skip}
+}
+
+func (r *PostgresRepository) buildQueryForAddress(address string, pagination pagination.Pagination) (string, []any) {
+	sort := pagination.SortOrder
+	filter := fmt.Sprintf(` WHERE wot.attestation_vaas_id IN (
+        SELECT oa.id FROM wormholescan.wh_operation_addresses oa
+        WHERE oa.address = $1 AND exists (
+            SELECT ot.attestation_vaas_id FROM wormholescan.wh_operation_transactions ot
+            WHERE ot.attestation_vaas_id = oa.id 
+        )
+        ORDER BY oa."timestamp" %s, oa.id DESC
+        LIMIT $2 OFFSET $3
+    ) ORDER BY wot.timestamp %s, wot.attestation_vaas_id DESC`, sort, sort)
+	query := baseQuery + filter
+	return query, []any{address, pagination.Limit, pagination.Skip}
+}
+
+func (r *PostgresRepository) buildQueryForQuery(query OperationQuery, pagination pagination.Pagination) (string, []any) {
+	var conditions []string
+	var params []any
+
+	if len(query.SourceChainIDs) > 0 {
+		params = append(params, pq.Array(query.SourceChainIDs))
+		conditions = append(conditions, fmt.Sprintf("p.from_chain_id = ANY($%d)", len(params)))
+	}
+
+	if len(query.TargetChainIDs) > 0 {
+		params = append(params, pq.Array(query.TargetChainIDs))
+		conditions = append(conditions, fmt.Sprintf("p.to_chain_id = ANY($%d)", len(params)))
+	}
+
+	if len(query.PayloadType) > 0 {
+		params = append(params, pq.Array(query.PayloadType))
+		conditions = append(conditions, fmt.Sprintf("p.payload_type = ANY($%d)", len(params)))
+	}
+
+	if len(query.AppIDs) > 0 {
+		if !query.ExclusiveAppId {
+			params = append(params, pq.Array(query.AppIDs))
+			conditions = append(conditions, fmt.Sprintf("p.app_id && $%d", len(params)))
+		} else {
+			var appIdsConditions []string
+			for _, appID := range query.AppIDs {
+				params = append(params, pq.Array([]string{appID}))
+				appIdsConditions = append(appIdsConditions, fmt.Sprintf("p.app_id = $%d", len(params)))
+			}
+			condition := fmt.Sprintf("(%s)", strings.Join(appIdsConditions, " OR "))
+			conditions = append(conditions, condition)
+		}
+	}
+
+	sort := pagination.SortOrder
+	if len(conditions) == 0 {
+		page := fmt.Sprintf(`
+	 		ORDER BY wot.timestamp %s, wot.attestation_vaas_id DESC
+			LIMIT $1 OFFSET $2`, sort)
+		query := baseQuery + page
+		return query, []any{pagination.Limit, pagination.Skip}
+	}
+
+	condition := strings.Join(conditions, " AND ")
+	filter := fmt.Sprintf(` WHERE wot.attestation_vaas_id IN (
+		SELECT p.id FROM wormholescan.wh_attestation_vaa_properties p
+		WHERE %s
+		ORDER BY p.timestamp %s, p.id DESC
+		LIMIT $%d OFFSET $%d
+	) ORDER BY wot.timestamp %s, wot.attestation_vaas_id DESC`, condition, sort, len(params)+1, len(params)+2, sort)
+	querySql := baseQuery + filter
+	params = append(params, pagination.Limit, pagination.Skip)
+
+	return querySql, params
+
 }

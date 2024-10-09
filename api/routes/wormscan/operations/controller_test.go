@@ -106,7 +106,7 @@ func (m *mockOpsService) FindById(ctx context.Context, usePostgres bool, chainID
 	args := m.Called(ctx, usePostgres, chainID, emitter, seq)
 	return args.Get(0).(*ops.OperationDto), args.Error(1)
 }
-func (m *mockOpsService) FindAll(ctx context.Context, filter ops.OperationFilter) ([]*ops.OperationDto, error) {
-	args := m.Called(ctx, filter)
+func (m *mockOpsService) FindAll(ctx context.Context, usePostgres bool, filter ops.OperationFilter) ([]*ops.OperationDto, error) {
+	args := m.Called(ctx, usePostgres, filter)
 	return args.Get(0).([]*ops.OperationDto), args.Error(1)
 }
