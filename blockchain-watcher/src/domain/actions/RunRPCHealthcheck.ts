@@ -6,7 +6,7 @@ export abstract class RunRPCHealthcheck {
   private interval: number;
 
   protected abstract logger: winston.Logger;
-  protected abstract set(): Promise<void>;
+  protected abstract execute(): Promise<void>;
   protected abstract report(): void;
 
   constructor(statsRepo: StatRepository, interval: number) {
@@ -36,7 +36,8 @@ export abstract class RunRPCHealthcheck {
     try {
       const rpcHealthCheckStartTime = performance.now();
 
-      await this.set();
+      await this.execute();
+
       this.report();
 
       const rpcHealthCheckEndTime = performance.now();

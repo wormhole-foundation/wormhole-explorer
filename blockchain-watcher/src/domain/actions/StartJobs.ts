@@ -14,16 +14,15 @@ export class StartJobs {
     this.job = job;
   }
 
-  public async run(): Promise<JobDefinition[]> {
+  public async run(): Promise<void> {
     const jobs = await this.job.getJobDefinitions();
     for (const job of jobs) {
       await this.runJob(job);
     }
     await this.runRPCHealthcheck(jobs);
-    return jobs;
   }
 
-  public async runJob(job: JobDefinition): Promise<JobDefinition> {
+  public async runJob(job: JobDefinition): Promise<void> {
     if (this.runnables.has(job.id)) {
       throw new Error(`Job ${job.id} already exists. Ids must be unique`);
     }
@@ -38,7 +37,6 @@ export class StartJobs {
 
     this.runnables.set(job.id, () => runJob.run(handlers));
     this.runnables.get(job.id)!();
-    return job;
   }
 
   public async runRPCHealthcheck(jobs: JobDefinition[]): Promise<RunRPCHealthcheck> {

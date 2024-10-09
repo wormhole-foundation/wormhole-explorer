@@ -24,7 +24,7 @@ export class RPCHealthcheck extends RunRPCHealthcheck {
     this.cfg = cfg;
   }
 
-  protected async set(): Promise<void> {
+  protected async execute(): Promise<void> {
     try {
       const promises = this.cfg.map(async (cfg) => {
         const { id, repository, chain, commitment } = cfg;
