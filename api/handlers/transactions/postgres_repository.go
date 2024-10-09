@@ -271,6 +271,7 @@ type transactionResult struct {
 	VaaTimestamp        time.Time  `db:"vaa_timestamp"`
 	VaaUpdatedAt        *time.Time `db:"vaa_updated_at"`
 	VaaCreatedAt        time.Time  `db:"vaa_created_at"`
+	VaaIsDuplicated     bool       `db:"vaa_is_duplicated"`
 
 	PropertiesPayload           *json.RawMessage `db:"properties_payload"`
 	PropertiesRawStandardFields *json.RawMessage `db:"properties_raw_standard_fields"`
@@ -324,7 +325,6 @@ func (r *PostgresRepository) findTransactionById(ctx context.Context, input *Fin
 	wavp.payload as properties_payload,
 	wavp.raw_standard_fields as properties_raw_standard_fields
 FROM wormholescan.wh_attestation_vaas wav
-FROM wormholescan.wh_operation_transactions wot 
 LEFT JOIN wormholescan.wh_operation_transactions wot ON  wav.id = wot.attestation_vaas_id
 LEFT JOIN wormholescan.wh_operation_prices wop ON wop.id = wot.attestation_vaas_id 
 LEFT JOIN wormholescan.wh_attestation_vaa_properties wavp ON wavp.id = wot.attestation_vaas_id 
@@ -449,6 +449,13 @@ func (r *PostgresRepository) toTransactionDto(txs []*transactionResult) (*Transa
 		sourceTx.Attribute = nestedSourceTx
 	}
 
+	globalTransaction := &GlobalTransactionDoc{
+		ID:            vaaId,
+		OriginTx:      sourceTx,
+		DestinationTx: destTx,
+	}
+	globalTransactions := []GlobalTransactionDoc{*globalTransaction}
+
 	return &TransactionDto{
 		ID:                     vaaId,
 		EmitterChain:           emitterChain,
@@ -458,7 +465,7 @@ func (r *PostgresRepository) toTransactionDto(txs []*transactionResult) (*Transa
 		Symbol:                 price.Symbol,
 		UsdAmount:              price.TotalUSD,
 		TokenAmount:            price.TotalToken,
-		GlobalTransations:      nil,
+		GlobalTransations:      globalTransactions,
 		Payload:                payload,
 		StandardizedProperties: properties,
 	}, nil
