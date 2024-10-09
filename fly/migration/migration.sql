@@ -83,7 +83,10 @@ CREATE INDEX "wh_operation_transactions_chain_id_type_idx"
 CREATE INDEX "wh_operation_transactions_attestation_vaas_id_idx"
     ON wormholescan.wh_operation_transactions ("attestation_vaas_id");
 CREATE INDEX "wh_operation_transactions_timestamp_idx" 
-    ON wormholescan.wh_operation_transactions ("timestamp" desc);
+    ON wormholescan.wh_operation_transactions ("timestamp" desc, "attestation_vaas_id" desc);
+CREATE INDEX "wh_operation_transactions_source_timestamp_idx" 
+    ON wormholescan.wh_operation_transactions ("timestamp" desc, "attestation_vaas_id" desc) 
+    WHERE "type" = 'source-tx';
 
 -- create table wormholescan.wh_operation_transactions_processed
 CREATE TABLE wormholescan.wh_operation_transactions_processed (
@@ -267,7 +270,7 @@ CREATE INDEX "wh_attestation_vaa_properties_from_address_idx"
 CREATE INDEX "wh_attestation_vaa_properties_to_address_idx" 
     ON wormholescan.wh_attestation_vaa_properties ("to_address");
 CREATE INDEX "wh_attestation_vaa_properties_timestamp_idx" 
-    ON wormholescan.wh_attestation_vaa_properties ("timestamp" desc);
+    ON wormholescan.wh_attestation_vaa_properties ("timestamp" desc, "id" desc);
 CREATE INDEX "wh_attestation_vaa_properties_from_chain_id_idx"
     ON wormholescan.wh_attestation_vaa_properties ("from_chain_id");
 CREATE INDEX "wh_attestation_vaa_properties_to_chain_id_idx"
@@ -308,5 +311,5 @@ CREATE TABLE wormholescan.wh_operation_addresses (
 );
 CREATE INDEX "wh_operation_addresses_address_idx"
     ON wormholescan.wh_operation_addresses ("address");
-CREATE INDEX "wh_operation_addresses_timestamp_idx"
-    ON wormholescan.wh_operation_addresses ("timestamp" desc);
+CREATE INDEX "wh_operation_addresses_address_timestamp_idx"
+    ON wormholescan.wh_operation_addresses ("address" desc, "timestamp" desc, "id" desc);

@@ -483,10 +483,10 @@ func (r *PostgresRepository) toPrices(op *operationResult) *operationPrices {
 func (r *PostgresRepository) buildQueryForTxHash(txHash string, pagination pagination.Pagination) (string, []any) {
 	sort := pagination.SortOrder
 	filter := fmt.Sprintf(` WHERE wot.attestation_vaas_id IN (
-		SELECT t.attestation_vaas_id FROM wormholescan.wh_operation_transactions t WHERE t.tx_hash = $1
-		ORDER BY t.timestamp %s, t.attestation_vaas_id DESC
-		LIMIT $2 OFFSET $3
-	) ORDER BY wot.timestamp %s, wot.attestation_vaas_id DESC`, sort, sort)
+        SELECT t.attestation_vaas_id FROM wormholescan.wh_operation_transactions t WHERE t.tx_hash = $1
+        ORDER BY t.timestamp %s, t.attestation_vaas_id DESC
+        LIMIT $2 OFFSET $3
+    ) ORDER BY wot.timestamp %s, wot.attestation_vaas_id DESC`, sort, sort)
 	query := baseQuery + filter
 	return query, []any{txHash, pagination.Limit, pagination.Skip}
 }
@@ -499,9 +499,9 @@ func (r *PostgresRepository) buildQueryForAddress(address string, pagination pag
             SELECT ot.attestation_vaas_id FROM wormholescan.wh_operation_transactions ot
             WHERE ot.attestation_vaas_id = oa.id 
         )
-        ORDER BY oa."timestamp" %s, oa.id DESC
+        ORDER BY oa."timestamp" %s, oa.id %s
         LIMIT $2 OFFSET $3
-    ) ORDER BY wot.timestamp %s, wot.attestation_vaas_id DESC`, sort, sort)
+    ) ORDER BY wot.timestamp %s, wot.attestation_vaas_id %s`, sort, sort, sort, sort)
 	query := baseQuery + filter
 	return query, []any{address, pagination.Limit, pagination.Skip}
 }
@@ -542,20 +542,24 @@ func (r *PostgresRepository) buildQueryForQuery(query OperationQuery, pagination
 
 	sort := pagination.SortOrder
 	if len(conditions) == 0 {
-		page := fmt.Sprintf(`
-	 		ORDER BY wot.timestamp %s, wot.attestation_vaas_id DESC
-			LIMIT $1 OFFSET $2`, sort)
+		page := fmt.Sprintf(`WHERE wot.attestation_vaas_id IN (
+            SELECT op.attestation_vaas_id FROM wormholescan.wh_operation_transactions op
+            WHERE op."type" = 'source-tx'
+            ORDER BY op."timestamp" %s, op.attestation_vaas_id %s
+            LIMIT $1 OFFSET $2
+        ) ORDER BY wot.timestamp %s, wot.attestation_vaas_id %s`,
+			sort, sort, sort, sort)
 		query := baseQuery + page
 		return query, []any{pagination.Limit, pagination.Skip}
 	}
 
 	condition := strings.Join(conditions, " AND ")
-	filter := fmt.Sprintf(` WHERE wot.attestation_vaas_id IN (
-		SELECT p.id FROM wormholescan.wh_attestation_vaa_properties p
-		WHERE %s
-		ORDER BY p.timestamp %s, p.id DESC
-		LIMIT $%d OFFSET $%d
-	) ORDER BY wot.timestamp %s, wot.attestation_vaas_id DESC`, condition, sort, len(params)+1, len(params)+2, sort)
+	filter := fmt.Sprintf(`WHERE wot.attestation_vaas_id IN (
+        SELECT p.id FROM wormholescan.wh_attestation_vaa_properties p
+        WHERE %s
+        ORDER BY p.timestamp %s, p.id %s
+        LIMIT $%d OFFSET $%d
+    ) ORDER BY wot.timestamp %s, wot.attestation_vaas_id %s`, condition, sort, sort, len(params)+1, len(params)+2, sort, sort)
 	querySql := baseQuery + filter
 	params = append(params, pagination.Limit, pagination.Skip)
 
