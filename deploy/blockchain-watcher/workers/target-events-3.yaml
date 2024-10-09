@@ -293,7 +293,7 @@ data:
             "limitBatchSize": 100,
             "commitment": "finalized",
             "environment": "mainnet",
-            "interval": 3000,
+            "interval": 1000,
             "addresses": [
               "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
               "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130"
