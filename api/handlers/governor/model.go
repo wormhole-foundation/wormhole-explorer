@@ -139,13 +139,26 @@ type notionalAvailableDetailMongo struct {
 }
 
 type Emitter struct {
-	Address           string        `bson:"emitteraddress" json:"emitterAddress"`
-	TotalEnqueuedVaas mongo.Uint64  `bson:"totalenqueuedvaas" json:"totalEnqueuedVaas"`
-	EnqueuedVaas      []EnqueuedVAA `bson:"enqueuedvaas" json:"enqueuedVaas"`
+	Address           string        `bson:"emitteraddress" json:"emitteraddress"`
+	TotalEnqueuedVaas float64       `bson:"totalenqueuedvaas" json:"totalenqueuedvaas"`
+	EnqueuedVaas      []EnqueuedVAA `bson:"enqueuedvaas" json:"enqueuedvaas"`
 }
 
 // EnqueuedVAA definition.
 type EnqueuedVAA struct {
+	Sequence    string     `bson:"sequence" json:"sequence"`
+	ReleaseTime *time.Time `bson:"releasetime" json:"releaseTime"`
+	Notional    uint64     `bson:"notionalvalue" json:"notionalValue"`
+	TxHash      string     `bson:"txhash" json:"txHash"`
+}
+
+type emitterMongo struct {
+	Address           string        `bson:"emitteraddress" json:"emitteraddress"`
+	TotalEnqueuedVaas mongo.Uint64  `bson:"totalenqueuedvaas" json:"totalenqueuedvaas"`
+	EnqueuedVaas      []EnqueuedVAA `bson:"enqueuedvaas" json:"enqueuedvaas"`
+}
+
+type enqueuedVAAMongo struct {
 	Sequence    string        `bson:"sequence" json:"sequence"`
 	ReleaseTime *time.Time    `bson:"releasetime" json:"releaseTime"`
 	Notional    *mongo.Uint64 `bson:"notionalvalue" json:"notionalValue"`
@@ -154,13 +167,33 @@ type EnqueuedVAA struct {
 
 // MaxNotionalAvailableRecord definition.
 type MaxNotionalAvailableRecord struct {
-	ID                string        `bson:"_id" json:"id"`
-	ChainID           vaa.ChainID   `bson:"chainId" json:"chainId"`
-	NodeName          string        `bson:"nodeName" json:"nodeName"`
-	NotionalAvailable *mongo.Uint64 `bson:"availableNotional" json:"availableNotional"`
-	Emitters          []Emitter     `bson:"emitters" json:"emitters"`
-	CreatedAt         *time.Time    `bson:"createdAt" json:"createdAt"`
-	UpdatedAt         *time.Time    `bson:"updatedAt" json:"updatedAt"`
+	ID                string      `json:"id"`
+	ChainID           vaa.ChainID `json:"chainId"`
+	NodeName          string      `json:"nodeName"`
+	NotionalAvailable uint64      `json:"availableNotional"`
+	Emitters          []*Emitter  `json:"emitters"`
+	CreatedAt         *time.Time  `json:"createdAt"`
+	UpdatedAt         *time.Time  `json:"updatedAt"`
+}
+
+type maxNotionalAvailableRecordSQL struct {
+	ID                string      `db:"id"`
+	ChainID           vaa.ChainID `db:"chainid"`
+	NodeName          string      `db:"guardian_name"`
+	NotionalAvailable string      `db:"availablenotional"`
+	Emitters          string      `db:"emitters"`
+	CreatedAt         *time.Time  `db:"created_at"`
+	UpdatedAt         *time.Time  `db:"updated_at"`
+}
+
+type maxNotionalAvailableRecordMongo struct {
+	ID                string        `bson:"_id"`
+	ChainID           vaa.ChainID   `bson:"chainId"`
+	NodeName          string        `bson:"nodeName"`
+	NotionalAvailable *mongo.Uint64 `bson:"availableNotional"`
+	Emitters          []*Emitter    `bson:"emitters"`
+	CreatedAt         *time.Time    `bson:"createdAt"`
+	UpdatedAt         *time.Time    `bson:"updatedAt"`
 }
 
 // EnqueuedVaa definition.

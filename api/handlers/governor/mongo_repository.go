@@ -791,7 +791,7 @@ func (r *MongoRepository) GetMaxNotionalAvailableByChainID(
 	}
 
 	// decode to []NotionalLimitRecord.
-	var rows []*MaxNotionalAvailableRecord
+	var rows []*maxNotionalAvailableRecordMongo
 	err = cur.All(ctx, &rows)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
@@ -813,7 +813,20 @@ func (r *MongoRepository) GetMaxNotionalAvailableByChainID(
 	}
 
 	maxNotionalLimit := rows[minGuardianNum-1]
-	return maxNotionalLimit, nil
+	var available uint64
+	if maxNotionalLimit.NotionalAvailable != nil {
+		available = uint64(*maxNotionalLimit.NotionalAvailable)
+	}
+
+	return &MaxNotionalAvailableRecord{
+		ID:                maxNotionalLimit.ID,
+		ChainID:           maxNotionalLimit.ChainID,
+		NodeName:          maxNotionalLimit.NodeName,
+		NotionalAvailable: available,
+		Emitters:          maxNotionalLimit.Emitters,
+		CreatedAt:         maxNotionalLimit.CreatedAt,
+		UpdatedAt:         maxNotionalLimit.UpdatedAt,
+	}, nil
 }
 
 // EnqueuedVaaQuery respresent a query for enqueuedVaa queries.

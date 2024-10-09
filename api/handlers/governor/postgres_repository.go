@@ -346,6 +346,72 @@ func (r *PostgresRepository) GetNotionalLimitByChainID(
 	return result, err
 }
 
+func (r *PostgresRepository) GetMaxNotionalAvailableByChainID(
+	ctx context.Context,
+	q *NotionalLimitQuery,
+) (*MaxNotionalAvailableRecord, error) {
+
+	query := `
+	WITH RankedChains AS (SELECT (chain_data.value ->> 'chainid')::SMALLINT                                                                     AS chainId,
+                             chain_data.value ->> 'remainingavailablenotional'                                                                  AS availableNotional,
+                             chain_data.value ->> 'emitters'                                                                                    AS emitters,
+                             wormholescan.wh_governor_status.guardian_name,
+                             wormholescan.wh_governor_status.created_at,
+                             wormholescan.wh_governor_status.updated_at,
+							 wormholescan.wh_governor_status.id 																				AS id,
+                             ROW_NUMBER()
+                             OVER (PARTITION BY chain_data.value ->> 'chainid' ORDER BY chain_data.value ->> 'remainingavailablenotional' DESC) AS rowNum
+                      FROM wormholescan.wh_governor_status,
+                           jsonb_array_elements(wormholescan.wh_governor_status.message) AS chain_data)
+	SELECT 	chainId,
+	       	availableNotional,
+	       	emitters,
+	       	guardian_name,
+	       	created_at,
+	       	updated_at,
+			id
+	FROM RankedChains
+	WHERE rowNum = 13 and chainId = $1
+	ORDER BY chainId ASC;
+	`
+
+	var response []maxNotionalAvailableRecordSQL
+	err := r.db.Select(ctx, &response, query, q.chainID)
+	if err != nil {
+		r.logger.Error("failed to execute query", zap.Error(err), zap.String("query", query))
+		return nil, err
+	}
+
+	if len(response) != 1 {
+		r.logger.Error("failed to execute query, didn't get a single result.", zap.Error(err), zap.String("query", query))
+		return nil, fmt.Errorf("failed to execute query, didn't get a single result")
+	}
+
+	available := response[0].NotionalAvailable
+	availableNotional, err := strconv.ParseFloat(available, 10)
+	if err != nil {
+		r.logger.Error("failed to parse notional limit", zap.Error(err), zap.String("notional_limit", available))
+		return nil, err
+	}
+
+	var emitters []*Emitter
+	err = json.Unmarshal([]byte(response[0].Emitters), &emitters)
+	if err != nil {
+		r.logger.Error("failed to parse emitters", zap.Error(err), zap.String("emitters", response[0].Emitters))
+		return nil, err
+	}
+
+	return &MaxNotionalAvailableRecord{
+		ID:                response[0].ID,
+		ChainID:           response[0].ChainID,
+		NotionalAvailable: uint64(availableNotional),
+		Emitters:          emitters,
+		NodeName:          response[0].NodeName,
+		CreatedAt:         response[0].CreatedAt,
+		UpdatedAt:         response[0].UpdatedAt,
+	}, err
+}
+
 func (r *PostgresRepository) GetAvailableNotionalByChainID(
 	ctx context.Context,
 	q *NotionalLimitQuery,
