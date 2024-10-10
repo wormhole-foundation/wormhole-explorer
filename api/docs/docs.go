@@ -1400,17 +1400,45 @@ const docTemplate = `{
         },
         "/api/v1/supply": {
             "get": {
-                "description": "Get W token circulation supply.",
+                "description": "Get W token supply data (circulation and total supply).",
                 "tags": [
                     "wormholescan"
                 ],
-                "operationId": "supply",
+                "operationId": "supply-info",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/supply.CirculatingSupplyResponse"
+                            "$ref": "#/definitions/supply.SupplyInfoResponse"
                         }
+                    }
+                }
+            }
+        },
+        "/api/v1/supply/circulating": {
+            "get": {
+                "description": "Get W token circulation supply.",
+                "tags": [
+                    "wormholescan"
+                ],
+                "operationId": "circulating-supply",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/api/v1/supply/total": {
+            "get": {
+                "description": "Get W token total supply.",
+                "tags": [
+                    "wormholescan"
+                ],
+                "operationId": "total-supply",
+                "responses": {
+                    "200": {
+                        "description": "OK"
                     }
                 }
             }
@@ -1570,23 +1598,6 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error"
-                    }
-                }
-            }
-        },
-        "/api/v1/total-supply": {
-            "get": {
-                "description": "Get W token total supply.",
-                "tags": [
-                    "wormholescan"
-                ],
-                "operationId": "total-supply",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/supply.TotalSupplyResponse"
-                        }
                     }
                 }
             }
@@ -3821,17 +3832,12 @@ const docTemplate = `{
                 }
             }
         },
-        "supply.CirculatingSupplyResponse": {
+        "supply.SupplyInfoResponse": {
             "type": "object",
             "properties": {
                 "circulating_supply": {
                     "type": "string"
-                }
-            }
-        },
-        "supply.TotalSupplyResponse": {
-            "type": "object",
-            "properties": {
+                },
                 "total_supply": {
                     "type": "string"
                 }

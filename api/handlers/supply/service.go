@@ -41,3 +41,19 @@ func (s *Service) GetCurrentCirculatingSupply(ctx context.Context) Supply {
 func (s *Service) GetTotalSupply(_ context.Context) int {
 	return TotalSupply
 }
+
+type SupplyData struct {
+	CirculatingSupply Supply `json:"circulating_supply"`
+	TotalSupply       int    `json:"total_supply"`
+}
+
+// GetSupplyInfo returns the current circulating supply and total supply.
+func (s *Service) GetSupplyInfo(ctx context.Context) SupplyData {
+	circulatingSupply := s.GetCurrentCirculatingSupply(ctx)
+	totalSupply := s.GetTotalSupply(ctx)
+
+	return SupplyData{
+		CirculatingSupply: circulatingSupply,
+		TotalSupply:       totalSupply,
+	}
+}
