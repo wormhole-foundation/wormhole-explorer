@@ -246,12 +246,18 @@ func (s *Service) GetEnqueueVass(ctx context.Context, usePostgres bool, p *pagin
 }
 
 // GetEnqueueVassByChainID get enequeued vaa by chainID.
-func (s *Service) GetEnqueueVassByChainID(ctx context.Context, p *pagination.Pagination, chainID vaa.ChainID) (*response.Response[[]*EnqueuedVaaDetail], error) {
+func (s *Service) GetEnqueueVassByChainID(ctx context.Context, usePostgres bool, p *pagination.Pagination, chainID vaa.ChainID) (*response.Response[[]*EnqueuedVaaDetail], error) {
 	if p == nil {
 		p = pagination.Default()
 	}
 	query := QueryEnqueuedVaa().SetPagination(p).SetChain(chainID)
-	enqueuedVaaRecord, err := s.mongoRepo.GetEnqueueVassByChainID(ctx, query)
+	var enqueuedVaaRecord []*EnqueuedVaaDetail
+	var err error
+	if usePostgres {
+		enqueuedVaaRecord, err = s.postgresRepo.GetEnqueueVassByChainID(ctx, query)
+	} else {
+		enqueuedVaaRecord, err = s.mongoRepo.GetEnqueueVassByChainID(ctx, query)
+	}
 	res := response.Response[[]*EnqueuedVaaDetail]{Data: enqueuedVaaRecord}
 	return &res, err
 }
