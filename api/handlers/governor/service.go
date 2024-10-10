@@ -180,12 +180,19 @@ func (s *Service) GetNotionalLimitByChainID(ctx context.Context, usePostgres boo
 }
 
 // GetAvailableNotional get a available notional for each chainID.
-func (s *Service) GetAvailableNotional(ctx context.Context, p *pagination.Pagination) (*response.Response[[]*NotionalAvailable], error) {
+func (s *Service) GetAvailableNotional(ctx context.Context, usePostgres bool, p *pagination.Pagination) (*response.Response[[]*NotionalAvailable], error) {
 	if p == nil {
 		p = pagination.Default()
 	}
 	query := QueryNotionalLimit().SetPagination(p)
-	notionalAvailability, err := s.mongoRepo.GetAvailableNotional(ctx, query)
+
+	var notionalAvailability []*NotionalAvailable
+	var err error
+	if usePostgres {
+		notionalAvailability, err = s.postgresRepo.GetAvailableNotional(ctx, query)
+	} else {
+		notionalAvailability, err = s.mongoRepo.GetAvailableNotional(ctx, query)
+	}
 	res := response.Response[[]*NotionalAvailable]{Data: notionalAvailability}
 	return &res, err
 }

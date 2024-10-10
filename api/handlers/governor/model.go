@@ -106,8 +106,18 @@ type notionalLimitDetailMongo struct {
 
 // NotionalAvailable represent the available notional for chainID.
 type NotionalAvailable struct {
-	ChainID           vaa.ChainID   `bson:"chainid" json:"chainId"`
-	AvailableNotional *mongo.Uint64 `bson:"availableNotional" json:"availableNotional"`
+	ChainID           vaa.ChainID `json:"chainId"`
+	AvailableNotional uint64      `json:"availableNotional"`
+}
+
+type notionalAvailableSQL struct {
+	ChainID           vaa.ChainID `db:"chainid"`
+	AvailableNotional string      `db:"availablenotional"`
+}
+
+type notionalAvailableMongo struct {
+	ChainID           vaa.ChainID   `bson:"chainid"`
+	AvailableNotional *mongo.Uint64 `bson:"availableNotional"`
 }
 
 // NotionalAvailableDetail represent a notional available value.
