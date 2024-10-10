@@ -156,7 +156,7 @@ func buildQueryOperationsByAppID(appIDs []string, exclusive bool) bson.D {
 }
 
 // findOperationsIdByAddress returns all operations filtered by address.
-func findOperationsIdByAddress(ctx context.Context, db *mongo.Database, address string, pagination *pagination.Pagination) ([]string, error) {
+func findOperationsIdByAddress(ctx context.Context, db *mongo.Database, address string, _ *pagination.Pagination) ([]string, error) {
 	addressHex := strings.ToLower(address)
 	if !utils.StartsWith0x(address) {
 		addressHex = "0x" + strings.ToLower(addressHex)
@@ -196,7 +196,7 @@ func findOperationsIdByAddress(ctx context.Context, db *mongo.Database, address 
 }
 
 // matchOperationByTxHash returns a mongo pipeline to match operations by txHash.
-func (r *MongoRepository) matchOperationByTxHash(ctx context.Context, txHash string) primitive.D {
+func (r *MongoRepository) matchOperationByTxHash(_ context.Context, txHash string) primitive.D {
 	// build txHash field to search in mongo
 	txHashHex := strings.ToLower(txHash)
 	if !utils.StartsWith0x(txHash) {

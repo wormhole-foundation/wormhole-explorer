@@ -119,22 +119,29 @@ func (r *PostgresRepository) FindAll(ctx context.Context, query OperationQuery) 
 
 	// filter operations by address or txHash
 	if query.Address != "" {
-		querySql, params = r.buildQueryForAddress(query.Address, query.Pagination)
+		querySql, params = r.buildQueryIDsForAddress(query.Address, query.Pagination)
 	} else if query.TxHash != "" {
-		querySql, params = r.buildQueryForTxHash(query.TxHash, query.Pagination)
+		querySql, params = r.buildQueryIDsForTxHash(query.TxHash, query.Pagination)
 	} else {
-		querySql, params = r.buildQueryForQuery(query, query.Pagination)
+		querySql, params = r.buildQueryIDsForQuery(query, query.Pagination)
 	}
 
-	var ops []*operationResult
-	err := r.db.Select(ctx, &ops, querySql, params...)
+	var ids []string
+
+	err := r.db.Select(ctx, &ids, querySql, params...)
 	if err != nil {
-		r.logger.Error("failed to execute query", zap.Error(err), zap.String("query", querySql), zap.Any("params", params))
+		r.logger.Error("failed to execute query for ids", zap.Error(err), zap.String("query", querySql), zap.Any("params", params))
 		return nil, err
 	}
 
-	if len(ops) == 0 {
+	if len(ids) == 0 {
 		return []*OperationDto{}, nil
+	}
+
+	ops, err := r.findOperationByIDs(ctx, ids)
+	if err != nil {
+		r.logger.Error("failed to find operations for ids", zap.Error(err), zap.Any("ids", ids))
+		return nil, err
 	}
 
 	var operationsByAttestationID = make(map[string][]*operationResult)
@@ -147,7 +154,12 @@ func (r *PostgresRepository) FindAll(ctx context.Context, query OperationQuery) 
 	}
 
 	var result []*OperationDto
-	for _, ops := range operationsByAttestationID {
+	for _, id := range ids {
+		ops, ok := operationsByAttestationID[id]
+		if !ok {
+			r.logger.Error("failed to find operations for attestation id", zap.String("attestation_id", id))
+			return nil, fmt.Errorf("failed to find operations for attestation id %s", id)
+		}
 		operationDto, err := r.toOperationDto(ops)
 		if err != nil {
 			r.logger.Error("failed to convert operation to dto", zap.Error(err))
@@ -241,6 +253,9 @@ func (r *PostgresRepository) toOperationDto(ops []*operationResult) (*OperationD
 	}
 	if nestedSourceTx != nil && sourceTx != nil {
 		sourceTx.Attribute = nestedSourceTx
+	}
+	if payload == nil {
+		payload = &map[string]any{}
 	}
 	result := &OperationDto{
 		ID:                     messageID,
@@ -480,33 +495,40 @@ func (r *PostgresRepository) toPrices(op *operationResult) *operationPrices {
 	}
 }
 
-func (r *PostgresRepository) buildQueryForTxHash(txHash string, pagination pagination.Pagination) (string, []any) {
+func (r *PostgresRepository) findOperationByIDs(ctx context.Context, ids []string) ([]*operationResult, error) {
+	var ops []*operationResult
+	query := baseQuery + `WHERE wot.attestation_vaas_id = ANY($1)`
+	err := r.db.Select(ctx, &ops, query, pq.Array(ids))
+	if err != nil {
+		return nil, err
+	}
+	return ops, nil
+}
+
+func (r *PostgresRepository) buildQueryIDsForTxHash(txHash string, pagination pagination.Pagination) (string, []any) {
 	sort := pagination.SortOrder
-	filter := fmt.Sprintf(` WHERE wot.attestation_vaas_id IN (
-        SELECT t.attestation_vaas_id FROM wormholescan.wh_operation_transactions t WHERE t.tx_hash = $1
-        ORDER BY t.timestamp %s, t.attestation_vaas_id DESC
-        LIMIT $2 OFFSET $3
-    ) ORDER BY wot.timestamp %s, wot.attestation_vaas_id DESC`, sort, sort)
-	query := baseQuery + filter
+	query := fmt.Sprintf(`
+        SELECT t.attestation_vaas_id FROM wormholescan.wh_operation_transactions t 
+        WHERE t.tx_hash = $1
+        ORDER BY t.timestamp %s, t.attestation_vaas_id %s
+        LIMIT $2 OFFSET $3`, sort, sort)
 	return query, []any{txHash, pagination.Limit, pagination.Skip}
 }
 
-func (r *PostgresRepository) buildQueryForAddress(address string, pagination pagination.Pagination) (string, []any) {
+func (r *PostgresRepository) buildQueryIDsForAddress(address string, pagination pagination.Pagination) (string, []any) {
 	sort := pagination.SortOrder
-	filter := fmt.Sprintf(` WHERE wot.attestation_vaas_id IN (
+	query := fmt.Sprintf(`
         SELECT oa.id FROM wormholescan.wh_operation_addresses oa
         WHERE oa.address = $1 AND exists (
             SELECT ot.attestation_vaas_id FROM wormholescan.wh_operation_transactions ot
             WHERE ot.attestation_vaas_id = oa.id 
         )
         ORDER BY oa."timestamp" %s, oa.id %s
-        LIMIT $2 OFFSET $3
-    ) ORDER BY wot.timestamp %s, wot.attestation_vaas_id %s`, sort, sort, sort, sort)
-	query := baseQuery + filter
+        LIMIT $2 OFFSET $3`, sort, sort)
 	return query, []any{address, pagination.Limit, pagination.Skip}
 }
 
-func (r *PostgresRepository) buildQueryForQuery(query OperationQuery, pagination pagination.Pagination) (string, []any) {
+func (r *PostgresRepository) buildQueryIDsForQuery(query OperationQuery, pagination pagination.Pagination) (string, []any) {
 	var conditions []string
 	var params []any
 
@@ -542,25 +564,20 @@ func (r *PostgresRepository) buildQueryForQuery(query OperationQuery, pagination
 
 	sort := pagination.SortOrder
 	if len(conditions) == 0 {
-		page := fmt.Sprintf(`WHERE wot.attestation_vaas_id IN (
+		querySql := fmt.Sprintf(`
             SELECT op.attestation_vaas_id FROM wormholescan.wh_operation_transactions op
             WHERE op."type" = 'source-tx'
             ORDER BY op."timestamp" %s, op.attestation_vaas_id %s
-            LIMIT $1 OFFSET $2
-        ) ORDER BY wot.timestamp %s, wot.attestation_vaas_id %s`,
-			sort, sort, sort, sort)
-		query := baseQuery + page
-		return query, []any{pagination.Limit, pagination.Skip}
+            LIMIT $1 OFFSET $2`, sort, sort)
+		return querySql, []any{pagination.Limit, pagination.Skip}
 	}
 
 	condition := strings.Join(conditions, " AND ")
-	filter := fmt.Sprintf(`WHERE wot.attestation_vaas_id IN (
+	querySql := fmt.Sprintf(`
         SELECT p.id FROM wormholescan.wh_attestation_vaa_properties p
         WHERE %s
         ORDER BY p.timestamp %s, p.id %s
-        LIMIT $%d OFFSET $%d
-    ) ORDER BY wot.timestamp %s, wot.attestation_vaas_id %s`, condition, sort, sort, len(params)+1, len(params)+2, sort, sort)
-	querySql := baseQuery + filter
+        LIMIT $%d OFFSET $%d`, condition, sort, sort, len(params)+1, len(params)+2)
 	params = append(params, pagination.Limit, pagination.Skip)
 
 	return querySql, params
