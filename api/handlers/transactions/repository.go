@@ -816,8 +816,12 @@ func (r *Repository) FindGlobalTransactionByID(
 // FindTransactions returns transactions matching a specified search criteria.
 func (r *Repository) FindTransactions(
 	ctx context.Context,
+	usePostgres bool,
 	input *FindTransactionsInput,
 ) ([]TransactionDto, error) {
+	if usePostgres {
+		return r.postgresRepo.FindTransactions(ctx, input)
+	}
 	return r.mongoRepo.FindTransactions(ctx, input)
 }
 
