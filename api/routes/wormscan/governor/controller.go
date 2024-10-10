@@ -359,7 +359,7 @@ func (c *Controller) GetEnqueuedVaas(ctx *fiber.Ctx) error {
 		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
 	}
 
-	enqueuedVaas, err := c.srv.GetEnqueueVass(ctx.Context(), p)
+	enqueuedVaas, err := c.srv.GetEnqueueVass(ctx.Context(), middleware.UsePostgres(ctx), p)
 	if err != nil {
 		return err
 	}

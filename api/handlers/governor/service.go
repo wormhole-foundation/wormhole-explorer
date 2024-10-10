@@ -229,12 +229,18 @@ func (s *Service) GetMaxNotionalAvailableByChainID(ctx context.Context, chainID 
 }
 
 // GetEnqueueVaas get all the enqueued vaa.
-func (s *Service) GetEnqueueVass(ctx context.Context, p *pagination.Pagination) (*response.Response[[]*EnqueuedVaas], error) {
+func (s *Service) GetEnqueueVass(ctx context.Context, usePostgres bool, p *pagination.Pagination) (*response.Response[[]*EnqueuedVaas], error) {
 	if p == nil {
 		p = pagination.Default()
 	}
 	query := QueryEnqueuedVaa().SetPagination(p)
-	enqueuedVaaResponse, err := s.mongoRepo.GetEnqueueVass(ctx, query)
+	var enqueuedVaaResponse []*EnqueuedVaas
+	var err error
+	if usePostgres {
+		enqueuedVaaResponse, err = s.postgresRepo.GetEnqueueVass(ctx, query)
+	} else {
+		enqueuedVaaResponse, err = s.mongoRepo.GetEnqueueVass(ctx, query)
+	}
 	res := response.Response[[]*EnqueuedVaas]{Data: enqueuedVaaResponse}
 	return &res, err
 }

@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/shopspring/decimal"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/mongo"
 	"github.com/wormhole-foundation/wormhole-explorer/common/db"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -528,4 +529,72 @@ func paginate(list []*GovernorLimit, skip int, size int) []*GovernorLimit {
 	}
 
 	return list[skip:end]
+}
+
+func (r *PostgresRepository) GetEnqueueVass(ctx context.Context, q *EnqueuedVaaQuery) ([]*EnqueuedVaas, error) {
+	query := `
+		WITH flattened AS (SELECT (chain ->> 'chainid')::int                AS chain_id,
+                          jsonb_array_elements(chain -> 'emitters') AS emitter
+                   FROM wormholescan.wh_governor_status,
+                        jsonb_array_elements(message) AS chain),
+     deconstructedChains as (SELECT chain_id,
+                                    emitter ->> 'emitteraddress'                              AS emitter_address,
+                                    jsonb_array_elements(flattened.emitter -> 'enqueuedvaas') AS vaa
+                             FROM flattened
+                             WHERE flattened.emitter -> 'enqueuedvaas' IS NOT NULL
+                               AND (flattened.emitter -> 'enqueuedvaas' != 'null'))
+SELECT chain_id,
+       emitter_address,
+       (vaa ->> 'sequence')               AS sequence,
+       (vaa ->> 'releasetime')::bigint    AS release_time,
+       (vaa ->> 'notionalvalue')::numeric AS notional_value,
+       vaa ->> 'txhash'                   AS tx_hash
+FROM deconstructedChains
+    `
+
+	var items []struct {
+		ChainID        vaa.ChainID     `db:"chain_id"`
+		EmitterAddress string          `db:"emitter_address"`
+		Sequence       string          `db:"sequence"`
+		ReleaseTime    int64           `db:"release_time"`
+		NotionalValue  decimal.Decimal `db:"notional_value"`
+		TxHash         string          `db:"tx_hash"`
+	}
+
+	err := r.db.Select(ctx, &items, query)
+	if err != nil {
+		r.logger.Error("failed to execute query to get enqueued VAAs",
+			zap.Error(err),
+			zap.String("query", query))
+		return nil, err
+	}
+
+	// Group the results by chain ID
+	enqueuedVaasGroupedByChainID := make(map[vaa.ChainID][]*EnqueuedVaa)
+	for _, item := range items {
+		detail := &EnqueuedVaa{
+			ChainID:        item.ChainID,
+			EmitterAddress: item.EmitterAddress,
+			Sequence:       item.Sequence,
+			NotionalValue:  item.NotionalValue.IntPart(),
+			TxHash:         item.TxHash,
+		}
+		enqueuedVaasGroupedByChainID[item.ChainID] = append(enqueuedVaasGroupedByChainID[item.ChainID], detail)
+	}
+
+	// Create the response
+	response := make([]*EnqueuedVaas, 0, len(enqueuedVaasGroupedByChainID))
+	for chainID, vaas := range enqueuedVaasGroupedByChainID {
+		response = append(response, &EnqueuedVaas{
+			ChainID:     chainID,
+			EnqueuedVaa: vaas,
+		})
+	}
+
+	// Sort the response by chain ID
+	sort.Slice(response, func(i, j int) bool {
+		return response[i].ChainID < response[j].ChainID
+	})
+
+	return response, nil
 }
