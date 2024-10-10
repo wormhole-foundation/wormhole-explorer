@@ -533,23 +533,24 @@ func paginate(list []*GovernorLimit, skip int, size int) []*GovernorLimit {
 
 func (r *PostgresRepository) GetEnqueueVass(ctx context.Context, q *EnqueuedVaaQuery) ([]*EnqueuedVaas, error) {
 	query := `
-		WITH flattened AS (SELECT (chain ->> 'chainid')::int                AS chain_id,
-                          jsonb_array_elements(chain -> 'emitters') AS emitter
-                   FROM wormholescan.wh_governor_status,
-                        jsonb_array_elements(message) AS chain),
-     deconstructedChains as (SELECT chain_id,
-                                    emitter ->> 'emitteraddress'                              AS emitter_address,
-                                    jsonb_array_elements(flattened.emitter -> 'enqueuedvaas') AS vaa
-                             FROM flattened
-                             WHERE flattened.emitter -> 'enqueuedvaas' IS NOT NULL
-                               AND (flattened.emitter -> 'enqueuedvaas' != 'null'))
-SELECT chain_id,
-       emitter_address,
-       (vaa ->> 'sequence')               AS sequence,
-       (vaa ->> 'releasetime')::bigint    AS release_time,
-       (vaa ->> 'notionalvalue')::numeric AS notional_value,
-       vaa ->> 'txhash'                   AS tx_hash
-FROM deconstructedChains
+		WITH flattened AS (	SELECT 	(chain ->> 'chainid')::int 		AS chain_id,
+									jsonb_array_elements(chain -> 'emitters') AS emitter
+                   			FROM 	wormholescan.wh_governor_status,
+                        			jsonb_array_elements(message) AS chain
+							),
+     		deconstructedChains as (SELECT 	chain_id,
+                                    		emitter ->> 'emitteraddress'					AS emitter_address,
+                                    		jsonb_array_elements(flattened.emitter -> 'enqueuedvaas')	AS vaa
+                             		FROM 	flattened
+                             		WHERE 	flattened.emitter -> 'enqueuedvaas' IS NOT NULL
+                             		AND 	(flattened.emitter -> 'enqueuedvaas' != 'null'))
+		SELECT chain_id,
+		       emitter_address,
+		       (vaa ->> 'sequence')               AS sequence,
+		       (vaa ->> 'releasetime')::bigint    AS release_time,
+		       (vaa ->> 'notionalvalue')::numeric AS notional_value,
+		       vaa ->> 'txhash'                   AS tx_hash
+		FROM deconstructedChains
     `
 
 	var items []struct {
