@@ -217,13 +217,19 @@ func (s *Service) GetAvailableNotionalByChainID(ctx context.Context, usePostgres
 }
 
 // GetMaxNotionalAvailableByChainID get a maximun notional value by chainID.
-func (s *Service) GetMaxNotionalAvailableByChainID(ctx context.Context, chainID vaa.ChainID) (*response.Response[*MaxNotionalAvailableRecord], error) {
+func (s *Service) GetMaxNotionalAvailableByChainID(ctx context.Context, usePostgres bool, chainID vaa.ChainID) (*response.Response[*MaxNotionalAvailableRecord], error) {
 	// check if chainID is valid
 	if _, ok := s.supportedChainIDs[chainID]; !ok {
 		return nil, errs.ErrNotFound
 	}
 	query := QueryNotionalLimit().SetChain(chainID)
-	maxNotionaLAvailable, err := s.mongoRepo.GetMaxNotionalAvailableByChainID(ctx, query)
+	var maxNotionaLAvailable *MaxNotionalAvailableRecord
+	var err error
+	if usePostgres {
+		maxNotionaLAvailable, err = s.postgresRepo.GetMaxNotionalAvailableByChainID(ctx, query)
+	} else {
+		maxNotionaLAvailable, err = s.mongoRepo.GetMaxNotionalAvailableByChainID(ctx, query)
+	}
 	res := response.Response[*MaxNotionalAvailableRecord]{Data: maxNotionaLAvailable}
 	return &res, err
 }

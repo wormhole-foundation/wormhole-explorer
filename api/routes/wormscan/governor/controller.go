@@ -328,7 +328,7 @@ func (c *Controller) GetMaxNotionalAvailableByChainID(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	response, err := c.srv.GetMaxNotionalAvailableByChainID(ctx.Context(), chainID)
+	response, err := c.srv.GetMaxNotionalAvailableByChainID(ctx.Context(), middleware.UsePostgres(ctx), chainID)
 	if err != nil {
 		return err
 	}

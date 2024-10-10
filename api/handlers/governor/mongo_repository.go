@@ -804,7 +804,7 @@ func (r *MongoRepository) GetMaxNotionalAvailableByChainID(
 	}
 
 	// decode to []NotionalLimitRecord.
-	var rows []*MaxNotionalAvailableRecord
+	var rows []*maxNotionalAvailableRecordMongo
 	err = cur.All(ctx, &rows)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
@@ -826,7 +826,56 @@ func (r *MongoRepository) GetMaxNotionalAvailableByChainID(
 	}
 
 	maxNotionalLimit := rows[minGuardianNum-1]
-	return maxNotionalLimit, nil
+	var available uint64
+	if maxNotionalLimit.NotionalAvailable != nil {
+		available = uint64(*maxNotionalLimit.NotionalAvailable)
+	}
+
+	var finalEmitters []*Emitter
+	for _, emt := range maxNotionalLimit.Emitters {
+		if emt == nil {
+			continue
+		}
+
+		var totalEnqueuedVaas uint64
+		if emt.TotalEnqueuedVaas != nil {
+			totalEnqueuedVaas = uint64(*emt.TotalEnqueuedVaas)
+		}
+
+		elem := &Emitter{
+			Address:           emt.Address,
+			TotalEnqueuedVaas: totalEnqueuedVaas,
+		}
+		var enqueuedVaas []*EnqueuedVAA
+		for _, ev := range emt.EnqueuedVaas {
+
+			var notionalValue uint64
+			if ev.Notional != nil {
+				notionalValue = uint64(*ev.Notional)
+			}
+
+			val := &EnqueuedVAA{
+				Sequence:    ev.Sequence,
+				ReleaseTime: ev.ReleaseTime,
+				Notional:    notionalValue,
+				TxHash:      ev.TxHash,
+			}
+			enqueuedVaas = append(enqueuedVaas, val)
+		}
+
+		finalEmitters = append(finalEmitters, elem)
+
+	}
+
+	return &MaxNotionalAvailableRecord{
+		ID:                maxNotionalLimit.ID,
+		ChainID:           maxNotionalLimit.ChainID,
+		NodeName:          maxNotionalLimit.NodeName,
+		NotionalAvailable: available,
+		Emitters:          finalEmitters,
+		CreatedAt:         maxNotionalLimit.CreatedAt,
+		UpdatedAt:         maxNotionalLimit.UpdatedAt,
+	}, nil
 }
 
 // EnqueuedVaaQuery respresent a query for enqueuedVaa queries.
