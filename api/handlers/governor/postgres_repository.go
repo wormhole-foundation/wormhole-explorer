@@ -533,13 +533,13 @@ func paginate(list []*GovernorLimit, skip int, size int) []*GovernorLimit {
 
 func (r *PostgresRepository) GetEnqueueVass(ctx context.Context, _ *EnqueuedVaaQuery) ([]*EnqueuedVaas, error) {
 	query := `
-		WITH flattened AS (	SELECT 	(chain ->> 'chainid')::int 		AS chain_id,
-									jsonb_array_elements(chain -> 'emitters') AS emitter
+		WITH flattened AS (	SELECT 	(chain ->> 'chainid')::int 					AS chain_id,
+									jsonb_array_elements(chain -> 'emitters') 	AS emitter
                    			FROM 	wormholescan.wh_governor_status,
                         			jsonb_array_elements(message) AS chain
 							),
      		deconstructedChains as (SELECT 	chain_id,
-                                    		emitter ->> 'emitteraddress'					AS emitter_address,
+                                    		emitter ->> 'emitteraddress'								AS emitter_address,
                                     		jsonb_array_elements(flattened.emitter -> 'enqueuedvaas')	AS vaa
                              		FROM 	flattened
                              		WHERE 	flattened.emitter -> 'enqueuedvaas' IS NOT NULL
@@ -602,8 +602,8 @@ func (r *PostgresRepository) GetEnqueueVass(ctx context.Context, _ *EnqueuedVaaQ
 
 func (r *PostgresRepository) GetEnqueueVassByChainID(ctx context.Context, q *EnqueuedVaaQuery) ([]*EnqueuedVaaDetail, error) {
 	query := `
-		WITH flattened AS (	SELECT 	(chain ->> 'chainid')::int 		AS chain_id,
-									jsonb_array_elements(chain -> 'emitters') AS emitter
+		WITH flattened AS (	SELECT 	(chain ->> 'chainid')::int 					AS chain_id,
+									jsonb_array_elements(chain -> 'emitters') 	AS emitter
                    			FROM 	wormholescan.wh_governor_status,
                         			jsonb_array_elements(message) AS chain
 							WHERE 	(chain ->> 'chainid')::int = $1	
