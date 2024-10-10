@@ -1,4 +1,3 @@
-import { InstrumentedSuiClient, ProviderPool, RpcConfig } from "@xlabs/rpc-pool";
 import { RateLimitedWormchainJsonRPCBlockRepository } from "./wormchain/RateLimitedWormchainJsonRPCBlockRepository";
 import { RateLimitedAlgorandJsonRPCBlockRepository } from "./algorand/RateLimitedAlgorandJsonRPCBlockRepository";
 import { RateLimitedCosmosJsonRPCBlockRepository } from "./cosmos/RateLimitedCosmosJsonRPCBlockRepository";
@@ -9,14 +8,15 @@ import { RateLimitedSuiJsonRPCBlockRepository } from "./sui/RateLimitedSuiJsonRP
 import { WormchainJsonRPCBlockRepository } from "./wormchain/WormchainJsonRPCBlockRepository";
 import { AlgorandJsonRPCBlockRepository } from "./algorand/AlgorandJsonRPCBlockRepository";
 import { InstrumentedConnectionWrapper } from "../rpc/http/InstrumentedConnectionWrapper";
+import { InstrumentedSuiClientWrapper } from "../rpc/http/InstrumentedSuiClientWrapper";
 import { CosmosJsonRPCBlockRepository } from "./cosmos/CosmosJsonRPCBlockRepository";
-import { extendedProviderPoolSupplier } from "../rpc/http/ProviderPoolDecorator";
 import { AptosJsonRPCBlockRepository } from "./aptos/AptosJsonRPCBlockRepository";
 import { SNSClient, SNSClientConfig } from "@aws-sdk/client-sns";
 import { NearJsonRPCBlockRepository } from "./near/NearJsonRPCBlockRepository";
 import { InstrumentedHttpProvider } from "../rpc/http/InstrumentedHttpProvider";
 import { ChainRPCConfig, Config } from "../config";
 import { InfluxEventRepository } from "./target/InfluxEventRepository";
+import { RpcConfig } from "@xlabs/rpc-pool";
 import { InfluxDB } from "@influxdata/influxdb-client";
 import {
   WormchainRepository,
@@ -24,8 +24,8 @@ import {
   CosmosRepository,
   AptosRepository,
   NearRepository,
-  JobRepository,
   SuiRepository,
+  JobRepository,
 } from "../../domain/repositories";
 import {
   MoonbeamEvmJsonRPCBlockRepository,
@@ -40,6 +40,10 @@ import {
   PromStatRepository,
   SnsEventRepository,
 } from ".";
+import {
+  extendedProviderPoolSupplier,
+  ProviderPoolDecorator,
+} from "../rpc/http/ProviderPoolDecorator";
 
 const WORMCHAIN_CHAIN = "wormchain";
 const ALGORAND_CHAIN = "algorand";
@@ -132,8 +136,9 @@ export class RepositoriesBuilder {
         this.cfg.environment,
         this.cfg.jobs.dir,
         this.cfg.dryRun,
-        (chain: string) => this.getEvmBlockRepository(chain),
+        this.cfg.rpcHealthcheckInterval,
         {
+          evmRepo: (chain: string) => this.getEvmBlockRepository(chain),
           metadataRepo: this.getMetadataRepository(),
           statsRepo: this.getStatsRepository(),
           snsRepo: this.getSnsEventRepository(),
@@ -151,10 +156,10 @@ export class RepositoriesBuilder {
   }
 
   public getEvmBlockRepository(chain: string): EvmJsonRPCBlockRepository {
-    const instanceRepoName = EVM_CHAINS.get(chain);
-    if (!instanceRepoName)
+    const instance = EVM_CHAINS.get(chain);
+    if (!instance)
       throw new Error(`[RepositoriesBuilder] Chain ${chain.toLocaleUpperCase()} not supported`);
-    return this.getRepo(instanceRepoName);
+    return this.getRepo(instance);
   }
 
   public getSnsEventRepository(): SnsEventRepository | undefined {
@@ -183,7 +188,7 @@ export class RepositoriesBuilder {
     return this.getRepo("metrics");
   }
 
-  public getJobsRepository(): JobRepository {
+  public getJobs(): JobRepository {
     return this.getRepo("jobs");
   }
 
@@ -270,6 +275,7 @@ export class RepositoriesBuilder {
         new BscEvmJsonRPCBlockRepository(repoCfg, pools),
         "bsc"
       );
+
       const evmRepository = new RateLimitedEvmJsonRPCBlockRepository(
         new EvmJsonRPCBlockRepository(repoCfg, pools),
         "evm"
@@ -286,7 +292,7 @@ export class RepositoriesBuilder {
     if (chain == SUI_CHAIN) {
       const suiProviderPool = extendedProviderPoolSupplier(
         this.cfg.chains[chain].rpcs.map((url) => ({ url })),
-        (rpcCfg: RpcConfig) => new InstrumentedSuiClient(rpcCfg.url, 2000),
+        (rpcCfg: RpcConfig) => new InstrumentedSuiClientWrapper(rpcCfg.url, 2000),
         POOL_STRATEGY
       );
 
@@ -438,4 +444,4 @@ export type JsonRPCBlockRepositoryCfg = {
   environment: string;
 };
 
-export type ProviderPoolMap = Record<string, ProviderPool<InstrumentedHttpProvider>>;
+export type ProviderPoolMap = Record<string, ProviderPoolDecorator<InstrumentedHttpProvider>>;

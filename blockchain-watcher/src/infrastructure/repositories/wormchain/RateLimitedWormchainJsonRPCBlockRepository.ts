@@ -1,5 +1,5 @@
+import { WormchainRepository, ProviderHealthCheck } from "../../../domain/repositories";
 import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
-import { WormchainRepository } from "../../../domain/repositories";
 import { Options } from "../common/rateLimitedOptions";
 import winston from "winston";
 import {
@@ -19,6 +19,10 @@ export class RateLimitedWormchainJsonRPCBlockRepository
   ) {
     super(delegate, chain, opts);
     this.logger = winston.child({ module: "RateLimitedWormchainJsonRPCBlockRepository" });
+  }
+
+  healthCheck(chain: string, finality: string, cursor: bigint): Promise<ProviderHealthCheck[]> {
+    return this.breaker.fn(() => this.delegate.healthCheck(chain, finality, cursor)).execute();
   }
 
   getBlockHeight(chain: string): Promise<bigint | undefined> {

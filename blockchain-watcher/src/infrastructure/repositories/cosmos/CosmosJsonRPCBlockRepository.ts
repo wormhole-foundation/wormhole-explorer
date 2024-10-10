@@ -1,11 +1,12 @@
 import { JsonRPCBlockRepositoryCfg, ProviderPoolMap } from "../RepositoriesBuilder";
+import { CosmosRepository, ProviderHealthCheck } from "../../../domain/repositories";
 import { CosmosTransaction } from "../../../domain/entities/cosmos";
-import { CosmosRepository } from "../../../domain/repositories";
 import { getChainProvider } from "../common/utils";
 import { Filter } from "../../../domain/actions/cosmos/types";
 import winston from "winston";
 
 const TRANSACTION_SEARCH_ENDPOINT = "/tx_search";
+const STATUS_ENDPOINT = "/status";
 const BLOCK_ENDPOINT = "/block";
 
 export class CosmosJsonRPCBlockRepository implements CosmosRepository {
@@ -17,6 +18,43 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
     this.logger = winston.child({ module: "CosmosJsonRPCBlockRepository" });
     this.pool = pool;
     this.cfg = cfg;
+  }
+
+  async healthCheck(
+    chain: string,
+    finality: string,
+    cursor: bigint
+  ): Promise<ProviderHealthCheck[]> {
+    const providersHealthCheck: ProviderHealthCheck[] = [];
+    const pool = this.pool[chain];
+    const providers = pool.getProviders();
+
+    for (const provider of providers) {
+      try {
+        const resultStatus = await provider.get<Status>(STATUS_ENDPOINT);
+
+        const result = ("result" in resultStatus ? resultStatus.result : resultStatus) as Status;
+        const height = result?.sync_info?.latest_block_height
+          ? BigInt(result.sync_info.latest_block_height)
+          : undefined;
+
+        providersHealthCheck.push({
+          isHealthy: height !== undefined,
+          latency: provider.getLatency(),
+          height: height,
+          url: provider.getUrl(),
+        });
+      } catch (e) {
+        this.logger.error(
+          `[${chain}][healthCheck] Error getting result on ${provider.getUrl()}: ${JSON.stringify(
+            e
+          )}`
+        );
+        providersHealthCheck.push({ url: provider.getUrl(), height: undefined, isHealthy: false });
+      }
+    }
+    pool.setProviders(chain, providers, providersHealthCheck, cursor);
+    return providersHealthCheck;
   }
 
   async getTransactions(
@@ -93,12 +131,8 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
   async getBlockTimestamp(blockNumber: bigint, chain: string): Promise<number | undefined> {
     try {
       const blockEndpoint = `${BLOCK_ENDPOINT}?height=${blockNumber}`;
-      let resultsBlock: ResultBlock;
 
-      resultsBlock = await getChainProvider(chain, this.pool).get<typeof resultsBlock>(
-        blockEndpoint
-      );
-
+      const resultsBlock = await getChainProvider(chain, this.pool).get<ResultBlock>(blockEndpoint);
       const result = ("result" in resultsBlock ? resultsBlock.result : resultsBlock) as ResultBlock;
 
       if (!result || !result.block || !result.block.header || !result.block.header.time) {
@@ -122,6 +156,12 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
     this.logger.error(`[${chain}] Error calling ${method}: ${e.message ?? e}`);
   }
 }
+
+type Status = {
+  sync_info: {
+    latest_block_height: string;
+  };
+};
 
 type ResultTransactionSearch = {
   total_count: string;

@@ -18,25 +18,47 @@ describe("NearJsonRPCBlockRepository", () => {
     nock.cleanAll();
   });
 
+  it("should be able to validate rpcs", async () => {
+    // Given
+    givenARepo();
+    givenBlockHeightIs();
+
+    // When
+    const result = await repo.healthCheck("near", "final", 125151310n);
+
+    // Then
+    expect(result).toBeInstanceOf(Array);
+    expect(result[0].isHealthy).toEqual(true);
+    expect(result[0].height).toEqual(125151310n);
+    expect(result[0].url).toEqual("http://localhost");
+    expect(result[0].latency).toBeDefined();
+  });
+
   it("should be able to get block height", async () => {
+    // Given
     const expectedHeight = 125151310n;
     givenARepo();
     givenBlockHeightIs();
 
+    // When
     const result = await repo.getBlockHeight("final");
 
+    // Then
     expect(result).toBe(expectedHeight);
   });
 
   it("should be able to get the transactions", async () => {
+    // Given
     const contract = "contract.portalbridge.near";
     givenARepo();
     givenBlockById();
     givenChunk();
     givenTxStatus();
 
+    // When
     const result = await repo.getTransactions(contract, 125151310n, 125151310n);
 
+    // Then
     expect(result).toBeTruthy();
     expect(result[0].hash).toBe("DMqXkWDFGv59x5z3QpdmtPM1aYZCCKyeMGDasZgVdRj");
     expect(result[0].receiverId).toBe("contract.portalbridge.near");
@@ -49,6 +71,8 @@ describe("NearJsonRPCBlockRepository", () => {
 const givenARepo = () => {
   repo = new NearJsonRPCBlockRepository({
     get: () => new InstrumentedHttpProvider({ url: rpc, chain: "near" }),
+    getProviders: () => [new InstrumentedHttpProvider({ url: rpc, chain: "near" })],
+    setProviders: () => {},
   } as any);
 };
 

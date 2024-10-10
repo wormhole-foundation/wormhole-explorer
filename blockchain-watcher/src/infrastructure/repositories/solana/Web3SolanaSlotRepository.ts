@@ -1,12 +1,11 @@
+import { SolanaSlotRepository, ProviderHealthCheck } from "../../../domain/repositories";
 import { InstrumentedConnectionWrapper } from "../../rpc/http/InstrumentedConnectionWrapper";
 import { Fallible, SolanaFailure } from "../../../domain/errors";
-import { SolanaSlotRepository } from "../../../domain/repositories";
-import { ProviderPool } from "@xlabs/rpc-pool";
+import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
 import { solana } from "../../../domain/entities";
 import winston from "../../log";
 import {
   VersionedTransactionResponse,
-  VersionedBlockResponse,
   SolanaJSONRPCError,
   Commitment,
   PublicKey,
@@ -16,8 +15,38 @@ import {
 export class Web3SolanaSlotRepository implements SolanaSlotRepository {
   protected readonly logger;
 
-  constructor(private readonly pool: ProviderPool<InstrumentedConnectionWrapper>) {
+  constructor(private readonly pool: ProviderPoolDecorator<InstrumentedConnectionWrapper>) {
     this.logger = winston.child({ module: "Web3SolanaSlotRepository" });
+  }
+
+  async healthCheck(
+    chain: string,
+    finality: string,
+    cursor: bigint
+  ): Promise<ProviderHealthCheck[]> {
+    const providers = this.pool.getProviders();
+    const providersHealthCheck: ProviderHealthCheck[] = [];
+
+    for (const provider of providers) {
+      try {
+        const response = await this.pool.get().getSlot(finality as Commitment);
+
+        const height = response ? BigInt(response) : undefined;
+        providersHealthCheck.push({
+          isHealthy: height !== undefined,
+          latency: provider.getLatency(),
+          height: height,
+          url: provider.getUrl(),
+        });
+      } catch (e) {
+        this.logger.error(
+          `[solana][healthCheck] Error getting result on ${provider.getUrl()}: ${JSON.stringify(e)}`
+        );
+        providersHealthCheck.push({ url: provider.getUrl(), height: undefined, isHealthy: false });
+      }
+    }
+    this.pool.setProviders(chain, providers, providersHealthCheck, cursor);
+    return providersHealthCheck;
   }
 
   getLatestSlot(commitment: string): Promise<number> {

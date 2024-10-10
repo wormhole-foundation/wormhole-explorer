@@ -1,5 +1,6 @@
 {
   "environment": "mainnet",
+  "rpcHealthcheckInterval": 600000,
   "chains": {
     "solana": {
       "network": "mainnet-beta",
@@ -155,9 +156,9 @@
       "network": "mainnet",
       "chainId": 30,
       "rpcs": [
-        "https://mainnet.base.org",
         "https://base-pokt.nodies.app",
-        "https://base.publicnode.com"
+        "https://base.publicnode.com",
+        "https://mainnet.base.org"
       ]
     },
     "sei": {

@@ -45,9 +45,11 @@ data:
         "chain": "base-sepolia",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 35000,
             "filters": [
@@ -109,9 +111,11 @@ data:
         "chain": "arbitrum-sepolia",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 1000,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 35000,
             "filters": [
@@ -173,9 +177,11 @@ data:
         "chain": "polygon-sepolia",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 35000,
             "filters": [
@@ -212,9 +218,11 @@ data:
         "chain": "avalanche",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "finalized",
             "interval": 35000,
             "filters": [
@@ -282,9 +290,11 @@ data:
         "chain": "ethereum-sepolia",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 35000,
             "filters": [
@@ -346,9 +356,11 @@ data:
         "chain": "ethereum-holesky",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 60000,
             "filters": [
@@ -385,9 +397,11 @@ data:
         "chain": "bsc",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 35000,
             "filters": [
@@ -437,9 +451,11 @@ data:
         "chain": "optimism-sepolia",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 35000,
             "filters": [
@@ -501,9 +517,11 @@ data:
         "chain": "blast",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 35000,
             "filters": [
@@ -534,9 +552,11 @@ data:
         "chain": "xlayer",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 4,
+            "environment": "testnet",
             "commitment": "latest",
             "interval": 5000,
             "filters": [
@@ -561,6 +581,40 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-redeemed-transactions-berachain-latest",
+        "chain": "berachain",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "repository": "evmRepo",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              }
+            ],
+            "chain": "berachain",
+            "chainId": 39
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
       }
     ]
   mainnet-jobs.json: |-
@@ -570,9 +624,11 @@ data:
         "chain": "base",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -656,9 +712,11 @@ data:
         "chain": "arbitrum",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 1000,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -748,9 +806,11 @@ data:
         "chain": "polygon",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -828,9 +888,11 @@ data:
         "chain": "avalanche",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "finalized",
             "interval": 15000,
             "filters": [
@@ -908,9 +970,11 @@ data:
         "chain": "ethereum",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -994,9 +1058,11 @@ data:
         "chain": "bsc",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -1063,9 +1129,11 @@ data:
         "chain": "optimism",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -1149,9 +1217,11 @@ data:
         "chain": "blast",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 15000,
             "chain": "blast",
@@ -1195,9 +1265,11 @@ data:
         "chain": "xlayer",
         "source": {
           "action": "PollEvm",
+          "repository": "evmRepo",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
+            "environment": "mainnet",
             "commitment": "latest",
             "interval": 15000,
             "chain": "xlayer",
@@ -1229,6 +1301,7 @@ data:
         "source": {
           "action": "PollEvm",
           "records": "GetEvmTransactions",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "finalized",
@@ -1315,6 +1388,7 @@ data:
         "source": {
           "action": "PollEvm",
           "records": "GetEvmTransactions",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "finalized",
@@ -1384,6 +1458,7 @@ data:
         "source": {
           "action": "PollEvm",
           "records": "GetEvmTransactions",
+          "repository": "evmRepo",
           "config": {
             "blockBatchSize": 100,
             "commitment": "finalized",
@@ -1536,6 +1611,10 @@ spec:
             {{ if .XLAYER_RPCS }}
             - name: XLAYER_RPCS
               value: '{{ .XLAYER_RPCS }}'
+            {{ end }}
+            {{ if .BERACHAIN_RPCS }}
+            - name: BERACHAIN_RPCS
+              value: '{{ .BERACHAIN_RPCS }}'
             {{ end }}
           resources:
             limits:

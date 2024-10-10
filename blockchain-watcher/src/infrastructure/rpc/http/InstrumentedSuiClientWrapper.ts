@@ -1,17 +1,11 @@
-import { Commitment, Connection, ConnectionConfig } from "@solana/web3.js";
-import { ProviderHealthInstrumentation } from "@xlabs/rpc-pool";
+import { InstrumentedSuiClient, ProviderHealthInstrumentation } from "@xlabs/rpc-pool";
 
-export class InstrumentedConnectionWrapper extends Connection {
+export class InstrumentedSuiClientWrapper extends InstrumentedSuiClient {
   health: ProviderHealthInstrumentation;
-  private url: string;
+  url: string;
 
-  constructor(
-    endpoint: string,
-    commitment: Commitment | ConnectionConfig,
-    timeout: number,
-    chain: string
-  ) {
-    super(endpoint, commitment);
+  constructor(endpoint: string, timeout: number, chain: string = "sui") {
+    super(endpoint, timeout);
     this.health = new ProviderHealthInstrumentation(timeout, chain);
     this.url = endpoint;
   }
@@ -25,11 +19,11 @@ export class InstrumentedConnectionWrapper extends Connection {
     return durations.length > 0 ? durations[durations.length - 1] : undefined;
   }
 
-  public getUrl(): string {
-    return this.url;
-  }
-
   public isHealthy(): boolean {
     return this.health.isHealthy;
+  }
+
+  public getUrl(): string {
+    return this.url;
   }
 }

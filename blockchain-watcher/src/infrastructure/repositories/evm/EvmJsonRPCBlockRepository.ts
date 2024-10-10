@@ -1,9 +1,9 @@
 import { JsonRPCBlockRepositoryCfg, ProviderPoolMap } from "../RepositoriesBuilder";
+import { EvmBlockRepository, ProviderHealthCheck } from "../../../domain/repositories";
 import { divideIntoBatches, getChainProvider } from "../common/utils";
 import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
-import { EvmBlockRepository } from "../../../domain/repositories";
+import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
 import { HttpClientError } from "../../errors/HttpClientError";
-import { ProviderPool } from "@xlabs/rpc-pool";
 import winston from "../../log";
 import {
   ReceiptTransaction,
@@ -28,12 +28,50 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
 
   constructor(
     cfg: JsonRPCBlockRepositoryCfg,
-    pool: Record<string, ProviderPool<InstrumentedHttpProvider>>
+    pool: Record<string, ProviderPoolDecorator<InstrumentedHttpProvider>>
   ) {
     this.cfg = cfg;
     this.pool = pool;
     this.logger = winston.child({ module: "EvmJsonRPCBlockRepository" });
     this.logger.info(`Created for ${Object.keys(this.cfg.chains)}`);
+  }
+
+  async healthCheck(
+    chain: string,
+    finality: EvmTag,
+    cursor: bigint
+  ): Promise<ProviderHealthCheck[]> {
+    const pool = this.pool[chain];
+    const providers = pool.getProviders();
+    const providersHealthCheck: ProviderHealthCheck[] = [];
+
+    for (const provider of providers) {
+      try {
+        const result = await provider.post<{ result: string }>({
+          jsonrpc: "2.0",
+          method: "eth_blockNumber",
+          params: [],
+          id: cursor.toString(),
+        });
+
+        const height = result.result ? BigInt(result.result) : undefined;
+        providersHealthCheck.push({
+          isHealthy: height !== undefined,
+          latency: provider.getLatency(),
+          height: height,
+          url: provider.getUrl(),
+        });
+      } catch (e) {
+        this.logger.error(
+          `[${chain}][healthCheck] Error getting result on ${provider.getUrl()}: ${JSON.stringify(
+            e
+          )}`
+        );
+        providersHealthCheck.push({ url: provider.getUrl(), height: undefined, isHealthy: false });
+      }
+    }
+    pool.setProviders(chain, providers, providersHealthCheck, cursor);
+    return providersHealthCheck;
   }
 
   async getBlockHeight(chain: string, finality: EvmTag): Promise<bigint> {
@@ -79,6 +117,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
           retries: chainCfg.retries,
         });
       } catch (e: HttpClientError | any) {
+        provider.setProviderOffline();
         throw e;
       }
 
@@ -154,7 +193,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
 
   async getFilteredLogs(chain: string, filter: EvmLogFilter): Promise<EvmLog[]> {
     let parsedFilters: ParsedFilters = {
-      topics: filter.topics,
+      topics: [filter.topics[0]], // We only use the first topic
       fromBlock: `${HEXADECIMAL_PREFIX}${filter.fromBlock.toString(16)}`,
       toBlock: `${HEXADECIMAL_PREFIX}${filter.toBlock.toString(16)}`,
     };
@@ -178,6 +217,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         { timeout: chainCfg.timeout, retries: chainCfg.retries }
       );
     } catch (e: HttpClientError | any) {
+      provider.setProviderOffline();
       throw e;
     }
 
