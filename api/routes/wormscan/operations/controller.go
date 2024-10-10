@@ -2,6 +2,10 @@ package operations
 
 import (
 	"context"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/operations"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
@@ -9,8 +13,6 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/types"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
-	"strconv"
-	"strings"
 )
 
 // Controller is the controller for the operation resource.
@@ -45,6 +47,8 @@ func NewController(operationService operationService, logger *zap.Logger) *Contr
 // @Param targetChain query string false "target chains of the operation, separated by comma".
 // @Param appId query string false "appID of the operation".
 // @Param exclusiveAppId query boolean false "single appId of the operation".
+// @Param from query string false "beginning of period"
+// @Param to query string false "end of period"
 // @Success 200 {object} []OperationResponse
 // @Failure 400
 // @Failure 500
@@ -115,6 +119,16 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 		}
 	}
 
+	from, err := middleware.ExtractTime(ctx, time.RFC3339, "from")
+	if err != nil {
+		return err
+	}
+
+	to, err := middleware.ExtractTime(ctx, time.RFC3339, "to")
+	if err != nil {
+		return err
+	}
+
 	filter := operations.OperationFilter{
 		TxHash:         txHash,
 		Address:        address,
@@ -124,6 +138,8 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 		ExclusiveAppId: exclusiveAppId,
 		PayloadType:    payloadType,
 		Pagination:     *pagination,
+		From:           from,
+		To:             to,
 	}
 
 	// Find operations by q search param.

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 
@@ -117,6 +118,8 @@ type OperationQuery struct {
 	AppIDs         []string
 	ExclusiveAppId bool
 	PayloadType    []int
+	From           *time.Time
+	To             *time.Time
 }
 
 func buildQueryOperationsByChain(sourceChainIDs, targetChainIDs []vaa.ChainID) bson.D {
@@ -269,6 +272,14 @@ func BuildPipelineSearchFromParsedVaa(query OperationQuery) mongo.Pipeline {
 		pipeline = append(pipeline, matchByAppId)
 	}
 
+	if query.From != nil {
+		pipeline = append(pipeline, bson.D{{Key: "$match", Value: bson.M{"timestamp": bson.M{"$gte": query.From}}}})
+	}
+
+	if query.To != nil {
+		pipeline = append(pipeline, bson.D{{Key: "$match", Value: bson.M{"timestamp": bson.M{"$lte": query.To}}}})
+	}
+
 	pipeline = append(pipeline, bson.D{{Key: "$sort", Value: bson.D{
 		bson.E{Key: "timestamp", Value: query.Pagination.GetSortInt()},
 		bson.E{Key: "_id", Value: -1},
@@ -323,6 +334,14 @@ func (r *Repository) FindAll(ctx context.Context, query OperationQuery) ([]*Oper
 		// match operation by txHash (source tx and destination tx)
 		matchByTxHash := r.matchOperationByTxHash(ctx, query.TxHash)
 		pipeline = append(pipeline, matchByTxHash)
+	}
+
+	if query.From != nil {
+		pipeline = append(pipeline, bson.D{{Key: "$match", Value: bson.M{"originTx.timestamp": bson.M{"$gte": query.From}}}})
+	}
+
+	if query.To != nil {
+		pipeline = append(pipeline, bson.D{{Key: "$match", Value: bson.M{"originTx.timestamp": bson.M{"$lte": query.To}}}})
 	}
 
 	// sort

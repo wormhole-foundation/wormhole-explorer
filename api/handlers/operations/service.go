@@ -3,6 +3,7 @@ package operations
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"github.com/wormhole-foundation/wormhole-explorer/common/types"
@@ -40,6 +41,8 @@ type OperationFilter struct {
 	ExclusiveAppId bool
 	Pagination     pagination.Pagination
 	PayloadType    []int
+	From           *time.Time
+	To             *time.Time
 }
 
 // FindAll returns all operations filtered by q.
@@ -58,6 +61,8 @@ func (s *Service) FindAll(ctx context.Context, filter OperationFilter) ([]*Opera
 		AppIDs:         filter.AppIDs,
 		ExclusiveAppId: filter.ExclusiveAppId,
 		PayloadType:    filter.PayloadType,
+		From:           filter.From,
+		To:             filter.To,
 	}
 
 	if len(operationQuery.AppIDs) != 0 || len(operationQuery.SourceChainIDs) > 0 || len(operationQuery.TargetChainIDs) > 0 || len(operationQuery.PayloadType) > 0 {

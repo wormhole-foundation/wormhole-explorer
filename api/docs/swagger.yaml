@@ -2107,6 +2107,14 @@ paths:
         in: query
         name: exclusiveAppId
         type: boolean
+      - description: beginning of period
+        in: query
+        name: from
+        type: string
+      - description: end of period
+        in: query
+        name: to
+        type: string
       responses:
         "200":
           description: OK
