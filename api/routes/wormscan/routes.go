@@ -87,8 +87,9 @@ func RegisterRoutes(
 	api.Get("/version", infrastructureCtrl.Version)
 
 	// Circulating Supply
-	api.Get("/supply", supplyCtrl.GetCirculatingSupply)
-	api.Get("/total-supply", supplyCtrl.GetTotalSupply)
+	api.Get("/supply/circulating", supplyCtrl.GetCirculatingSupply)
+	api.Get("/supply/total", supplyCtrl.GetTotalSupply)
+	api.Get("/supply", supplyCtrl.GetSupplyInfo)
 
 	// accounts resource
 	api.Get("/address/:id", addressCtrl.FindById)

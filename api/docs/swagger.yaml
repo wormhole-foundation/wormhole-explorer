@@ -889,13 +889,10 @@ definitions:
       volume:
         type: number
     type: object
-  supply.CirculatingSupplyResponse:
+  supply.SupplyInfoResponse:
     properties:
       circulating_supply:
         type: string
-    type: object
-  supply.TotalSupplyResponse:
-    properties:
       total_supply:
         type: string
     type: object
@@ -2229,13 +2226,31 @@ paths:
       - wormholescan
   /api/v1/supply:
     get:
-      description: Get W token circulation supply.
-      operationId: supply
+      description: Get W token supply data (circulation and total supply).
+      operationId: supply-info
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/supply.CirculatingSupplyResponse'
+            $ref: '#/definitions/supply.SupplyInfoResponse'
+      tags:
+      - wormholescan
+  /api/v1/supply/circulating:
+    get:
+      description: Get W token circulation supply.
+      operationId: circulating-supply
+      responses:
+        "200":
+          description: OK
+      tags:
+      - wormholescan
+  /api/v1/supply/total:
+    get:
+      description: Get W token total supply.
+      operationId: total-supply
+      responses:
+        "200":
+          description: OK
       tags:
       - wormholescan
   /api/v1/token/:chain_id/:token_address:
@@ -2347,17 +2362,6 @@ paths:
           description: Bad Request
         "500":
           description: Internal Server Error
-      tags:
-      - wormholescan
-  /api/v1/total-supply:
-    get:
-      description: Get W token total supply.
-      operationId: total-supply
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/supply.TotalSupplyResponse'
       tags:
       - wormholescan
   /api/v1/transactions/:
