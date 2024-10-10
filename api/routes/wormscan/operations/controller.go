@@ -129,6 +129,10 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 		return err
 	}
 
+	if from != nil && to != nil && to.Before(*from) {
+		return response.NewInvalidParamError(ctx, "invalid date range", nil)
+	}
+
 	filter := operations.OperationFilter{
 		TxHash:         txHash,
 		Address:        address,
