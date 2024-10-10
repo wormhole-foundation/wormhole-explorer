@@ -270,7 +270,7 @@ func (c *Controller) GetAvailableNotional(ctx *fiber.Ctx) error {
 		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
 	}
 
-	notionalAvaialabilies, err := c.srv.GetAvailableNotional(ctx.Context(), p)
+	notionalAvaialabilies, err := c.srv.GetAvailableNotional(ctx.Context(), middleware.UsePostgres(ctx), p)
 	if err != nil {
 		return err
 	}
