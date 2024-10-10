@@ -27,13 +27,15 @@ let queryTransactionsSpy: jest.SpiedFunction<SuiRepository["queryTransactions"]>
 let checkpoints: Checkpoint[];
 let lastCheckpoint: Checkpoint;
 
-const filter = {
-  MoveFunction: {
-    package: "0x26efee2b51c911237888e5dc6702868abca3c7ac12c53f76ef8eba0697695e3d",
-    module: "complete_transfer",
-    function: "authorize_transfer",
+const filters = [
+  {
+    MoveFunction: {
+      package: "0x26efee2b51c911237888e5dc6702868abca3c7ac12c53f76ef8eba0697695e3d",
+      module: "complete_transfer",
+      function: "authorize_transfer",
+    },
   },
-};
+];
 
 let handler: jest.MockedFunction<() => Promise<any[]>>;
 
@@ -56,7 +58,7 @@ describe("PollSuiTransactions", () => {
       () => expect(queryTransactionsSpy).toHaveReturnedTimes(1),
       () =>
         expect(queryTransactionsSpy).toHaveBeenCalledWith(
-          filter,
+          filters[0],
           previousToLast.transactions[previousToLast.transactions.length - 1]
         )
     );
@@ -77,7 +79,7 @@ describe("PollSuiTransactions", () => {
       () => expect(queryTransactionsSpy).toHaveReturnedTimes(1),
       () =>
         expect(queryTransactionsSpy).toHaveBeenCalledWith(
-          filter,
+          filters[0],
           "FpebiL11dZtsf1Lmk9M2Lz4qkGqNMsk5xkKYsSfKz6ab"
         )
     );
@@ -99,7 +101,7 @@ describe("PollSuiTransactions", () => {
 
     await thenWaitForAssertion(
       () => expect(queryTransactionsSpy).toHaveReturnedTimes(1),
-      () => expect(queryTransactionsSpy).toHaveBeenCalledWith(filter, expectedCursor)
+      () => expect(queryTransactionsSpy).toHaveBeenCalledWith(filters[0], expectedCursor)
     );
   });
 
@@ -119,7 +121,7 @@ describe("PollSuiTransactions", () => {
 
     await thenWaitForAssertion(
       () => expect(queryTransactionsSpy).toHaveReturnedTimes(1),
-      () => expect(queryTransactionsSpy).toHaveBeenCalledWith(filter, expectedCursor)
+      () => expect(queryTransactionsSpy).toHaveBeenCalledWith(filters[0], expectedCursor)
     );
   });
 
@@ -144,7 +146,7 @@ describe("PollSuiTransactions", () => {
 
     await thenWaitForAssertion(
       () => expect(queryTransactionsSpy).toHaveReturnedTimes(1),
-      () => expect(queryTransactionsSpy).toHaveBeenCalledWith(filter, expectedCursor),
+      () => expect(queryTransactionsSpy).toHaveBeenCalledWith(filters[0], expectedCursor),
       () => expect(handler).toHaveBeenCalledWith(expectedTxs)
     );
   });
@@ -214,7 +216,7 @@ const whenPollingStarts = async () => {
 
 const givenPollSui = (cfg?: Partial<PollSuiTransactionsConfig>) => {
   poll = new PollSuiTransactions(
-    new PollSuiTransactionsConfig({ ...cfg, filter, id: "poll-sui-transactions" }),
+    new PollSuiTransactionsConfig({ ...cfg, filters, id: "poll-sui-transactions" }),
     statsRepo,
     metadataRepo,
     suiRepo
