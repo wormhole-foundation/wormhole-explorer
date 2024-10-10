@@ -1,13 +1,13 @@
 import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
-import { EvmBlockRepository } from "../../../domain/repositories";
+import { EvmBlockRepository, ProviderHealthCheck } from "../../../domain/repositories";
 import { Options } from "../common/rateLimitedOptions";
 import winston from "winston";
 import {
-  EvmBlock,
+  ReceiptTransaction,
   EvmLogFilter,
+  EvmBlock,
   EvmLog,
   EvmTag,
-  ReceiptTransaction,
 } from "../../../domain/entities";
 
 export class RateLimitedEvmJsonRPCBlockRepository
@@ -21,6 +21,10 @@ export class RateLimitedEvmJsonRPCBlockRepository
   ) {
     super(delegate, chain, opts);
     this.logger = winston.child({ module: "RateLimitedEvmJsonRPCBlockRepository" });
+  }
+
+  healthCheck(chain: string, finality: EvmTag, cursor: bigint): Promise<ProviderHealthCheck[]> {
+    return this.breaker.fn(() => this.delegate.healthCheck(chain, finality, cursor)).execute();
   }
 
   getBlockHeight(chain: string, finality: string): Promise<bigint> {

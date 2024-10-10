@@ -1,6 +1,6 @@
 import { divideIntoBatches, getChainProvider, hexToHash } from "../common/utils";
 import { ProviderPoolMap, JsonRPCBlockRepositoryCfg } from "../RepositoriesBuilder";
-import { WormchainRepository } from "../../../domain/repositories";
+import { WormchainRepository, ProviderHealthCheck } from "../../../domain/repositories";
 import { setTimeout } from "timers/promises";
 import { mapChain } from "../../../common/wormchain";
 import winston from "winston";
@@ -30,17 +30,50 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
     this.cfg = cfg;
   }
 
+  async healthCheck(
+    chain: string,
+    finality: string,
+    cursor: bigint
+  ): Promise<ProviderHealthCheck[]> {
+    const providersHealthCheck: ProviderHealthCheck[] = [];
+    const pool = this.pool[chain];
+    const providers = pool.getProviders();
+
+    for (const provider of providers) {
+      try {
+        const results = await provider.get<ResultBlockHeight>(BLOCK_HEIGHT_ENDPOINT);
+
+        if (results?.result?.response?.last_block_height) {
+          const height = results.result.response
+            ? BigInt(results.result.response.last_block_height)
+            : undefined;
+          providersHealthCheck.push({
+            isHealthy: height !== undefined,
+            latency: provider.getLatency(),
+            height: height,
+            url: provider.getUrl(),
+          });
+        }
+      } catch (e) {
+        this.logger.error(
+          `[${chain}][healthCheck] Error getting result on ${provider.getUrl()}: ${JSON.stringify(
+            e
+          )}`
+        );
+        providersHealthCheck.push({ url: provider.getUrl(), height: undefined, isHealthy: false });
+      }
+    }
+    pool.setProviders(chain, providers, providersHealthCheck, cursor);
+    return providersHealthCheck;
+  }
+
   async getBlockHeight(chain: string): Promise<bigint | undefined> {
     try {
-      let results: ResultBlockHeight;
-      results = await getChainProvider(chain, this.pool).get<typeof results>(BLOCK_HEIGHT_ENDPOINT);
+      const results = await getChainProvider(chain, this.pool).get<ResultBlockHeight>(
+        BLOCK_HEIGHT_ENDPOINT
+      );
 
-      if (
-        results &&
-        results.result &&
-        results.result.response &&
-        results.result.response.last_block_height
-      ) {
+      if (results?.result?.response?.last_block_height) {
         const blockHeight = results.result.response.last_block_height;
         return BigInt(blockHeight);
       }
@@ -58,13 +91,11 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
   ): Promise<WormchainBlockLogs> {
     try {
       const blockEndpoint = `${BLOCK_ENDPOINT}?height=${blockNumber}`;
-      let resultsBlock: ResultBlock;
-
       // Set up cosmos client
       const cosmosClient = getChainProvider(chain, this.pool);
 
       // Get wormchain block data
-      resultsBlock = await cosmosClient.get<typeof resultsBlock>(blockEndpoint);
+      const resultsBlock = await cosmosClient.get<ResultBlock>(blockEndpoint);
       const txs = resultsBlock.result.block.data.txs;
 
       if (!txs || txs.length === 0) {

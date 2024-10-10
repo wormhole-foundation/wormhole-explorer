@@ -5,9 +5,10 @@ import { Fallible, SolanaFailure } from "./errors";
 import { ConfirmedSignatureInfo } from "./entities/solana";
 import { AlgorandTransaction } from "./entities/algorand";
 import { TransactionFilter } from "./actions/aptos/PollAptos";
+import { RunRPCHealthcheck } from "./actions/RunRPCHealthcheck";
 import { CosmosTransaction } from "./entities/cosmos";
 import { NearTransaction } from "./entities/near";
-import { RunPollingJob } from "./actions/RunPollingJob";
+import { RunPollingJob } from "./actions";
 import { Filter } from "./actions/cosmos/types";
 import {
   TransactionFilter as SuiTransactionFilter,
@@ -43,6 +44,7 @@ export interface EvmBlockRepository {
     blockNumberOrTag: EvmTag | bigint,
     isTransactionsPresent: boolean
   ): Promise<EvmBlock>;
+  healthCheck(chain: string, finality: EvmTag, cursor: bigint): Promise<ProviderHealthCheck[]>;
 }
 
 export interface SolanaSlotRepository {
@@ -56,6 +58,7 @@ export interface SolanaSlotRepository {
     finality?: string
   ): Promise<ConfirmedSignatureInfo[]>;
   getTransactions(sigs: ConfirmedSignatureInfo[], finality?: string): Promise<solana.Transaction[]>;
+  healthCheck(chain: string, finality: string, cursor: bigint): Promise<ProviderHealthCheck[]>;
 }
 
 export interface SuiRepository {
@@ -72,6 +75,7 @@ export interface SuiRepository {
     filter: SuiEventFilter,
     cursor?: string
   ): Promise<SuiTransactionBlockReceipt[]>;
+  healthCheck(chain: string, finality: string, cursor: bigint): Promise<ProviderHealthCheck[]>;
 }
 
 export interface AptosRepository {
@@ -83,6 +87,7 @@ export interface AptosRepository {
     filter: TransactionFilter
   ): Promise<AptosEvent[]>;
   getTransactionsByVersion(records: AptosEvent[] | AptosTransaction[]): Promise<AptosTransaction[]>;
+  healthCheck(chain: string, finality: string, cursor: bigint): Promise<ProviderHealthCheck[]>;
 }
 
 export interface WormchainRepository {
@@ -93,6 +98,7 @@ export interface WormchainRepository {
     attributesTypes: string[]
   ): Promise<WormchainBlockLogs>;
   getRedeems(ibcTransaction: IbcTransaction): Promise<CosmosRedeem[]>;
+  healthCheck(chain: string, finality: string, cursor: bigint): Promise<ProviderHealthCheck[]>;
 }
 
 export interface CosmosRepository {
@@ -102,6 +108,7 @@ export interface CosmosRepository {
     chain: string
   ): Promise<CosmosTransaction[]>;
   getBlockTimestamp(blockNumber: bigint, chain: string): Promise<number | undefined>;
+  healthCheck(chain: string, finality: string, cursor: bigint): Promise<ProviderHealthCheck[]>;
 }
 
 export interface AlgorandRepository {
@@ -111,11 +118,13 @@ export interface AlgorandRepository {
     toBlock: bigint
   ): Promise<AlgorandTransaction[]>;
   getBlockHeight(): Promise<bigint | undefined>;
+  healthCheck(chain: string, finality: string, cursor: bigint): Promise<ProviderHealthCheck[]>;
 }
 
 export interface NearRepository {
   getTransactions(contract: string, fromBlock: bigint, toBlock: bigint): Promise<NearTransaction[]>;
   getBlockHeight(commitment: string): Promise<bigint | undefined>;
+  healthCheck(chain: string, finality: string, cursor: bigint): Promise<ProviderHealthCheck[]>;
 }
 
 export interface MetadataRepository<Metadata> {
@@ -129,8 +138,16 @@ export interface StatRepository {
   report: () => Promise<string>;
 }
 
+export type ProviderHealthCheck = {
+  isHealthy: boolean;
+  latency?: number;
+  height: bigint | undefined;
+  url: string;
+};
+
 export interface JobRepository {
   getJobDefinitions(): Promise<JobDefinition[]>;
-  getSource(jobDef: JobDefinition): RunPollingJob;
+  getRPCHealthcheck(jobsDef: JobDefinition[]): RunRPCHealthcheck;
+  getPollingJob(jobDef: JobDefinition): RunPollingJob;
   getHandlers(jobDef: JobDefinition): Promise<Handler[]>;
 }

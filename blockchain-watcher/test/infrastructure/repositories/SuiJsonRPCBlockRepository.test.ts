@@ -7,6 +7,7 @@ import base58 from "bs58";
 import { randomBytes } from "crypto";
 import nock from "nock";
 import { SuiJsonRPCBlockRepository } from "../../../src/infrastructure/repositories";
+import { InstrumentedHttpProvider } from "../../../src/infrastructure/rpc/http/InstrumentedHttpProvider";
 
 const rpc = "http://localhost";
 let repo: SuiJsonRPCBlockRepository;
@@ -28,23 +29,46 @@ describe("SuiJsonRPCBlockRepository", () => {
     nock.cleanAll();
   });
 
-  it("should be able to get the latest checkpoint sequence", async () => {
+  it("should be able to validate rpcs", async () => {
+    // Given
     const expectedSeq = 23993824n;
     givenARepo();
     givenLastCheckpointIs(expectedSeq);
 
+    // When
+    const result = await repo.healthCheck("near", "final", 23993824n);
+
+    // Then
+    expect(result).toBeInstanceOf(Array);
+    expect(result[0].isHealthy).toEqual(true);
+    expect(result[0].height).toEqual(23993824n);
+    expect(result[0].url).toEqual("http://localhost");
+    expect(result[0].latency).toBeDefined();
+  });
+
+  it("should be able to get the latest checkpoint sequence", async () => {
+    // Given
+    const expectedSeq = 23993824n;
+    givenARepo();
+    givenLastCheckpointIs(expectedSeq);
+
+    // When
     const result = await repo.getLastCheckpointNumber();
 
+    // Then
     expect(result).toBe(expectedSeq);
   });
 
   it("should be able to fetch a set of transaction blocks", async () => {
+    // Given
     givenARepo();
     givenTransactions(2);
 
+    // When
     const result = await repo.getTransactionBlockReceipts(txs);
 
     for (let i = 0; i < result.length; i++) {
+      // Then
       expect(result[i].digest).toBe(txs[i]);
       expect(result[i].timestampMs).toBe("1706107525474");
       expect(result[i].checkpoint).toBe("24408383");
@@ -55,33 +79,42 @@ describe("SuiJsonRPCBlockRepository", () => {
   });
 
   it("should fetch transactions above the rpc limit", async () => {
+    // Given
     givenARepo();
     givenTransactions(123);
 
+    // When
     const result = await repo.getTransactionBlockReceipts(txs);
 
+    // Then
     expect(result.length).toBe(123);
     expect(getTxsSpy).toHaveBeenCalledTimes(3);
   });
 
   it("should fetch a range of checkpoints", async () => {
+    // Given
     const range = { from: 200000n, to: 200049n };
     givenARepo();
     givenCheckpoints(range.from, range.to);
 
+    // When
     const result = await repo.getCheckpoints(range);
 
+    // Then
     expect(result).toHaveLength(50);
     expect(getCheckpointsSpy).toHaveBeenCalledTimes(1);
   });
 
   it("should fetch cehckpoints above the rpc limit", async () => {
+    // Given
     const range = { from: 200000n, to: 200249n };
     givenARepo();
     givenCheckpoints(range.from, range.to);
 
+    // When
     const result = await repo.getCheckpoints(range);
 
+    // Then
     expect(result).toHaveLength(250);
     expect(getCheckpointsSpy).toHaveBeenCalledTimes(3);
   });
@@ -91,6 +124,8 @@ const givenARepo = () => {
   const client = new SuiClient({ url: rpc });
   const pool = {
     get: () => client,
+    getProviders: () => [new InstrumentedHttpProvider({ url: rpc, chain: "sui" })],
+    setProviders: () => {},
   };
   repo = new SuiJsonRPCBlockRepository(pool as any);
 

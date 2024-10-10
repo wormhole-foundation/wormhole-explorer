@@ -1,5 +1,5 @@
 import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
-import { ProviderPool } from "@xlabs/rpc-pool";
+import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
 import { SHA256 } from "jscrypto/SHA256";
 import { Base64 } from "jscrypto/Base64";
 
@@ -27,7 +27,7 @@ export function hexToHash(data: string): string {
 
 export function getChainProvider(
   chain: string,
-  pool: Record<string, ProviderPool<InstrumentedHttpProvider>>
+  pool: Record<string, ProviderPoolDecorator<InstrumentedHttpProvider>>
 ): InstrumentedHttpProvider {
   const selectedPool = pool[chain];
   if (!selectedPool) {

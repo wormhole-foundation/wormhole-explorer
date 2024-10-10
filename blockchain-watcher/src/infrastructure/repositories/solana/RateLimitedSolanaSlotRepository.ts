@@ -1,6 +1,6 @@
+import { SolanaSlotRepository, ProviderHealthCheck } from "../../../domain/repositories";
 import { Fallible, SolanaFailure, ErrorType } from "../../../domain/errors";
 import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
-import { SolanaSlotRepository } from "../../../domain/repositories";
 import { RatelimitError } from "mollitia";
 import { Options } from "../common/rateLimitedOptions";
 import { solana } from "../../../domain/entities";
@@ -17,6 +17,10 @@ export class RateLimitedSolanaSlotRepository
   ) {
     super(delegate, chain, opts);
     this.logger = winston.child({ module: "RateLimitedSolanaSlotRepository" });
+  }
+
+  healthCheck(chain: string, finality: string, cursor: bigint): Promise<ProviderHealthCheck[]> {
+    return this.breaker.fn(() => this.delegate.healthCheck(chain, finality, cursor)).execute();
   }
 
   getLatestSlot(commitment: string): Promise<number> {

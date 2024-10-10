@@ -507,6 +507,7 @@ const givenAptosBlockRepository = (tx: any = {}) => {
     getEventsByEventHandle: () => Promise.resolve(events),
     getTransactionsByVersion: () => Promise.resolve([]),
     getTransactions: () => Promise.resolve(txs),
+    healthCheck: () => Promise.resolve([]),
   };
 
   getTransactionsSpy = jest.spyOn(aptosRepo, "getTransactions");
