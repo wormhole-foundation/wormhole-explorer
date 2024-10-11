@@ -540,6 +540,65 @@ func (r *PostgresRepository) GetAvailableNotionalByChainID(
 	return result, err
 }
 
+type governorVaasResult struct {
+	ID             string    `db:"id"`
+	ChainID        uint16    `db:"chain_id"`
+	EmitterAddress string    `db:"emitter_address"`
+	Sequence       uint64    `db:"sequence"`
+	TxHash         string    `db:"tx_hash"`
+	ReleaseTime    time.Time `db:"release_time"`
+	NotionalValue  uint64    `db:"notional_value"`
+	VaaId          *string   `db:"attestation_vaa_id"`
+}
+
+func (r *PostgresRepository) GetGovernorVaas(ctx context.Context) ([]GovernorVaaDoc, error) {
+	query := `
+	SELECT
+		g.id,
+		g.chain_id,
+		g.emitter_address,
+		g.sequence,
+		g.tx_hash,
+		g.release_time,
+		g.notional_value,
+		a.vaa_id as attestation_vaa_id
+	FROM wormholescan.wh_governor_vaas g
+	LEFT JOIN wormholescan.wh_attestation_vaas a ON g.id = a.vaa_id
+	ORDER BY g.id DESC;
+	`
+
+	var result []governorVaasResult
+	err := r.db.Select(ctx, &result, query)
+	if err != nil {
+		r.logger.Error("failed to execute query",
+			zap.Error(err),
+			zap.String("query", query))
+		return nil, err
+	}
+
+	var goverorVaas []GovernorVaaDoc
+	for _, r := range result {
+
+		var vaas []any
+		if r.VaaId != nil {
+			vaas = append(vaas, *r.VaaId)
+		}
+
+		goverorVaas = append(goverorVaas, GovernorVaaDoc{
+			ID:             r.ID,
+			ChainID:        sdk.ChainID(r.ChainID),
+			EmitterAddress: r.EmitterAddress,
+			Sequence:       strconv.FormatUint(r.Sequence, 10),
+			TxHash:         r.TxHash,
+			ReleaseTime:    r.ReleaseTime,
+			Amount:         mongo.Uint64(r.NotionalValue),
+			Vaas:           vaas,
+		})
+	}
+
+	return goverorVaas, nil
+}
+
 func (q *GovernorQuery) toQuery() (string, []any) {
 	var params []any
 	query := "SELECT id, guardian_name, message , created_at , updated_at FROM wormholescan.wh_governor_status \n "
