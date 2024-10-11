@@ -253,12 +253,12 @@ type EnqueuedVaas struct {
 
 // EnqueuedVaaDetail definition.
 type EnqueuedVaaDetail struct {
-	ChainID        vaa.ChainID `bson:"chainid" json:"chainId"`
-	EmitterAddress string      `bson:"emitterAddress" json:"emitterAddress"`
-	Sequence       string      `bson:"sequence" json:"sequence"`
-	NotionalValue  int64       `bson:"notionalValue" json:"notionalValue"`
-	TxHash         string      `bson:"txHash" json:"txHash"`
-	ReleaseTime    int64       `bson:"releaseTime" json:"releaseTime"`
+	ChainID        vaa.ChainID `bson:"chainid" json:"chainId" db:"chain_id"`
+	EmitterAddress string      `bson:"emitterAddress" json:"emitterAddress" db:"emitter_address"`
+	Sequence       string      `bson:"sequence" json:"sequence" db:"sequence"`
+	NotionalValue  int64       `bson:"notionalValue" json:"notionalValue" db:"notional_value"`
+	TxHash         string      `bson:"txHash" json:"txHash" db:"tx_hash"`
+	ReleaseTime    int64       `bson:"releaseTime" json:"releaseTime" db:"release_time"`
 }
 
 // MarshalJSON interface implementation.
