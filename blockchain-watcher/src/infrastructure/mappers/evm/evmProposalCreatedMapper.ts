@@ -4,9 +4,9 @@ import { findProtocol } from "../contractsMapper";
 import { ethers } from "ethers";
 import winston from "winston";
 
-let logger: winston.Logger = winston.child({ module: "evmProposalCreatedMessageMapper" });
+let logger: winston.Logger = winston.child({ module: "evmProposalCreatedMapper" });
 
-export const evmProposalCreatedMessageMapper = (
+export const evmProposalCreatedMapper = (
   transaction: EvmTransaction,
   cfg?: HandleEvmConfig
 ): LogFoundEvent<ProposalCreated> | undefined => {
