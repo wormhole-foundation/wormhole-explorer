@@ -146,7 +146,7 @@ data:
             }
           }
         ]
-      }
+      },
       {
         "id": "poll-redeemed-transactions-wormchain-immediate", 
         "chain": "wormchain",
