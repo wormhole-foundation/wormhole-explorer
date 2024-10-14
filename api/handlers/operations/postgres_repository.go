@@ -17,7 +17,7 @@ import (
 	"go.uber.org/zap"
 )
 
-var baseQuery = `
+const baseQuery = `
 SELECT
     wot.attestation_vaas_id as transaction_attestation_vaas_id,
     wot.message_id as transaction_message_id,

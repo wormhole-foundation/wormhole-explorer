@@ -38,7 +38,7 @@ type repository interface {
 	GetScorecards(ctx context.Context, usePostgres bool) (*Scorecards, error)
 	FindGlobalTransactionByID(ctx context.Context, usePostgres bool, q *GlobalTransactionQuery) (*GlobalTransactionDoc, error)
 	FindTransactions(ctx context.Context, usePostgres bool, input *FindTransactionsInput) ([]TransactionDto, error)
-	ListTransactionsByAddress(ctx context.Context, address string, pagination *pagination.Pagination) ([]TransactionDto, error)
+	ListTransactionsByAddress(ctx context.Context, usePostgres bool, address string, pagination *pagination.Pagination) ([]TransactionDto, error)
 	FindChainActivityTops(ctx *fasthttp.RequestCtx, q ChainActivityTopsQuery) ([]ChainActivityTopResult, error)
 	FindApplicationActivity(ctx *fasthttp.RequestCtx, q ApplicationActivityQuery) ([]ApplicationActivityTotalsResult, []ApplicationActivityResult, error)
 	FindTokensVolume(ctx context.Context) ([]TokenVolume, error)
@@ -162,6 +162,7 @@ func (s *Service) GetTokenByChainAndAddress(ctx context.Context, chainID vaa.Cha
 
 func (s *Service) ListTransactions(
 	ctx context.Context,
+	usePostgres bool,
 	pagination *pagination.Pagination,
 ) ([]TransactionDto, error) {
 
@@ -169,17 +170,17 @@ func (s *Service) ListTransactions(
 		sort:       true,
 		pagination: pagination,
 	}
-	// TODO change usePostgres = false when add this implementation.
-	return s.repo.FindTransactions(ctx, false, &input)
+	return s.repo.FindTransactions(ctx, usePostgres, &input)
 }
 
 func (s *Service) ListTransactionsByAddress(
 	ctx context.Context,
+	usePostgres bool,
 	address string,
 	pagination *pagination.Pagination,
 ) ([]TransactionDto, error) {
 
-	return s.repo.ListTransactionsByAddress(ctx, address, pagination)
+	return s.repo.ListTransactionsByAddress(ctx, usePostgres, address, pagination)
 }
 
 func (s *Service) GetTransactionByID(

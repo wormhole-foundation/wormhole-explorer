@@ -49,7 +49,7 @@ CREATE INDEX "wh_attestation_vaas_emitter_chain_id_idx"
 CREATE INDEX "wh_attestation_vaas_emitter_chain_id_emitter_address_idx" 
     ON wormholescan.wh_attestation_vaas ("emitter_chain_id","emitter_address");
 CREATE INDEX "wh_attestation_vaas_timestamp_idx" 
-    ON wormholescan.wh_attestation_vaas ("timestamp" desc);
+    ON wormholescan.wh_attestation_vaas ("timestamp" desc, "id" desc);
 
 -- create table wormholescan.wh_operation_transactions
 CREATE TABLE wormholescan.wh_operation_transactions (
