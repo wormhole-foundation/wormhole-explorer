@@ -52,12 +52,6 @@ export type StandardRelayDelivered = {
   overridesInfo: string;
 };
 
-export type ProposalCreated = {
-  description: string;
-  callDatas: string[];
-  targets: string[];
-};
-
 export type TransactionFoundEvent<
   T extends TransactionFoundAttributes = TransactionFoundAttributes
 > = {

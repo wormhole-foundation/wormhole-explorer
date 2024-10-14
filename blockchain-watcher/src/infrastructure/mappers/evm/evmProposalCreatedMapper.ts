@@ -1,4 +1,4 @@
-import { EvmTransaction, LogFoundEvent, ProposalCreated } from "../../../domain/entities";
+import { EvmTransaction, LogFoundEvent } from "../../../domain/entities";
 import { HandleEvmConfig } from "../../../domain/actions";
 import { findProtocol } from "../contractsMapper";
 import { ethers } from "ethers";
@@ -64,7 +64,7 @@ const mappedProposalCreatedMessage = (
   }
 };
 
-const mapLogFromTopics: LogToVaaMapper = (
+const mapLogFromTopics: ProposalCreatedMapper = (
   log: EvmTransactionLog,
   cfg: HandleEvmConfig,
   input: string,
@@ -78,13 +78,18 @@ const mapLogFromTopics: LogToVaaMapper = (
     const abi = cfg.abis?.find((abi) => abi.topic === log.topics[0]);
     if (!abi) return undefined;
 
-    const iface = new ethers.utils.Interface([`function ${abi.abi}`]);
-    const decodedFulfillOrderFunction = iface.decodeFunctionData(abi.abi, input);
+    const iface = new ethers.utils.Interface([abi.abi]);
+    const parsedLog = iface.parseLog(log);
 
     return {
-      description: decodedFulfillOrderFunction.description,
-      callDatas: decodedFulfillOrderFunction.calldatas,
-      targets: decodedFulfillOrderFunction.targets,
+      description: parsedLog.args.description,
+      proposalId: parsedLog.args.proposalId.toString(),
+      signatures: parsedLog.args.signatures,
+      callDatas: parsedLog.args.calldatas,
+      voteStart: parsedLog.args.voteStart.toString(),
+      proposer: parsedLog.args.proposer.toString("hex"),
+      voteEnd: parsedLog.args.voteEnd.toString(),
+      targets: parsedLog.args.targets,
     };
   } catch (e) {
     logger.error(`[${cfg.chain}] Failed to parse proposal created message for [tx: ${hash}]`, e);
@@ -92,15 +97,26 @@ const mapLogFromTopics: LogToVaaMapper = (
   }
 };
 
-const EVENT_TOPICS: Record<string, LogToVaaMapper> = {
+type ProposalCreated = {
+  description: string;
+  proposalId: string;
+  signatures: string[];
+  callDatas: string[];
+  voteStart: string;
+  proposer: string;
+  voteEnd: string;
+  targets: string[];
+};
+
+const EVENT_TOPICS: Record<string, ProposalCreatedMapper> = {
   "0x7d84a6263ae0d98d3329bd7b46bb4e8d6f98cd35a7adb45c274c8b7fd5ebd5e0": mapLogFromTopics, // ProposalCreated topic
 };
 
-type LogToVaaMapper = (
+type ProposalCreatedMapper = (
   log: EvmTransactionLog,
   cfg: HandleEvmConfig,
   input: string,
   hash: string
-) => any | undefined;
+) => ProposalCreated | undefined;
 
 type EvmTransactionLog = { address: string; topics: string[]; data: string };

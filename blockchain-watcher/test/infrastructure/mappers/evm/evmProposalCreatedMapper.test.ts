@@ -12,7 +12,7 @@ const handler = new HandleEvmTransactions(
   {
     abis: [
       {
-        abi: "propose(address[] targets,uint256[] values,bytes[] calldatas,string description)",
+        abi: "event ProposalCreated(uint256 proposalId, address proposer,address[] targets, uint256[] values, string[] signatures, bytes[] calldatas,uint256 voteStart, uint256 voteEnd, string description)",
         topic: "0x7d84a6263ae0d98d3329bd7b46bb4e8d6f98cd35a7adb45c274c8b7fd5ebd5e0",
       },
     ],
@@ -79,5 +79,12 @@ describe("evmProposalCreatedMapper", () => {
     expect(result?.attributes.description).toBe("# test74\ntest");
     expect(result?.attributes.callDatas).toEqual(["0x"]);
     expect(result?.attributes.targets).toEqual(["0xBa78C48C386a5c43F689af7c8FEB77207aCa8477"]);
+    expect(result?.attributes.voteStart).toEqual("1722619902");
+    expect(result?.attributes.voteEnd).toEqual("1722621702");
+    expect(result?.attributes.signatures).toEqual([""]);
+    expect(result?.attributes.proposer).toEqual("0xBa78C48C386a5c43F689af7c8FEB77207aCa8477");
+    expect(result?.attributes.proposalId).toEqual(
+      "34221398034165561516589469039816796864932763323281094730950106591996231109919"
+    );
   });
 });
