@@ -1231,6 +1231,18 @@ const docTemplate = `{
                         "description": "single appId of the operation",
                         "name": "exclusiveAppId",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "beginning of period",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "end of period",
+                        "name": "to",
+                        "in": "query"
                     }
                 ],
                 "responses": {
