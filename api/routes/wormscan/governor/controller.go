@@ -411,7 +411,8 @@ func (c *Controller) GetEnqueuedVaasByChainID(ctx *fiber.Ctx) error {
 // @Failure 500
 // @Router /api/v1/governor/vaas [get]
 func (c *Controller) GetGovernorVaas(ctx *fiber.Ctx) error {
-	enqueuedVaas, err := c.srv.GetGovernorVaas(ctx.Context())
+	enqueuedVaas, err := c.srv.GetGovernorVaas(ctx.Context(),
+		middleware.UsePostgres(ctx))
 	if err != nil {
 		return err
 	}

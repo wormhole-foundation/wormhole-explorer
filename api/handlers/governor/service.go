@@ -338,10 +338,18 @@ func (s *Service) IsVaaEnqueued(ctx context.Context, chainID vaa.ChainID, emitte
 
 // GetGovernorVaas get enqueued vaas.
 // Guardian api migration.
-func (s *Service) GetGovernorVaas(ctx context.Context) ([]GovernorVaaDoc, error) {
-	result, err := s.mongoRepo.GetGovernorVaas(ctx)
+func (s *Service) GetGovernorVaas(ctx context.Context, usePostgres bool) ([]GovernorVaaDoc, error) {
+	var governorVaa []GovernorVaaDoc
+	var err error
+	if usePostgres {
+		governorVaa, err = s.postgresRepo.GetGovernorVaas(ctx)
+	} else {
+		governorVaa, err = s.mongoRepo.GetGovernorVaas(ctx)
+	}
+
 	if err != nil {
 		return nil, err
 	}
-	return result, nil
+
+	return governorVaa, nil
 }
