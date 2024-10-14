@@ -12,7 +12,6 @@ import { suiRedeemedTransactionFoundMapper } from "../mappers/sui/suiRedeemedTra
 import { solanaLogCircleMessageSentMapper } from "../mappers/solana/solanaLogCircleMessageSentMapper";
 import { evmNttWormholeTransceiverMapper } from "../mappers/evm/evmNttWormholeTransceiverMapper";
 import { cosmosLogMessagePublishedMapper } from "../mappers/cosmos/cosmosLogMessagePublishedMapper";
-import { evmProposalCreatedMapper } from "../mappers/evm/evmProposalCreatedMapper";
 import { aptosLogMessagePublishedMapper } from "../mappers/aptos/aptosLogMessagePublishedMapper";
 import { evmLogCircleMessageSentMapper } from "../mappers/evm/evmLogCircleMessageSentMapper";
 import { evmNttAxelarTransceiverMapper } from "../mappers/evm/evmNttAxelarTransceiverMapper";
@@ -23,6 +22,7 @@ import { HandleAlgorandTransactions } from "../../domain/actions/algorand/Handle
 import { HandleSolanaTransactions } from "../../domain/actions/solana/HandleSolanaTransactions";
 import { HandleCosmosTransactions } from "../../domain/actions/cosmos/HandleCosmosTransactions";
 import { evmNttTransferSentMapper } from "../mappers/evm/evmNttTransferSentMapper";
+import { evmProposalCreatedMapper } from "../mappers/evm/evmProposalCreatedMapper";
 import { HandleAptosTransactions } from "../../domain/actions/aptos/HandleAptosTransactions";
 import { HandleNearTransactions } from "../../domain/actions/near/HandleNearTransactions";
 import { HandleWormchainRedeems } from "../../domain/actions/wormchain/HandleWormchainRedeems";
