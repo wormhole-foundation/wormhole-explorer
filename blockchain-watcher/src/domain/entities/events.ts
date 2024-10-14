@@ -26,13 +26,11 @@ export type CircleMessageSent = {
   sender: string;
   recipient: string;
   destinationCaller: string;
-
   mintRecipient: string;
   burnToken: string;
   protocol: string;
   amount: bigint;
   messageSender: string;
-
   txHash: string;
 };
 
@@ -52,6 +50,12 @@ export type StandardRelayDelivered = {
   refundStatus: number;
   additionalStatusInfo: string;
   overridesInfo: string;
+};
+
+export type ProposalCreated = {
+  description: string;
+  callDatas: string[];
+  targets: string[];
 };
 
 export type TransactionFoundEvent<

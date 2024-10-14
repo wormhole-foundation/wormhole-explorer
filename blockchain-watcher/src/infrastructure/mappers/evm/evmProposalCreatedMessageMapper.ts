@@ -1,58 +1,54 @@
-import { EvmTransaction, LogFoundEvent, CircleMessageSent } from "../../../domain/entities";
-import { deserializeCircleMessage } from "./helpers/circle";
-import { MessageProtocol, toCirceChain } from "../utils/circle";
+import { EvmTransaction, LogFoundEvent, ProposalCreated } from "../../../domain/entities";
 import { HandleEvmConfig } from "../../../domain/actions";
-import { encoding } from "@wormhole-foundation/sdk-connect";
+import { findProtocol } from "../contractsMapper";
 import { ethers } from "ethers";
 import winston from "winston";
 
-const WORMHOLE_TOPIC = "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2";
 let logger: winston.Logger = winston.child({ module: "evmProposalCreatedMessageMapper" });
 
 export const evmProposalCreatedMessageMapper = (
   transaction: EvmTransaction,
   cfg?: HandleEvmConfig
-): LogFoundEvent<CircleMessageSent> | undefined => {
-  const circleMessageSent = mappedCircleMessageSent(transaction.logs, cfg!);
+): LogFoundEvent<ProposalCreated> | undefined => {
+  const proposalCreatedMessage = mappedProposalCreatedMessage(transaction, cfg!);
 
-  if (!circleMessageSent) {
+  if (!proposalCreatedMessage) {
     logger.warn(
-      `[${transaction.chain}] Failed to parse circle message for [tx: ${transaction.hash}]`
+      `[${transaction.chain}] Failed to parse proposal created message for [tx: ${transaction.hash}]`
     );
     return undefined;
   }
 
-  const messageProtocol = mappedMessageProtocol(transaction.logs);
+  const first10Characters = transaction.input.slice(0, 10);
+  const protocol = findProtocol(
+    transaction.chain,
+    transaction.to,
+    first10Characters,
+    transaction.hash
+  );
+
   logger.info(
-    `[${transaction.chain}] Circle message sent event info: [tx: ${transaction.hash}] [protocol: ${circleMessageSent.protocol} - ${messageProtocol}]`
+    `[${transaction.chain}] Proposal created message info: [tx: ${transaction.hash}] [protocol: ${protocol.type}/${protocol.method}]`
   );
 
   return {
-    name: "circle-message-sent",
+    name: "proposal-created",
     address: transaction.to,
     chainId: transaction.chainId,
     txHash: transaction.hash,
     blockHeight: BigInt(transaction.blockNumber),
     blockTime: transaction.timestamp,
     attributes: {
-      ...circleMessageSent,
-      txHash: transaction.hash,
-    },
-    tags: {
-      destinationDomain: circleMessageSent.destinationDomain,
-      messageProtocol: messageProtocol,
-      sourceDomain: circleMessageSent.sourceDomain,
-      protocol: circleMessageSent.protocol,
-      sender: circleMessageSent.sender,
+      ...proposalCreatedMessage,
     },
   };
 };
 
-const mappedCircleMessageSent = (
-  logs: EvmTransactionLog[],
+const mappedProposalCreatedMessage = (
+  transaction: EvmTransaction,
   cfg: HandleEvmConfig
-): CircleMessageSent | undefined => {
-  const filterLogs = logs.filter((log) => {
+): ProposalCreated | undefined => {
+  const filterLogs = transaction.logs.filter((log) => {
     return EVENT_TOPICS[log.topics[0]];
   });
 
@@ -60,7 +56,7 @@ const mappedCircleMessageSent = (
 
   for (const log of filterLogs) {
     const mapper = EVENT_TOPICS[log.topics[0]];
-    const bodyMessage = mapper(log, cfg);
+    const bodyMessage = mapper(log, cfg, transaction.input, transaction.hash);
 
     if (bodyMessage) {
       return bodyMessage;
@@ -68,45 +64,43 @@ const mappedCircleMessageSent = (
   }
 };
 
-const mapCircleBodyFromTopics: LogToVaaMapper = (log: EvmTransactionLog, cfg: HandleEvmConfig) => {
-  if (!log.topics[0]) {
+const mapLogFromTopics: LogToVaaMapper = (
+  log: EvmTransactionLog,
+  cfg: HandleEvmConfig,
+  input: string,
+  hash: string
+) => {
+  try {
+    if (!log.topics[0]) {
+      return undefined;
+    }
+
+    const abi = cfg.abis?.find((abi) => abi.topic === log.topics[0]);
+    if (!abi) return undefined;
+
+    const iface = new ethers.utils.Interface([`function ${abi.abi}`]);
+    const decodedFulfillOrderFunction = iface.decodeFunctionData(abi.abi, input);
+
+    return {
+      description: decodedFulfillOrderFunction.description,
+      callDatas: decodedFulfillOrderFunction.calldatas,
+      targets: decodedFulfillOrderFunction.targets,
+    };
+  } catch (e) {
+    logger.error(`[${cfg.chain}] Failed to parse proposal created message for [tx: ${hash}]`, e);
     return undefined;
   }
-  const abi = cfg.abis?.find((abi) => abi.topic === log.topics[0]) ?? cfg.abis[0];
-  const iface = new ethers.utils.Interface([abi.abi]);
-  const parsedLog = iface.parseLog(log);
-  const bytes = encoding.hex.decode(parsedLog.args[0]);
-  const [protocol, circleMessage] = deserializeCircleMessage(bytes);
-
-  if (!circleMessage || protocol !== "cctp" || circleMessage.payload instanceof Uint8Array) {
-    return undefined;
-  }
-
-  return {
-    destinationCaller: circleMessage.destinationCaller.toString(),
-    destinationDomain: toCirceChain(cfg.environment, circleMessage.destinationDomain),
-    messageSender: circleMessage.payload.messageSender.toString(),
-    mintRecipient: circleMessage.payload.mintRecipient.toString(),
-    sourceDomain: toCirceChain(cfg.environment, circleMessage.sourceDomain),
-    burnToken: circleMessage.payload.burnToken.toString(),
-    recipient: circleMessage.recipient.toString(),
-    sender: circleMessage.sender.toString(),
-    amount: circleMessage.payload.amount,
-    nonce: circleMessage.nonce,
-    protocol,
-  };
-};
-
-const mappedMessageProtocol = (logs: EvmTransactionLog[]): string => {
-  return logs.some((log) => log.topics[0] === WORMHOLE_TOPIC)
-    ? MessageProtocol.Wormhole
-    : MessageProtocol.None;
 };
 
 const EVENT_TOPICS: Record<string, LogToVaaMapper> = {
-  "0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036": mapCircleBodyFromTopics, // CCTP MessageSent (circle bridge)
+  "0x7d84a6263ae0d98d3329bd7b46bb4e8d6f98cd35a7adb45c274c8b7fd5ebd5e0": mapLogFromTopics, // ProposalCreated topic
 };
 
-type LogToVaaMapper = (log: EvmTransactionLog, cfg: HandleEvmConfig) => any | undefined;
+type LogToVaaMapper = (
+  log: EvmTransactionLog,
+  cfg: HandleEvmConfig,
+  input: string,
+  hash: string
+) => any | undefined;
 
 type EvmTransactionLog = { address: string; topics: string[]; data: string };
