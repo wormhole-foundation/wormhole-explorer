@@ -37,8 +37,8 @@ type repository interface {
 	FindChainActivity(ctx context.Context, q *ChainActivityQuery) ([]ChainActivityResult, error)
 	GetScorecards(ctx context.Context, usePostgres bool) (*Scorecards, error)
 	FindGlobalTransactionByID(ctx context.Context, usePostgres bool, q *GlobalTransactionQuery) (*GlobalTransactionDoc, error)
-	FindTransactions(ctx context.Context, input *FindTransactionsInput) ([]TransactionDto, error)
-	ListTransactionsByAddress(ctx context.Context, address string, pagination *pagination.Pagination) ([]TransactionDto, error)
+	FindTransactions(ctx context.Context, usePostgres bool, input *FindTransactionsInput) ([]TransactionDto, error)
+	ListTransactionsByAddress(ctx context.Context, usePostgres bool, address string, pagination *pagination.Pagination) ([]TransactionDto, error)
 	FindChainActivityTops(ctx *fasthttp.RequestCtx, q ChainActivityTopsQuery) ([]ChainActivityTopResult, error)
 	FindApplicationActivity(ctx *fasthttp.RequestCtx, q ApplicationActivityQuery) ([]ApplicationActivityTotalsResult, []ApplicationActivityResult, error)
 	FindTokensVolume(ctx context.Context) ([]TokenVolume, error)
@@ -162,6 +162,7 @@ func (s *Service) GetTokenByChainAndAddress(ctx context.Context, chainID vaa.Cha
 
 func (s *Service) ListTransactions(
 	ctx context.Context,
+	usePostgres bool,
 	pagination *pagination.Pagination,
 ) ([]TransactionDto, error) {
 
@@ -169,20 +170,22 @@ func (s *Service) ListTransactions(
 		sort:       true,
 		pagination: pagination,
 	}
-	return s.repo.FindTransactions(ctx, &input)
+	return s.repo.FindTransactions(ctx, usePostgres, &input)
 }
 
 func (s *Service) ListTransactionsByAddress(
 	ctx context.Context,
+	usePostgres bool,
 	address string,
 	pagination *pagination.Pagination,
 ) ([]TransactionDto, error) {
 
-	return s.repo.ListTransactionsByAddress(ctx, address, pagination)
+	return s.repo.ListTransactionsByAddress(ctx, usePostgres, address, pagination)
 }
 
 func (s *Service) GetTransactionByID(
 	ctx context.Context,
+	usePostgres bool,
 	chain vaa.ChainID,
 	emitter *types.Address,
 	seq string,
@@ -192,7 +195,8 @@ func (s *Service) GetTransactionByID(
 	input := FindTransactionsInput{
 		id: fmt.Sprintf("%d/%s/%s", chain, emitter.Hex(), seq),
 	}
-	output, err := s.repo.FindTransactions(ctx, &input)
+
+	output, err := s.repo.FindTransactions(ctx, usePostgres, &input)
 	if err != nil {
 		return nil, err
 	}

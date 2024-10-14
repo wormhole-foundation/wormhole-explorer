@@ -204,7 +204,7 @@ func (c *Controller) FindNotionalLimit(ctx *fiber.Ctx) error {
 		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
 	}
 
-	notionalLimit, err := c.srv.FindNotionalLimit(ctx.Context(), p)
+	notionalLimit, err := c.srv.FindNotionalLimit(ctx.Context(), middleware.UsePostgres(ctx), p)
 	if err != nil {
 		return err
 	}
@@ -239,7 +239,7 @@ func (c *Controller) GetNotionalLimitByChainID(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	notionalLimit, err := c.srv.GetNotionalLimitByChainID(ctx.Context(), p, chainID)
+	notionalLimit, err := c.srv.GetNotionalLimitByChainID(ctx.Context(), middleware.UsePostgres(ctx), p, chainID)
 	if err != nil {
 		return err
 	}
@@ -270,7 +270,7 @@ func (c *Controller) GetAvailableNotional(ctx *fiber.Ctx) error {
 		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
 	}
 
-	notionalAvaialabilies, err := c.srv.GetAvailableNotional(ctx.Context(), p)
+	notionalAvaialabilies, err := c.srv.GetAvailableNotional(ctx.Context(), middleware.UsePostgres(ctx), p)
 	if err != nil {
 		return err
 	}
@@ -305,7 +305,7 @@ func (c *Controller) GetAvailableNotionalByChainID(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	response, err := c.srv.GetAvailableNotionalByChainID(ctx.Context(), p, chainID)
+	response, err := c.srv.GetAvailableNotionalByChainID(ctx.Context(), middleware.UsePostgres(ctx), p, chainID)
 	if err != nil {
 		return err
 	}
@@ -328,7 +328,7 @@ func (c *Controller) GetMaxNotionalAvailableByChainID(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	response, err := c.srv.GetMaxNotionalAvailableByChainID(ctx.Context(), chainID)
+	response, err := c.srv.GetMaxNotionalAvailableByChainID(ctx.Context(), middleware.UsePostgres(ctx), chainID)
 	if err != nil {
 		return err
 	}
@@ -359,7 +359,7 @@ func (c *Controller) GetEnqueuedVaas(ctx *fiber.Ctx) error {
 		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
 	}
 
-	enqueuedVaas, err := c.srv.GetEnqueueVass(ctx.Context(), p)
+	enqueuedVaas, err := c.srv.GetEnqueueVass(ctx.Context(), middleware.UsePostgres(ctx), p)
 	if err != nil {
 		return err
 	}
@@ -394,7 +394,7 @@ func (c *Controller) GetEnqueuedVaasByChainID(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	enqueuedVaas, err := c.srv.GetEnqueueVassByChainID(ctx.Context(), p, chainID)
+	enqueuedVaas, err := c.srv.GetEnqueueVassByChainID(ctx.Context(), middleware.UsePostgres(ctx), p, chainID)
 	if err != nil {
 		return err
 	}
@@ -411,7 +411,8 @@ func (c *Controller) GetEnqueuedVaasByChainID(ctx *fiber.Ctx) error {
 // @Failure 500
 // @Router /api/v1/governor/vaas [get]
 func (c *Controller) GetGovernorVaas(ctx *fiber.Ctx) error {
-	enqueuedVaas, err := c.srv.GetGovernorVaas(ctx.Context())
+	enqueuedVaas, err := c.srv.GetGovernorVaas(ctx.Context(),
+		middleware.UsePostgres(ctx))
 	if err != nil {
 		return err
 	}

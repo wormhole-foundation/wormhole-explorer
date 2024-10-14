@@ -175,7 +175,8 @@ func main() {
 	)
 	mongoRelaysRepo := relays.NewMongoRepository(storage.mongoDB.Database, rootLogger)
 	postgresRelaysRepo := relays.NewPostgresRepository(storage.postgresDB, rootLogger)
-	operationsRepo := operations.NewRepository(storage.mongoDB.Database, rootLogger)
+	mongoOperationsRepo := operations.NewMongoRepository(storage.mongoDB.Database, rootLogger)
+	postgresOperationsRepo := operations.NewPostgresRepository(storage.postgresDB, rootLogger)
 	nttRepo := stats2.NewNTTRepository(
 		influxCli,
 		cfg.Influx.Organization,
@@ -224,7 +225,7 @@ func main() {
 	heartbeatsService := heartbeats.NewService(heartbeatsRepo, rootLogger)
 	transactionsService := transactions.NewService(transactionsRepo, cache, expirationTime, tokenProvider, metrics, rootLogger)
 	relaysService := relays.NewService(mongoRelaysRepo, postgresRelaysRepo, rootLogger)
-	operationsService := operations.NewService(operationsRepo, rootLogger)
+	operationsService := operations.NewService(mongoOperationsRepo, postgresOperationsRepo, rootLogger)
 	statsService := stats.NewService(statsRepo, statsAddressRepo, statsHolderRepo, cache, expirationTime, metrics, rootLogger)
 	protocolsService := protocols.NewService(cfg.Protocols, protocolsRepo, rootLogger, cache, cfg.Cache.ProtocolsStatsKey, cfg.Cache.ProtocolsStatsExpiration, metrics, tvl)
 	guardianService := guardianHandlers.NewService(guardianSetRepository, cfg.P2pNetwork, cache, metrics, rootLogger)
