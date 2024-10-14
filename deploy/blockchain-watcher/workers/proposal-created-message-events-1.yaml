@@ -37,8 +37,8 @@ data:
   testnet-jobs.json: |-
     [
       {
-        "id": "poll-redeemed-transactions-base-sepolia-latest",
-        "chain": "base-sepolia",
+        "id": "poll-log-proposal-created-ethereum-sepolia-latest",
+        "chain": "ethereum-sepolia",
         "source": {
           "action": "PollEvm",
           "repository": "evmRepo",
@@ -56,21 +56,20 @@ data:
                 "strategy": "GetTransactionsByBlocksStrategy"
               }
             ],
-            "chain": "base-sepolia",
-            "chainId": 10004
+            "chain": "ethereum-sepolia",
+            "chainId": 10002
           }
         },
         "handlers": [
           {
             "action": "HandleEvmTransactions",
             "target": "sns",
-            "mapper": "evmRedeemedTransactionFoundMapper",
+            "mapper": "evmProposalCreatedMessageMapper",
             "config": {
               "abis": [
                 {
-                  "abi": "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
-                  "topic": "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
-                  "type": "Standard Relayer"
+                  "abi": "propose(address[] targets,uint256[] values,bytes[] calldatas,string description)",
+                  "topic": "0x7d84a6263ae0d98d3329bd7b46bb4e8d6f98cd35a7adb45c274c8b7fd5ebd5e0"
                 }
               ],
               "metricName": "process_vaa_event"
