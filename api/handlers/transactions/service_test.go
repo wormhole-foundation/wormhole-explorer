@@ -249,8 +249,8 @@ func (m *mockRepository) FindTransactions(ctx context.Context, usePostgres bool,
 	return args.Get(0).([]transactions.TransactionDto), args.Error(1)
 }
 
-func (m *mockRepository) ListTransactionsByAddress(ctx context.Context, address string, pagination *pagination.Pagination) ([]transactions.TransactionDto, error) {
-	args := m.Called(ctx, address, pagination)
+func (m *mockRepository) ListTransactionsByAddress(ctx context.Context, usePostgres bool, address string, pagination *pagination.Pagination) ([]transactions.TransactionDto, error) {
+	args := m.Called(ctx, usePostgres, address, pagination)
 	return args.Get(0).([]transactions.TransactionDto), args.Error(1)
 }
 

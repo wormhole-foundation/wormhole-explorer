@@ -766,9 +766,13 @@ type FindTransactionsInput struct {
 // ListTransactionsByAddress returns a sorted list of transactions for a given address.
 func (r *Repository) ListTransactionsByAddress(
 	ctx context.Context,
+	usePostgres bool,
 	address string,
 	pagination *pagination.Pagination,
 ) ([]TransactionDto, error) {
+	if usePostgres {
+		return r.postgresRepo.ListTransactionsByAddress(ctx, address, pagination)
+	}
 	return r.mongoRepo.ListTransactionsByAddress(ctx, address, pagination)
 }
 

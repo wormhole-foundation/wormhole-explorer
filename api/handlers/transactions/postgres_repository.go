@@ -10,11 +10,47 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/config"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
+	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"github.com/wormhole-foundation/wormhole-explorer/common/db"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
+
+const baseTransactionQuery = `
+SELECT
+	wot.chain_id as transaction_chain_id,
+	wot.tx_hash as transaction_tx_hash,
+	wot."type" as transaction_type,
+	wot.status as transaction_status,
+	wot.from_address as transaction_from_address,
+	wot.to_address as transaction_to_address,
+	wot.timestamp as transaction_timestamp,
+	wot.blockchain_method as transaction_blockchain_method,
+	wot.block_number as transaction_block_number,
+	wot.fee_detail as transaction_fee_detail,
+	wop.symbol as price_symbol,
+	wop.total_usd as price_total_usd,
+	wop.total_token as price_total_token,
+	wav.id as vaa_digest,
+	wav.vaa_id as vaa_vaa_id,
+	wav.version as vaa_version,
+	wav.emitter_chain_id as vaa_emitter_chain_id,
+	wav.emitter_address as vaa_emitter_address,
+	wav.sequence as vaa_sequence,
+	wav.guardian_set_index as vaa_guardian_set_index,
+	wav.raw as vaa_raw,
+	wav.timestamp as vaa_timestamp,
+	wav.updated_at as vaa_updated_at,
+	wav.created_at as vaa_created_at,
+	wav.is_duplicated as vaa_is_duplicated,
+	wavp.payload as properties_payload,
+	wavp.raw_standard_fields as properties_raw_standard_fields
+FROM wormholescan.wh_attestation_vaas wav
+LEFT JOIN wormholescan.wh_operation_transactions wot ON  wav.id = wot.attestation_vaas_id
+LEFT JOIN wormholescan.wh_operation_prices wop ON wop.id = wot.attestation_vaas_id
+LEFT JOIN wormholescan.wh_attestation_vaa_properties wavp ON wavp.id = wot.attestation_vaas_id
+`
 
 type totalPythResult struct {
 	ID       string `data:"id"`
@@ -246,13 +282,13 @@ func createDestinationTx(operationTxs []*operationTxResult) *DestinationTx {
 }
 
 type transactionResult struct {
-	TransactionChainID          uint16           `db:"transaction_chain_id"`
-	TransactionTxHash           string           `db:"transaction_tx_hash"`
-	TransactionType             string           `db:"transaction_type"`
+	TransactionChainID          *uint16          `db:"transaction_chain_id"`
+	TransactionTxHash           *string          `db:"transaction_tx_hash"`
+	TransactionType             *string          `db:"transaction_type"`
 	TransactionStatus           *string          `db:"transaction_status"`
 	TransactionFromAddress      *string          `db:"transaction_from_address"`
 	TransactionToAddress        *string          `db:"transaction_to_address"`
-	TransactionTimestamp        time.Time        `db:"transaction_timestamp"`
+	TransactionTimestamp        *time.Time       `db:"transaction_timestamp"`
 	TransactionBlockchainMethod *string          `db:"transaction_blockchain_method"`
 	TransactionBlockNumber      *string          `db:"transaction_block_number"`
 	TransactionFeeDetail        *json.RawMessage `db:"transaction_fee_detail"`
@@ -261,6 +297,7 @@ type transactionResult struct {
 	PriceTotalUSD   *decimal.Decimal `db:"price_total_usd"`
 	PriceTotalToken *decimal.Decimal `db:"price_total_token"`
 
+	VaaDigest           string     `db:"vaa_digest"`
 	VaaId               string     `db:"vaa_vaa_id"`
 	VaaVersion          uint8      `db:"vaa_version"`
 	VaaEmitterChainID   uint16     `db:"vaa_emitter_chain_id"`
@@ -293,42 +330,12 @@ func (r *PostgresRepository) FindTransactions(
 		return r.findTransactionById(ctx, input)
 	}
 
-	return nil, errors.ErrNotFound
+	querySqlForIds, params := r.buildQueryIDsForPage(*input.pagination)
+	return r.findPage(ctx, querySqlForIds, params...)
 }
 
 func (r *PostgresRepository) findTransactionById(ctx context.Context, input *FindTransactionsInput) ([]TransactionDto, error) {
-	query := `SELECT 	
-	wot.chain_id as transaction_chain_id,
-	wot.tx_hash as transaction_tx_hash,
-	wot."type" as transaction_type,
-	wot.status as transaction_status,
-	wot.from_address as transaction_from_address,
-	wot.to_address as transaction_to_address,
-	wot.timestamp as transaction_timestamp,
-	wot.blockchain_method as transaction_blockchain_method,
-	wot.block_number as transaction_block_number,
-	wot.fee_detail as transaction_fee_detail,
-	wop.symbol as price_symbol,
-	wop.total_usd as price_total_usd,
-	wop.total_token as price_total_token,
-	wav.vaa_id as vaa_vaa_id,
-	wav.version as vaa_version,
-	wav.emitter_chain_id as vaa_emitter_chain_id,
-	wav.emitter_address as vaa_emitter_address,
-	wav.sequence as vaa_sequence,
-	wav.guardian_set_index as vaa_guardian_set_index,
-	wav.raw as vaa_raw,
-	wav.timestamp as vaa_timestamp,
-	wav.updated_at as vaa_updated_at,
-	wav.created_at as vaa_created_at,
-	wav.is_duplicated as vaa_is_duplicated,
-	wavp.payload as properties_payload,
-	wavp.raw_standard_fields as properties_raw_standard_fields
-FROM wormholescan.wh_attestation_vaas wav
-LEFT JOIN wormholescan.wh_operation_transactions wot ON  wav.id = wot.attestation_vaas_id
-LEFT JOIN wormholescan.wh_operation_prices wop ON wop.id = wot.attestation_vaas_id 
-LEFT JOIN wormholescan.wh_attestation_vaa_properties wavp ON wavp.id = wot.attestation_vaas_id 
-WHERE wav.vaa_id = $1 AND  wav.active = true`
+	query := baseTransactionQuery + `WHERE wav.vaa_id = $1 AND wav.active = true`
 
 	var txs []*transactionResult
 	err := r.db.Select(ctx, &txs, query, input.id)
@@ -349,6 +356,97 @@ WHERE wav.vaa_id = $1 AND  wav.active = true`
 	}
 
 	return []TransactionDto{*transactionDto}, nil
+}
+
+func (r *PostgresRepository) findPage(ctx context.Context, querySqlForIds string, params ...any) ([]TransactionDto, error) {
+	var ids []string
+	err := r.db.Select(ctx, &ids, querySqlForIds, params...)
+	if err != nil {
+		r.logger.Error("failed to execute query for ids", zap.Error(err), zap.String("query", querySqlForIds), zap.Any("params", params))
+		return nil, err
+	}
+
+	if len(ids) == 0 {
+		return []TransactionDto{}, nil
+	}
+
+	// fetch transactions by ids
+	query := baseTransactionQuery + `WHERE wav.id = ANY($1)`
+	var txs []*transactionResult
+	err = r.db.Select(ctx, &txs, query, ids)
+	if err != nil {
+		r.logger.Error("failed to execute query for transactions", zap.Error(err), zap.String("query", query), zap.Any("ids", ids))
+		return nil, err
+	}
+
+	var transactionsByVaaDigest = make(map[string][]*transactionResult)
+	for _, tx := range txs {
+		vaaDigest := tx.VaaDigest
+		if _, ok := transactionsByVaaDigest[vaaDigest]; !ok {
+			transactionsByVaaDigest[vaaDigest] = []*transactionResult{}
+		}
+		transactionsByVaaDigest[vaaDigest] = append(transactionsByVaaDigest[vaaDigest], tx)
+	}
+
+	var result []TransactionDto
+	for _, id := range ids {
+		txs, ok := transactionsByVaaDigest[id]
+		if !ok {
+			r.logger.Error("failed to find transaction for digest", zap.String("digest", id))
+			return nil, fmt.Errorf("failed to find transaction for digest %s", id)
+		}
+		txDto, err := r.toTransactionDto(txs)
+		if err != nil {
+			r.logger.Error("failed to convert transaction to dto", zap.Error(err))
+			return nil, err
+		}
+		if txDto == nil {
+			r.logger.Error("transaction dto is nil", zap.String("digest", id))
+			return nil, fmt.Errorf("transaction dto is nil for digest %s", id)
+		}
+		result = append(result, *txDto)
+	}
+	return result, nil
+}
+
+// ListTransactionsByAddress returns a sorted list of transactions for a given address.
+//
+// Pagination is implemented using a keyset cursor pattern, based on the (timestamp, ID) pair.
+
+func (r *PostgresRepository) ListTransactionsByAddress(
+	ctx context.Context,
+	address string,
+	p *pagination.Pagination,
+) ([]TransactionDto, error) {
+
+	if p == nil {
+		p = pagination.Default()
+	}
+	querySql, params := r.buildQueryIDsForAddress(address, *p)
+	return r.findPage(ctx, querySql, params...)
+}
+
+func (r *PostgresRepository) buildQueryIDsForAddress(address string, pagination pagination.Pagination) (string, []any) {
+	sort := pagination.SortOrder
+	query := fmt.Sprintf(`
+        SELECT oa.id FROM wormholescan.wh_operation_addresses oa
+        WHERE oa.address = $1 AND exists (
+            SELECT av.id FROM wormholescan.wh_attestation_vaas av
+            WHERE av.id = oa.id AND av.active = true
+        )
+        ORDER BY oa."timestamp" %s, oa.id %s
+        LIMIT $2 OFFSET $3`, sort, sort)
+	return query, []any{address, pagination.Limit, pagination.Skip}
+}
+
+func (r *PostgresRepository) buildQueryIDsForPage(pagination pagination.Pagination) (string, []any) {
+	sort := pagination.SortOrder
+	query := fmt.Sprintf(`
+        SELECT av.id FROM wormholescan.wh_attestation_vaas av
+        WHERE av.active = true
+        ORDER BY av."timestamp" %s, av.id %s
+        LIMIT $1 OFFSET $2`, sort, sort)
+	return query, []any{pagination.Limit, pagination.Skip}
 }
 
 func (r *PostgresRepository) toTransactionDto(txs []*transactionResult) (*TransactionDto, error) {
@@ -525,8 +623,8 @@ func (r *PostgresRepository) toStandardizedProperties(t *transactionResult) (*ma
 }
 
 func (r *PostgresRepository) toOriginTx(t *transactionResult) (*OriginTx, error) {
-	if t.TransactionType == "source-tx" {
-		chainID := sdk.ChainID(t.TransactionChainID)
+	if t.TransactionType != nil && *t.TransactionType == "source-tx" {
+		chainID := sdk.ChainID(*t.TransactionChainID)
 		var from string
 		if t.TransactionFromAddress != nil {
 			from = domain.DenormalizeAddressByChainId(chainID, *t.TransactionFromAddress)
@@ -535,7 +633,7 @@ func (r *PostgresRepository) toOriginTx(t *transactionResult) (*OriginTx, error)
 		if t.TransactionStatus != nil {
 			status = *t.TransactionStatus
 		}
-		denormalizedTxHash := domain.DenormalizeTxHashByChainId(chainID, t.TransactionTxHash)
+		denormalizedTxHash := domain.DenormalizeTxHashByChainId(chainID, *t.TransactionTxHash)
 		return &OriginTx{
 			TxHash: denormalizedTxHash,
 			From:   from,
@@ -546,8 +644,8 @@ func (r *PostgresRepository) toOriginTx(t *transactionResult) (*OriginTx, error)
 }
 
 func (r *PostgresRepository) toDestinationTx(t *transactionResult) (*DestinationTx, error) {
-	if t.TransactionType == "target-tx" {
-		chainID := sdk.ChainID(t.TransactionChainID)
+	if t.TransactionType != nil && *t.TransactionType == "target-tx" {
+		chainID := sdk.ChainID(*t.TransactionChainID)
 		if chainID.String() == sdk.ChainIDUnset.String() {
 			return nil, fmt.Errorf("invalid chain id %d for destination tx", t.TransactionChainID)
 		}
@@ -576,11 +674,11 @@ func (r *PostgresRepository) toDestinationTx(t *transactionResult) (*Destination
 			ChainID:     chainID,
 			Status:      status,
 			Method:      method,
-			TxHash:      domain.DenormalizeTxHashByChainId(chainID, t.TransactionTxHash),
+			TxHash:      domain.DenormalizeTxHashByChainId(chainID, *t.TransactionTxHash),
 			From:        from,
 			To:          to,
 			BlockNumber: blockNumber,
-			Timestamp:   &t.TransactionTimestamp,
+			Timestamp:   t.TransactionTimestamp,
 		}, nil
 	}
 	return nil, nil
@@ -589,12 +687,12 @@ func (r *PostgresRepository) toDestinationTx(t *transactionResult) (*Destination
 func (r *PostgresRepository) toNestedSourceTx(t *transactionResult) (*AttributeDoc, error) {
 
 	var attribute *AttributeDoc
-	if t.TransactionType == "nested-source-tx" {
+	if t.TransactionType != nil && *t.TransactionType == "nested-source-tx" {
 		var denormalizedNestedTxHash string
-		chainID := sdk.ChainID(t.TransactionChainID)
-		if t.TransactionTxHash != "" {
+		chainID := sdk.ChainID(*t.TransactionChainID)
+		if *t.TransactionTxHash != "" {
 			// denormalize tx hash for compatibility reasons.
-			denormalizedNestedTxHash = domain.DenormalizeTxHashByChainId(chainID, t.TransactionTxHash)
+			denormalizedNestedTxHash = domain.DenormalizeTxHashByChainId(chainID, *t.TransactionTxHash)
 		}
 		values := map[string]any{
 			"originChainId": t.TransactionChainID,

@@ -35,7 +35,7 @@ func Test_FindAll(t *testing.T) {
 				payloadTypeMatcher := mock.MatchedBy(func(filter ops.OperationFilter) bool {
 					return slices.Equal(filter.PayloadType, []int{1})
 				})
-				mockService.On("FindAll", mock.Anything, payloadTypeMatcher).Return([]*ops.OperationDto{}, nil)
+				mockService.On("FindAll", mock.Anything, mock.Anything, payloadTypeMatcher).Return([]*ops.OperationDto{}, nil)
 			},
 		},
 		{
@@ -47,7 +47,7 @@ func Test_FindAll(t *testing.T) {
 				payloadTypeMatcher := mock.MatchedBy(func(filter ops.OperationFilter) bool {
 					return slices.Equal(filter.PayloadType, []int{1, 2, 3})
 				})
-				mockService.On("FindAll", mock.Anything, payloadTypeMatcher).Return([]*ops.OperationDto{}, nil)
+				mockService.On("FindAll", mock.Anything, mock.Anything, payloadTypeMatcher).Return([]*ops.OperationDto{}, nil)
 			},
 		},
 		{
