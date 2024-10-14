@@ -12,6 +12,7 @@ import { suiRedeemedTransactionFoundMapper } from "../mappers/sui/suiRedeemedTra
 import { solanaLogCircleMessageSentMapper } from "../mappers/solana/solanaLogCircleMessageSentMapper";
 import { evmNttWormholeTransceiverMapper } from "../mappers/evm/evmNttWormholeTransceiverMapper";
 import { cosmosLogMessagePublishedMapper } from "../mappers/cosmos/cosmosLogMessagePublishedMapper";
+import { evmProposalCreatedMessageMapper } from "../mappers/evm/evmProposalCreatedMessageMapper";
 import { aptosLogMessagePublishedMapper } from "../mappers/aptos/aptosLogMessagePublishedMapper";
 import { evmLogCircleMessageSentMapper } from "../mappers/evm/evmLogCircleMessageSentMapper";
 import { evmNttAxelarTransceiverMapper } from "../mappers/evm/evmNttAxelarTransceiverMapper";
@@ -297,6 +298,7 @@ export class StaticJobRepository implements JobRepository {
     this.mappers.set("evmNttWormholeTransceiverMapper", evmNttWormholeTransceiverMapper);
     this.mappers.set("evmNttMessageAttestedToMapper", evmNttMessageAttestedToMapper);
     this.mappers.set("evmNttTransferRedeemedMapper", evmNttTransferRedeemedMapper);
+    this.mappers.set("evmProposalCreatedMessageMapper", evmProposalCreatedMessageMapper);
     this.mappers.set("solanaLogMessagePublishedMapper", solanaLogMessagePublishedMapper);
     this.mappers.set("solanaTransferRedeemedMapper", solanaTransferRedeemedMapper);
     this.mappers.set("solanaLogCircleMessageSentMapper", solanaLogCircleMessageSentMapper);

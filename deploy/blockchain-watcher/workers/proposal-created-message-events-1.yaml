@@ -1,0 +1,188 @@
+---          
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .NAME }}-proposal-created-message-events-1
+  namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-proposal-created-message-events-1
+spec:
+  selector:
+    app: {{ .NAME }}-proposal-created-message-events-1
+  ports:
+    - port: {{ .PORT }}
+      targetPort: {{ .PORT }}
+      name: {{ .NAME }}-proposal-created-message-events-1
+      protocol: TCP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: blockchain-watcher-proposal-created-message-events-1-pvc
+  namespace: {{ .NAMESPACE }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Mi
+  storageClassName: gp2
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .NAME }}-proposal-created-message-events-1-jobs
+  namespace: {{ .NAMESPACE }}
+data:
+  testnet-jobs.json: |-
+    [
+      {
+        "id": "poll-redeemed-transactions-base-sepolia-latest",
+        "chain": "base-sepolia",
+        "source": {
+          "action": "PollEvm",
+          "repository": "evmRepo",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "environment": "testnet",
+            "commitment": "latest",
+            "interval": 35000,
+            "filters": [
+              {
+                "addresses": ["0x22bE15e73DA369066576e103D1c0e9C3AD1386A5"],
+                "type": "Relayer",                
+                "topics": ["0x7d84a6263ae0d98d3329bd7b46bb4e8d6f98cd35a7adb45c274c8b7fd5ebd5e0"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              }
+            ],
+            "chain": "base-sepolia",
+            "chainId": 10004
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "abis": [
+                {
+                  "abi": "deliver(bytes[] encodedVMs, bytes encodedDeliveryVAA, address relayerRefundAddress, bytes deliveryOverrides)",
+                  "topic": "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
+                  "type": "Standard Relayer"
+                }
+              ],
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      }
+    ]
+  mainnet-jobs.json: |-
+    [
+    ]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .NAME }}-proposal-created-message-events-1
+  namespace: {{ .NAMESPACE }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .NAME }}-proposal-created-message-events-1
+  template:
+    metadata:
+      labels:
+        app: {{ .NAME }}-proposal-created-message-events-1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .PORT }}"
+    spec:
+      containers:
+        - name: {{ .NAME }}
+          env:
+            - name: NODE_ENV
+              value: {{ .NODE_ENV }}
+            - name: PORT
+              value: "{{ .PORT }}"
+            - name: LOG_LEVEL
+              value: {{ .LOG_LEVEL }}
+            - name: BLOCKCHAIN_ENV
+              value: {{ .BLOCKCHAIN_ENV }}
+            - name: DRY_RUN_ENABLED
+              value: "{{ .DRY_RUN_ENABLED }}"
+            - name: SNS_TOPIC_ARN
+              value: {{ .SNS_TOPIC_ARN }}
+            - name: SNS_REGION
+              value: {{ .SNS_REGION }}
+            - name: JOBS_DIR
+              value: /home/node/app/jobs
+            {{ if .FANTOM_RPCS }}
+            - name: FANTOM_RPCS
+              value: '{{ .FANTOM_RPCS }}'
+            {{ end }}
+            {{ if .MOONBEAM_RPCS }}
+            - name: MOONBEAM_RPCS
+              value: '{{ .MOONBEAM_RPCS }}'
+            {{ end }}
+            {{ if .BSC_RPCS }}
+            - name: BSC_RPCS
+              value: '{{ .BSC_RPCS }}'
+            {{ end }}
+            {{ if .AVALANCHE_RPCS }}
+            - name: AVALANCHE_RPCS
+              value: '{{ .AVALANCHE_RPCS }}'
+            {{ end }}
+            {{ if .KARURA_RPCS }}
+            - name: KARURA_RPCS
+              value: '{{ .KARURA_RPCS }}'
+            {{ end }}
+            {{ if .ARBITRUM_RPCS }}
+            - name: ARBITRUM_RPCS
+              value: '{{ .ARBITRUM_RPCS }}'
+            {{ end }}
+            {{ if .ARBITRUM_SEPOLIA_RPCS }}
+            - name: ARBITRUM_SEPOLIA_RPCS
+              value: '{{ .ARBITRUM_SEPOLIA_RPCS }}'
+            {{ end }}
+            {{ if .ETHEREUM_SEPOLIA_RPCS }}
+            - name: ETHEREUM_SEPOLIA_RPCS
+              value: '{{ .ETHEREUM_SEPOLIA_RPCS }}'
+            {{ end }}
+            {{ if .ETHEREUM_RPCS }}
+            - name: ETHEREUM_RPCS
+              value: '{{ .ETHEREUM_RPCS }}'
+            {{ end }}
+            {{ if .ETHEREUM_HOLESKY_RPCS }}
+            - name: ETHEREUM_HOLESKY_RPCS
+              value: '{{ .ETHEREUM_HOLESKY_RPCS }}'
+            {{ end }}
+          image: {{ .IMAGE_NAME }}
+          resources:
+            limits:
+              cpu: {{ .RESOURCES_LIMITS_CPU }}
+              memory: {{ .RESOURCES_LIMITS_MEMORY }}
+            requests:
+              cpu: {{ .RESOURCES_REQUESTS_CPU }}
+              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
+          volumeMounts:
+            - name: metadata-volume
+              mountPath: /home/node/app/metadata-repo 
+            - name: jobs-volume
+              mountPath: /home/node/app/jobs
+      restartPolicy: Always
+      serviceAccountName: blockchain-watcher
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: metadata-volume
+          persistentVolumeClaim:
+            claimName: blockchain-watcher-proposal-created-message-events-1-pvc
+        - name: jobs-volume
+          configMap:
+            name: {{ .NAME }}-proposal-created-message-events-1-jobs
+            items:
+              - key: {{ .BLOCKCHAIN_ENV }}-jobs.json
+                path: jobs.json
