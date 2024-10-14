@@ -82,7 +82,7 @@ data:
         ]
       },
       {
-        "id": "poll-transfer-redeems-sui",
+        "id": "poll-transfer-redeems-sui-immediate",
         "chain": "sui",
         "source": {
           "action": "PollSuiTransactions",
@@ -90,6 +90,7 @@ data:
           "config": {
             "interval": 35000,
             "chain": "sui",
+            "environment": "testnet",
             "filter": {
               "MoveFunction": {
                 "package": "0x562760fc51d90d4ae1835bac3e91e0e6987d3497b06f066941d3e51f6e8d76d0",
@@ -114,7 +115,7 @@ data:
         ]
       },
       {
-        "id": "poll-transfer-with-payload-redeems-sui",
+        "id": "poll-transfer-with-payload-redeems-sui-immediate",
         "chain": "sui",
         "source": {
           "action": "PollSuiTransactions",
@@ -122,6 +123,7 @@ data:
           "config": {
             "interval": 35000,
             "chain": "sui",
+            "environment": "testnet",
             "filter": {
               "MoveFunction": {
                 "package": "0x562760fc51d90d4ae1835bac3e91e0e6987d3497b06f066941d3e51f6e8d76d0",
@@ -324,13 +326,14 @@ data:
         ]
       },
       {
-        "id": "poll-transfer-redeems-sui",
+        "id": "poll-transfer-redeems-sui-immediate",
         "chain": "sui",
         "source": {
           "action": "PollSuiTransactions",
           "repository": "suiRepo",
           "config": {
             "interval": 5000,
+            "environment": "mainnet",
             "chain": "sui",
             "filter": {
               "MoveFunction": {
@@ -356,13 +359,14 @@ data:
         ]
       },
       {
-        "id": "poll-transfer-with-payload-redeems-sui",
+        "id": "poll-transfer-with-payload-redeems-sui-immediate",
         "chain": "sui",
         "source": {
           "action": "PollSuiTransactions",
           "repository": "suiRepo",
           "config": {
             "interval": 5000,
+            "environment": "mainnet",
             "chain": "sui",
             "filter": {
               "MoveFunction": {
