@@ -381,40 +381,6 @@ data:
             }
           }
         ]
-      },
-      {
-        "id": "poll-redeemed-transactions-berachain-latest",
-        "chain": "berachain",
-        "source": {
-          "repository": "evmRepo",
-          "action": "PollEvm",
-          "records": "GetEvmTransactions",
-          "config": {
-            "blockBatchSize": 100,
-            "commitment": "latest",
-            "interval": 15000,
-            "filters": [
-              {
-                "addresses": [],
-                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
-                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
-                "strategy": "GetTransactionsByLogFiltersStrategy"
-              }
-            ],
-            "chain": "berachain",
-            "chainId": 39
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleEvmTransactions",
-            "target": "sns",
-            "mapper": "evmRedeemedTransactionFoundMapper",
-            "config": {
-              "metricName": "process_vaa_event"
-            }
-          }
-        ]
       }
     ]
   mainnet-jobs.json: |-
@@ -1272,10 +1238,6 @@ spec:
             {{ if .OPTIMISM_RPCS }}
             - name: OPTIMISM_RPCS
               value: '{{ .OPTIMISM_RPCS }}'
-            {{ end }}
-            {{ if .BERACHAIN_RPCS }}
-            - name: BERACHAIN_RPCS
-              value: '{{ .BERACHAIN_RPCS }}'
             {{ end }}
           resources:
             limits:

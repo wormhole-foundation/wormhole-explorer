@@ -1,3 +1,4 @@
+import { UnhandledError } from "../../infrastructure/errors/UnhandledError";
 import { StatRepository } from "../repositories";
 import winston from "winston";
 
@@ -49,6 +50,8 @@ export abstract class RunRPCHealthcheck {
         job: "rpc-healthcheck",
       });
     } catch (e: Error | any) {
+      new UnhandledError(this.statRepo!, e, "rpc-healthcheck").validateError();
+
       this.logger.error("[executeRpcHealthcheckTask] Error processing rpcHealthCheck providers", e);
       this.statRepo?.count("rpc_healthcheck_runs_total", {
         id: "rpc-healthcheck",
