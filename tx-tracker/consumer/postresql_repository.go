@@ -48,6 +48,28 @@ func (p *PostgreSQLRepository) UpsertOriginTx(ctx context.Context, originTx, nes
 
 func (p *PostgreSQLRepository) upsertOriginTx(ctx context.Context, params *UpsertOriginTxParams) error {
 
+	// upsert source tx.
+	err := p.upsertSourceTx(ctx, params)
+	if err != nil {
+		return err
+	}
+
+	// upsert operation address.
+	err = p.upsertOperationAddress(ctx, params)
+	if err != nil {
+		return err
+	}
+
+	// register processed vaa.
+	err = p.registerProcessedVaa(ctx, params)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p *PostgreSQLRepository) upsertSourceTx(ctx context.Context, params *UpsertOriginTxParams) error {
+
 	query := `
 		INSERT INTO wormholescan.wh_operation_transactions 
 		(chain_id, tx_hash, type, created_at, updated_at, attestation_vaas_id, message_id, status, from_address, to_address, block_number, blockchain_method, fee_detail, timestamp, rpc_response)
@@ -118,12 +140,67 @@ func (p *PostgreSQLRepository) upsertOriginTx(ctx context.Context, params *Upser
 		return err
 	}
 
-	if nativeTxHash == nil {
-		p.logger.Warn("nativeTxHash is nil", zap.String("id", params.Id), zap.String("vaaId", params.VaaId))
+	return nil
+}
+
+func (p *PostgreSQLRepository) upsertOperationAddress(ctx context.Context, params *UpsertOriginTxParams) error {
+	// from address not found. can't upsert operation address.
+	if params.TxDetail == nil {
 		return nil
 	}
 
-	return p.registerProcessedVaa(ctx, params.Id, params.VaaId, *nativeTxHash, "source-tx")
+	// from address is empty. can't upsert operation address.
+	if params.TxDetail.From == "" {
+		p.logger.Warn("from address is empty", zap.String("id", params.Id), zap.String("vaaId", params.VaaId))
+		return nil
+	}
+
+	fromAddress := params.TxDetail.From
+	if params.TxDetail.NormalizedFrom != "" {
+		fromAddress = params.TxDetail.NormalizedFrom
+	}
+
+	// check timestamp can not be nil.
+	if params.Timestamp == nil {
+		p.logger.Error("timestamp is nil", zap.String("id", params.Id), zap.String("vaaId", params.VaaId))
+		return nil
+	}
+
+	now := time.Now()
+	_, err := p.dbClient.Exec(ctx,
+		`INSERT INTO wormholescan.wh_operation_addresses (id, address, address_type, timestamp, created_at, updated_at)
+			VALUES ($1, $2, $3, $4, $5, $6)
+			ON CONFLICT (id, address) DO UPDATE SET address = $2, address_type = $3, timestamp = $4, updated_at = $6`,
+		params.Id, fromAddress, "source", *params.Timestamp, now, now)
+
+	return err
+}
+
+func (p *PostgreSQLRepository) registerProcessedVaa(ctx context.Context, params *UpsertOriginTxParams) error {
+	// get normalized tx hash.
+	var txHash string
+	if params.TxDetail != nil {
+		txHash = params.TxDetail.NativeTxHash
+		if params.TxDetail.NormalizedTxHash != "" {
+			txHash = params.TxDetail.NormalizedTxHash
+		}
+	}
+
+	// tx hash is empty. can't register processed vaa.
+	if txHash == "" {
+		p.logger.Warn("tx hash is empty", zap.String("id", params.Id), zap.String("vaaId", params.VaaId))
+		return nil
+	}
+	now := time.Now()
+
+	// insert into wh_operation_transactions_processed.
+	_, err := p.dbClient.Exec(ctx,
+		`INSERT INTO wormholescan.wh_operation_transactions_processed (message_id,tx_hash,attestation_vaas_id,"type", processed,created_at,updated_at)
+				VALUES ($1,$2,$3,$4,true,$5,$6)
+				ON CONFLICT (message_id, tx_hash) DO UPDATE
+					SET updated_at = EXCLUDED.updated_at`,
+		params.VaaId, txHash, params.Id, "source", now, now)
+	return err
 }
 
 func (p *PostgreSQLRepository) UpsertTargetTx(ctx context.Context, params *TargetTxUpdate) error {
@@ -213,17 +290,6 @@ func (p *PostgreSQLRepository) AlreadyProcessed(ctx context.Context, vaaId strin
 	var count int
 	err := p.dbClient.SelectOne(ctx, &count, `SELECT COUNT(*) FROM wormholescan.wh_operation_transactions_processed WHERE message_id = $1 and tx_hash = $2`, vaaId, txhash)
 	return count > 0, err
-}
-
-func (p *PostgreSQLRepository) registerProcessedVaa(ctx context.Context, vaaDigest, vaaId, txHash, txType string) error {
-	now := time.Now()
-	_, err := p.dbClient.Exec(ctx,
-		`INSERT INTO wormholescan.wh_operation_transactions_processed (message_id,tx_hash,attestation_vaas_id,"type", processed,created_at,updated_at)
-			VALUES ($1,$2,$3,$4,true,$5,$6)
-			ON CONFLICT (message_id, tx_hash) DO UPDATE
-				SET updated_at = EXCLUDED.updated_at`,
-		vaaId, txHash, vaaDigest, txType, now, now)
-	return err
 }
 
 // GetVaaIdTxHash returns the VaaIdTxHash for the given id. this dummy implementation is added in postgres repository

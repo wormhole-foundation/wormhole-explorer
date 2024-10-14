@@ -44,7 +44,6 @@ func (r *PostgresRepository) Find(ctx context.Context, q *ObservationQuery) ([]*
 	var obs []*observationResult
 	err := r.db.Select(ctx, &obs, query, params...)
 	if err != nil {
-		fmt.Printf("error: %v\n", err)
 		r.logger.Error("failed to execute query", zap.Error(err), zap.String("query", query))
 		return nil, err
 	}

@@ -151,7 +151,7 @@ func Run() {
 
 type StorageLayer struct {
 	mongoDB            *dbutil.Session
-	mongoRepository    *parser.Repository
+	mongoRepository    *parser.MongoRepository
 	postgresDB         *db.DB
 	postgresRepository *parser.PostgresRepository
 }
@@ -160,7 +160,7 @@ type StorageLayer struct {
 func newStorageLayer(ctx context.Context, cfg *config.ServiceConfiguration, logger *zap.Logger) (*StorageLayer, error) {
 
 	var mongoDB *dbutil.Session
-	var mongoRepository *parser.Repository
+	var mongoRepository *parser.MongoRepository
 	var postgresDB *db.DB
 	var postgresRepository *parser.PostgresRepository
 	var err error
@@ -180,7 +180,7 @@ func newStorageLayer(ctx context.Context, cfg *config.ServiceConfiguration, logg
 			return nil, err
 		}
 		// create a mongo repository
-		mongoRepository = parser.NewRepository(mongoDB.Database, logger)
+		mongoRepository = parser.NewMongoRepository(mongoDB.Database, logger)
 		return &StorageLayer{
 			mongoDB:         mongoDB,
 			mongoRepository: mongoRepository,
@@ -214,7 +214,7 @@ func newStorageLayer(ctx context.Context, cfg *config.ServiceConfiguration, logg
 			return nil, err
 		}
 		// create a mongo repository
-		mongoRepository = parser.NewRepository(mongoDB.Database, logger)
+		mongoRepository = parser.NewMongoRepository(mongoDB.Database, logger)
 
 		// setup postgres db connection
 		postgresDB, err = newPostgresDatabase(ctx, cfg, logger)

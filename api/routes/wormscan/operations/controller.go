@@ -2,6 +2,9 @@ package operations
 
 import (
 	"context"
+	"strconv"
+	"strings"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/operations"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
@@ -9,8 +12,6 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/types"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
-	"strconv"
-	"strings"
 )
 
 // Controller is the controller for the operation resource.
@@ -21,8 +22,8 @@ type Controller struct {
 
 // decouple operations.Service from the controller in order to make it testable
 type operationService interface {
-	FindById(ctx context.Context, chainID vaa.ChainID, emitter *types.Address, seq string) (*operations.OperationDto, error)
-	FindAll(ctx context.Context, filter operations.OperationFilter) ([]*operations.OperationDto, error)
+	FindById(ctx context.Context, usePostgres bool, chainID vaa.ChainID, emitter *types.Address, seq string) (*operations.OperationDto, error)
+	FindAll(ctx context.Context, usePostgres bool, filter operations.OperationFilter) ([]*operations.OperationDto, error)
 }
 
 // NewController create a new controler.
@@ -127,7 +128,7 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 	}
 
 	// Find operations by q search param.
-	ops, err := c.srv.FindAll(ctx.Context(), filter)
+	ops, err := c.srv.FindAll(ctx.Context(), middleware.UsePostgres(ctx), filter)
 	if err != nil {
 		return err
 	}
@@ -156,7 +157,7 @@ func (c *Controller) FindById(ctx *fiber.Ctx) error {
 	}
 
 	// Find operations by chainID, emitter and sequence.
-	operation, err := c.srv.FindById(ctx.Context(), chainID, emitter, strconv.FormatUint(seq, 10))
+	operation, err := c.srv.FindById(ctx.Context(), middleware.UsePostgres(ctx), chainID, emitter, strconv.FormatUint(seq, 10))
 	if err != nil {
 		return err
 	}

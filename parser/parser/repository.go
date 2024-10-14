@@ -16,8 +16,8 @@ var ErrDocNotFound = errors.New("NOT FOUND")
 
 const ParsedVAACollection = "parsedVaa"
 
-// Repository definitions.
-type Repository struct {
+// MongoRepository definitions.
+type MongoRepository struct {
 	db          *mongo.Database
 	log         *zap.Logger
 	collections struct {
@@ -26,8 +26,8 @@ type Repository struct {
 }
 
 // NewRepository create a new respository instance.
-func NewRepository(db *mongo.Database, log *zap.Logger) *Repository {
-	return &Repository{db, log, struct {
+func NewMongoRepository(db *mongo.Database, log *zap.Logger) *MongoRepository {
+	return &MongoRepository{db, log, struct {
 		parsedVaa *mongo.Collection
 	}{
 		parsedVaa: db.Collection(ParsedVAACollection),
@@ -35,7 +35,7 @@ func NewRepository(db *mongo.Database, log *zap.Logger) *Repository {
 }
 
 // UpsertParsedVaa saves vaa information and parsed result.
-func (s *Repository) UpsertParsedVaa(ctx context.Context, parsedVAA ParsedVaaUpdate) error {
+func (s *MongoRepository) UpsertParsedVaa(ctx context.Context, parsedVAA ParsedVaaUpdate) error {
 	update := bson.M{
 		"$set":         parsedVAA,
 		"$setOnInsert": indexedAt(*parsedVAA.UpdatedAt),

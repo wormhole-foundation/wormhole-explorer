@@ -244,13 +244,13 @@ func (m *mockRepository) FindGlobalTransactionByID(ctx context.Context, usePostg
 	return args.Get(0).(*transactions.GlobalTransactionDoc), args.Error(1)
 }
 
-func (m *mockRepository) FindTransactions(ctx context.Context, input *transactions.FindTransactionsInput) ([]transactions.TransactionDto, error) {
+func (m *mockRepository) FindTransactions(ctx context.Context, usePostgres bool, input *transactions.FindTransactionsInput) ([]transactions.TransactionDto, error) {
 	args := m.Called(ctx, input)
 	return args.Get(0).([]transactions.TransactionDto), args.Error(1)
 }
 
-func (m *mockRepository) ListTransactionsByAddress(ctx context.Context, address string, pagination *pagination.Pagination) ([]transactions.TransactionDto, error) {
-	args := m.Called(ctx, address, pagination)
+func (m *mockRepository) ListTransactionsByAddress(ctx context.Context, usePostgres bool, address string, pagination *pagination.Pagination) ([]transactions.TransactionDto, error) {
+	args := m.Called(ctx, usePostgres, address, pagination)
 	return args.Get(0).([]transactions.TransactionDto), args.Error(1)
 }
 

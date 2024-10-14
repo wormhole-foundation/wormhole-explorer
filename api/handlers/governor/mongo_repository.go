@@ -315,7 +315,7 @@ func (r *MongoRepository) FindNotionalLimit(
 	}
 
 	// decodes to NotionalLimit.
-	var notionalLimits []*NotionalLimit
+	var notionalLimits []*notionalLimitMongo
 	err = cur.All(ctx, &notionalLimits)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
@@ -332,7 +332,32 @@ func (r *MongoRepository) FindNotionalLimit(
 		return nil, errs.ErrNotFound
 	}
 
-	return notionalLimits, nil
+	var result []*NotionalLimit
+	for _, nl := range notionalLimits {
+
+		if nl == nil {
+			continue
+		}
+
+		var notionalLimit uint64
+		var maxTransactionSize uint64
+
+		if nl.NotionalLimit != nil {
+			notionalLimit = uint64(*nl.NotionalLimit)
+		}
+
+		if nl.MaxTransactionSize != nil {
+			maxTransactionSize = uint64(*nl.MaxTransactionSize)
+		}
+
+		result = append(result, &NotionalLimit{
+			ChainID:            nl.ChainID,
+			NotionalLimit:      notionalLimit,
+			MaxTransactionSize: maxTransactionSize,
+		})
+	}
+
+	return result, nil
 }
 
 // GetNotionalLimitByChainID get a list *NotionalLimitDetail.
@@ -406,8 +431,9 @@ func (r *MongoRepository) GetNotionalLimitByChainID(
 	}
 
 	// decode to []NotionalLimitRecord.
-	var notionalLimits []*NotionalLimitDetail
-	err = cur.All(ctx, &notionalLimits)
+	var result []*NotionalLimitDetail
+	var resp []*notionalLimitDetailMongo
+	err = cur.All(ctx, &resp)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
 		r.logger.Error("failed to decode cursor into []*NotionalLimitDetail",
@@ -418,7 +444,26 @@ func (r *MongoRepository) GetNotionalLimitByChainID(
 		return nil, errors.WithStack(err)
 	}
 
-	return notionalLimits, nil
+	for _, nld := range resp {
+
+		if nld == nil ||
+			nld.NotionalLimit == nil ||
+			nld.MaxTrasactionSize == nil {
+			continue
+		}
+
+		result = append(result, &NotionalLimitDetail{
+			ID:                 nld.ID,
+			ChainID:            nld.ChainID,
+			NodeName:           nld.NodeName,
+			NotionalLimit:      uint64(*nld.NotionalLimit),
+			MaxTransactionSize: uint64(*nld.MaxTrasactionSize),
+			CreatedAt:          nld.CreatedAt,
+			UpdatedAt:          nld.UpdatedAt,
+		})
+	}
+
+	return result, nil
 }
 
 // GetAvailableNotional get a list of *NotionalAvailable.
@@ -519,8 +564,9 @@ func (r *MongoRepository) GetAvailableNotional(
 	}
 
 	// decode to []NotionalLimitRecord.
-	var notionalAvailables []*NotionalAvailable
-	err = cur.All(ctx, &notionalAvailables)
+	var result []*NotionalAvailable
+	var response []*notionalAvailableMongo
+	err = cur.All(ctx, &response)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
 		r.logger.Error("failed to decode cursor into []*NotionalAvailable",
@@ -532,11 +578,23 @@ func (r *MongoRepository) GetAvailableNotional(
 	}
 
 	// check exists records
-	if len(notionalAvailables) == 0 {
+	if len(response) == 0 {
 		return nil, errs.ErrNotFound
 	}
+	for _, na := range response {
 
-	return notionalAvailables, nil
+		if na == nil ||
+			na.AvailableNotional == nil {
+			continue
+		}
+
+		result = append(result, &NotionalAvailable{
+			ChainID:           na.ChainID,
+			AvailableNotional: uint64(*na.AvailableNotional),
+		})
+	}
+
+	return result, nil
 }
 
 // GetAvailableNotionalByChainID get a list of *NotionalAvailableDetail.
@@ -627,8 +685,9 @@ func (r *MongoRepository) GetAvailableNotionalByChainID(
 	}
 
 	// decode to []NotionalLimitRecord.
-	var notionalAvailability []*NotionalAvailableDetail
-	err = cur.All(ctx, &notionalAvailability)
+	var result []*NotionalAvailableDetail
+	var response []*notionalAvailableDetailMongo
+	err = cur.All(ctx, &response)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
 		r.logger.Error("failed to decode cursor into []*NotionalAvailableDetail",
@@ -639,7 +698,28 @@ func (r *MongoRepository) GetAvailableNotionalByChainID(
 		return nil, errors.WithStack(err)
 	}
 
-	return notionalAvailability, nil
+	for _, nadm := range response {
+
+		if nadm == nil {
+			continue
+		}
+
+		var notionalAvailable uint64
+		if nadm.NotionalAvailable != nil {
+			notionalAvailable = uint64(*nadm.NotionalAvailable)
+		}
+
+		result = append(result, &NotionalAvailableDetail{
+			ID:                nadm.ID,
+			ChainID:           nadm.ChainID,
+			NodeName:          nadm.NodeName,
+			NotionalAvailable: notionalAvailable,
+			CreatedAt:         nadm.CreatedAt,
+			UpdatedAt:         nadm.UpdatedAt,
+		})
+	}
+
+	return result, nil
 }
 
 // GetMaxNotionalAvailableByChainID get a *MaxNotionalAvailableRecord.
@@ -724,7 +804,7 @@ func (r *MongoRepository) GetMaxNotionalAvailableByChainID(
 	}
 
 	// decode to []NotionalLimitRecord.
-	var rows []*MaxNotionalAvailableRecord
+	var rows []*maxNotionalAvailableRecordMongo
 	err = cur.All(ctx, &rows)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
@@ -746,7 +826,56 @@ func (r *MongoRepository) GetMaxNotionalAvailableByChainID(
 	}
 
 	maxNotionalLimit := rows[minGuardianNum-1]
-	return maxNotionalLimit, nil
+	var available uint64
+	if maxNotionalLimit.NotionalAvailable != nil {
+		available = uint64(*maxNotionalLimit.NotionalAvailable)
+	}
+
+	var finalEmitters []*Emitter
+	for _, emt := range maxNotionalLimit.Emitters {
+		if emt == nil {
+			continue
+		}
+
+		var totalEnqueuedVaas uint64
+		if emt.TotalEnqueuedVaas != nil {
+			totalEnqueuedVaas = uint64(*emt.TotalEnqueuedVaas)
+		}
+
+		elem := &Emitter{
+			Address:           emt.Address,
+			TotalEnqueuedVaas: totalEnqueuedVaas,
+		}
+		var enqueuedVaas []*EnqueuedVAA
+		for _, ev := range emt.EnqueuedVaas {
+
+			var notionalValue uint64
+			if ev.Notional != nil {
+				notionalValue = uint64(*ev.Notional)
+			}
+
+			val := &EnqueuedVAA{
+				Sequence:    ev.Sequence,
+				ReleaseTime: ev.ReleaseTime,
+				Notional:    notionalValue,
+				TxHash:      ev.TxHash,
+			}
+			enqueuedVaas = append(enqueuedVaas, val)
+		}
+
+		finalEmitters = append(finalEmitters, elem)
+
+	}
+
+	return &MaxNotionalAvailableRecord{
+		ID:                maxNotionalLimit.ID,
+		ChainID:           maxNotionalLimit.ChainID,
+		NodeName:          maxNotionalLimit.NodeName,
+		NotionalAvailable: available,
+		Emitters:          finalEmitters,
+		CreatedAt:         maxNotionalLimit.CreatedAt,
+		UpdatedAt:         maxNotionalLimit.UpdatedAt,
+	}, nil
 }
 
 // EnqueuedVaaQuery respresent a query for enqueuedVaa queries.

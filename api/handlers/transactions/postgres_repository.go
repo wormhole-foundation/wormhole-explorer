@@ -2,17 +2,55 @@ package transactions
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"time"
 
+	"github.com/shopspring/decimal"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/config"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
+	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"github.com/wormhole-foundation/wormhole-explorer/common/db"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
+
+const baseTransactionQuery = `
+SELECT
+	wot.chain_id as transaction_chain_id,
+	wot.tx_hash as transaction_tx_hash,
+	wot."type" as transaction_type,
+	wot.status as transaction_status,
+	wot.from_address as transaction_from_address,
+	wot.to_address as transaction_to_address,
+	wot.timestamp as transaction_timestamp,
+	wot.blockchain_method as transaction_blockchain_method,
+	wot.block_number as transaction_block_number,
+	wot.fee_detail as transaction_fee_detail,
+	wop.symbol as price_symbol,
+	wop.total_usd as price_total_usd,
+	wop.total_token as price_total_token,
+	wav.id as vaa_digest,
+	wav.vaa_id as vaa_vaa_id,
+	wav.version as vaa_version,
+	wav.emitter_chain_id as vaa_emitter_chain_id,
+	wav.emitter_address as vaa_emitter_address,
+	wav.sequence as vaa_sequence,
+	wav.guardian_set_index as vaa_guardian_set_index,
+	wav.raw as vaa_raw,
+	wav.timestamp as vaa_timestamp,
+	wav.updated_at as vaa_updated_at,
+	wav.created_at as vaa_created_at,
+	wav.is_duplicated as vaa_is_duplicated,
+	wavp.payload as properties_payload,
+	wavp.raw_standard_fields as properties_raw_standard_fields
+FROM wormholescan.wh_attestation_vaas wav
+LEFT JOIN wormholescan.wh_operation_transactions wot ON  wav.id = wot.attestation_vaas_id
+LEFT JOIN wormholescan.wh_operation_prices wop ON wop.id = wot.attestation_vaas_id
+LEFT JOIN wormholescan.wh_attestation_vaa_properties wavp ON wavp.id = wot.attestation_vaas_id
+`
 
 type totalPythResult struct {
 	ID       string `data:"id"`
@@ -178,7 +216,7 @@ func createOriginTx(operationTxs []*operationTxResult) *OriginTx {
 
 		attribute = &AttributeDoc{
 			Type:  "wormchain-gateway",
-			Value: nestedSourceTx.RPCResponse,
+			Value: values,
 		}
 	}
 	originTx.Attribute = attribute
@@ -241,4 +279,437 @@ func createDestinationTx(operationTxs []*operationTxResult) *DestinationTx {
 		Timestamp:   timestamp,
 		UpdatedAt:   updatedAt,
 	}
+}
+
+type transactionResult struct {
+	TransactionChainID          *uint16          `db:"transaction_chain_id"`
+	TransactionTxHash           *string          `db:"transaction_tx_hash"`
+	TransactionType             *string          `db:"transaction_type"`
+	TransactionStatus           *string          `db:"transaction_status"`
+	TransactionFromAddress      *string          `db:"transaction_from_address"`
+	TransactionToAddress        *string          `db:"transaction_to_address"`
+	TransactionTimestamp        *time.Time       `db:"transaction_timestamp"`
+	TransactionBlockchainMethod *string          `db:"transaction_blockchain_method"`
+	TransactionBlockNumber      *string          `db:"transaction_block_number"`
+	TransactionFeeDetail        *json.RawMessage `db:"transaction_fee_detail"`
+
+	PriceSymbol     *string          `db:"price_symbol"`
+	PriceTotalUSD   *decimal.Decimal `db:"price_total_usd"`
+	PriceTotalToken *decimal.Decimal `db:"price_total_token"`
+
+	VaaDigest           string     `db:"vaa_digest"`
+	VaaId               string     `db:"vaa_vaa_id"`
+	VaaVersion          uint8      `db:"vaa_version"`
+	VaaEmitterChainID   uint16     `db:"vaa_emitter_chain_id"`
+	VaaEmitterAddress   string     `db:"vaa_emitter_address"`
+	VaaSequence         string     `db:"vaa_sequence"`
+	VaaGuardianSetIndex *uint32    `db:"vaa_guardian_set_index"`
+	VaaRaw              []byte     `db:"vaa_raw"`
+	VaaTimestamp        time.Time  `db:"vaa_timestamp"`
+	VaaUpdatedAt        *time.Time `db:"vaa_updated_at"`
+	VaaCreatedAt        time.Time  `db:"vaa_created_at"`
+	VaaIsDuplicated     bool       `db:"vaa_is_duplicated"`
+
+	PropertiesPayload           *json.RawMessage `db:"properties_payload"`
+	PropertiesRawStandardFields *json.RawMessage `db:"properties_raw_standard_fields"`
+}
+
+// FindTransactions returns transactions matching a specified search criteria.
+func (r *PostgresRepository) FindTransactions(
+	ctx context.Context,
+	input *FindTransactionsInput,
+) ([]TransactionDto, error) {
+
+	if input == nil {
+		return nil, errors.ErrInternalError
+	}
+
+	// find transaction by id
+	if input.id != "" {
+		// find transaction by id
+		return r.findTransactionById(ctx, input)
+	}
+
+	querySqlForIds, params := r.buildQueryIDsForPage(*input.pagination)
+	return r.findPage(ctx, querySqlForIds, params...)
+}
+
+func (r *PostgresRepository) findTransactionById(ctx context.Context, input *FindTransactionsInput) ([]TransactionDto, error) {
+	query := baseTransactionQuery + `WHERE wav.vaa_id = $1 AND wav.active = true`
+
+	var txs []*transactionResult
+	err := r.db.Select(ctx, &txs, query, input.id)
+	if err != nil {
+		r.logger.Error("failed to execute query", zap.Error(err),
+			zap.String("query", query),
+			zap.String("vaa_id", input.id))
+		return nil, err
+	}
+
+	if len(txs) == 0 {
+		return nil, errors.ErrNotFound
+	}
+
+	transactionDto, err := r.toTransactionDto(txs)
+	if err != nil {
+		return nil, err
+	}
+
+	return []TransactionDto{*transactionDto}, nil
+}
+
+func (r *PostgresRepository) findPage(ctx context.Context, querySqlForIds string, params ...any) ([]TransactionDto, error) {
+	var ids []string
+	err := r.db.Select(ctx, &ids, querySqlForIds, params...)
+	if err != nil {
+		r.logger.Error("failed to execute query for ids", zap.Error(err), zap.String("query", querySqlForIds), zap.Any("params", params))
+		return nil, err
+	}
+
+	if len(ids) == 0 {
+		return []TransactionDto{}, nil
+	}
+
+	// fetch transactions by ids
+	query := baseTransactionQuery + `WHERE wav.id = ANY($1)`
+	var txs []*transactionResult
+	err = r.db.Select(ctx, &txs, query, ids)
+	if err != nil {
+		r.logger.Error("failed to execute query for transactions", zap.Error(err), zap.String("query", query), zap.Any("ids", ids))
+		return nil, err
+	}
+
+	var transactionsByVaaDigest = make(map[string][]*transactionResult)
+	for _, tx := range txs {
+		vaaDigest := tx.VaaDigest
+		if _, ok := transactionsByVaaDigest[vaaDigest]; !ok {
+			transactionsByVaaDigest[vaaDigest] = []*transactionResult{}
+		}
+		transactionsByVaaDigest[vaaDigest] = append(transactionsByVaaDigest[vaaDigest], tx)
+	}
+
+	var result []TransactionDto
+	for _, id := range ids {
+		txs, ok := transactionsByVaaDigest[id]
+		if !ok {
+			r.logger.Error("failed to find transaction for digest", zap.String("digest", id))
+			return nil, fmt.Errorf("failed to find transaction for digest %s", id)
+		}
+		txDto, err := r.toTransactionDto(txs)
+		if err != nil {
+			r.logger.Error("failed to convert transaction to dto", zap.Error(err))
+			return nil, err
+		}
+		if txDto == nil {
+			r.logger.Error("transaction dto is nil", zap.String("digest", id))
+			return nil, fmt.Errorf("transaction dto is nil for digest %s", id)
+		}
+		result = append(result, *txDto)
+	}
+	return result, nil
+}
+
+// ListTransactionsByAddress returns a sorted list of transactions for a given address.
+//
+// Pagination is implemented using a keyset cursor pattern, based on the (timestamp, ID) pair.
+
+func (r *PostgresRepository) ListTransactionsByAddress(
+	ctx context.Context,
+	address string,
+	p *pagination.Pagination,
+) ([]TransactionDto, error) {
+
+	if p == nil {
+		p = pagination.Default()
+	}
+	querySql, params := r.buildQueryIDsForAddress(address, *p)
+	return r.findPage(ctx, querySql, params...)
+}
+
+func (r *PostgresRepository) buildQueryIDsForAddress(address string, pagination pagination.Pagination) (string, []any) {
+	sort := pagination.SortOrder
+	query := fmt.Sprintf(`
+        SELECT oa.id FROM wormholescan.wh_operation_addresses oa
+        WHERE oa.address = $1 AND exists (
+            SELECT av.id FROM wormholescan.wh_attestation_vaas av
+            WHERE av.id = oa.id AND av.active = true
+        )
+        ORDER BY oa."timestamp" %s, oa.id %s
+        LIMIT $2 OFFSET $3`, sort, sort)
+	return query, []any{address, pagination.Limit, pagination.Skip}
+}
+
+func (r *PostgresRepository) buildQueryIDsForPage(pagination pagination.Pagination) (string, []any) {
+	sort := pagination.SortOrder
+	query := fmt.Sprintf(`
+        SELECT av.id FROM wormholescan.wh_attestation_vaas av
+        WHERE av.active = true
+        ORDER BY av."timestamp" %s, av.id %s
+        LIMIT $1 OFFSET $2`, sort, sort)
+	return query, []any{pagination.Limit, pagination.Skip}
+}
+
+func (r *PostgresRepository) toTransactionDto(txs []*transactionResult) (*TransactionDto, error) {
+	if len(txs) == 0 {
+		return nil, errors.ErrNotFound
+	}
+
+	// check all the transactionResult have the same vaaId
+	vaaId := txs[0].VaaId
+	for _, t := range txs {
+		if t.VaaId != vaaId {
+			return nil, fmt.Errorf("transactionResults have different vaa ids %s and %s", vaaId, t.VaaId)
+		}
+	}
+
+	emitterChain := sdk.ChainID(txs[0].VaaEmitterChainID)
+	emitterAddr := txs[0].VaaEmitterAddress
+	timestamp := txs[0].VaaTimestamp
+
+	var sourceTx *OriginTx
+	var nestedSourceTx *AttributeDoc
+	var destTx *DestinationTx
+	var price *transactionPrices
+	var payload map[string]any
+	var properties map[string]any
+
+	for _, t := range txs {
+
+		// get source tx
+		if sourceTx == nil {
+			sourceTxDto, err := r.toOriginTx(t)
+			if err != nil {
+				return nil, err
+			}
+			if sourceTxDto != nil {
+				sourceTx = sourceTxDto
+			}
+		}
+
+		// get nested source tx
+		if nestedSourceTx == nil {
+			nestedSourceTxDto, err := r.toNestedSourceTx(t)
+			if err != nil {
+				return nil, err
+			}
+			if nestedSourceTxDto != nil {
+				nestedSourceTx = nestedSourceTxDto
+			}
+		}
+
+		// get destination tx
+		if destTx == nil {
+			destTxDto, err := r.toDestinationTx(t)
+			if err != nil {
+				return nil, err
+			}
+			if destTxDto != nil {
+				destTx = destTxDto
+			}
+		}
+
+		// get price
+		if price == nil {
+			priceDto := r.toPrices(t)
+			if priceDto != nil {
+				price = priceDto
+			}
+		}
+
+		// get payload
+		if payload == nil {
+			payloadDto, err := r.toPayload(t)
+			if err != nil {
+				return nil, err
+			}
+			if payloadDto != nil {
+				payload = *payloadDto
+			}
+		}
+
+		// get properties
+		if properties == nil {
+			propertiesDto, err := r.toStandardizedProperties(t)
+			if err != nil {
+				return nil, err
+			}
+			if propertiesDto != nil {
+				properties = *propertiesDto
+			}
+		}
+	}
+
+	var txHash string
+	if sourceTx != nil {
+		txHash = sourceTx.TxHash
+	}
+	if nestedSourceTx != nil && sourceTx != nil {
+		sourceTx.Attribute = nestedSourceTx
+	}
+
+	globalTransaction := &GlobalTransactionDoc{
+		ID:            vaaId,
+		OriginTx:      sourceTx,
+		DestinationTx: destTx,
+	}
+	globalTransactions := []GlobalTransactionDoc{*globalTransaction}
+
+	return &TransactionDto{
+		ID:                     vaaId,
+		EmitterChain:           emitterChain,
+		EmitterAddr:            emitterAddr,
+		TxHash:                 txHash,
+		Timestamp:              timestamp,
+		Symbol:                 price.Symbol,
+		UsdAmount:              price.TotalUSD,
+		TokenAmount:            price.TotalToken,
+		GlobalTransations:      globalTransactions,
+		Payload:                payload,
+		StandardizedProperties: properties,
+	}, nil
+}
+
+type transactionPrices struct {
+	Symbol     string
+	TotalUSD   string
+	TotalToken string
+}
+
+func (r *PostgresRepository) toPrices(t *transactionResult) *transactionPrices {
+
+	var priceSymbol, priceUsdAmount, priceTokenAmount string
+
+	if t.PriceSymbol != nil {
+		priceSymbol = *t.PriceSymbol
+	}
+	if t.PriceTotalUSD != nil {
+		priceUsdAmount = t.PriceTotalUSD.String()
+	}
+	if t.PriceTotalToken != nil {
+		priceTokenAmount = t.PriceTotalToken.String()
+	}
+
+	return &transactionPrices{
+		Symbol:     priceSymbol,
+		TotalUSD:   priceUsdAmount,
+		TotalToken: priceTokenAmount,
+	}
+}
+
+func (r *PostgresRepository) toPayload(t *transactionResult) (*map[string]any, error) {
+
+	var payload map[string]any
+	if t.PropertiesPayload == nil {
+		return nil, nil
+	}
+	err := json.Unmarshal(*t.PropertiesPayload, &payload)
+	if err != nil {
+		return nil, err
+	}
+
+	return &payload, nil
+}
+
+func (r *PostgresRepository) toStandardizedProperties(t *transactionResult) (*map[string]any, error) {
+	var properties map[string]any
+	if t.PropertiesRawStandardFields == nil {
+		return nil, nil
+	}
+	err := json.Unmarshal(*t.PropertiesRawStandardFields, &properties)
+	if err != nil {
+		return nil, err
+	}
+	return &properties, nil
+}
+
+func (r *PostgresRepository) toOriginTx(t *transactionResult) (*OriginTx, error) {
+	if t.TransactionType != nil && *t.TransactionType == "source-tx" {
+		chainID := sdk.ChainID(*t.TransactionChainID)
+		var from string
+		if t.TransactionFromAddress != nil {
+			from = domain.DenormalizeAddressByChainId(chainID, *t.TransactionFromAddress)
+		}
+		var status string
+		if t.TransactionStatus != nil {
+			status = *t.TransactionStatus
+		}
+		denormalizedTxHash := domain.DenormalizeTxHashByChainId(chainID, *t.TransactionTxHash)
+		return &OriginTx{
+			TxHash: denormalizedTxHash,
+			From:   from,
+			Status: status,
+		}, nil
+	}
+	return nil, nil
+}
+
+func (r *PostgresRepository) toDestinationTx(t *transactionResult) (*DestinationTx, error) {
+	if t.TransactionType != nil && *t.TransactionType == "target-tx" {
+		chainID := sdk.ChainID(*t.TransactionChainID)
+		if chainID.String() == sdk.ChainIDUnset.String() {
+			return nil, fmt.Errorf("invalid chain id %d for destination tx", t.TransactionChainID)
+		}
+		var status string
+		if t.TransactionStatus != nil {
+			status = *t.TransactionStatus
+		}
+		var method string
+		if t.TransactionBlockchainMethod != nil {
+			method = *t.TransactionBlockchainMethod
+		}
+		var from string
+		if t.TransactionFromAddress != nil {
+			from = domain.DenormalizeAddressByChainId(chainID, *t.TransactionFromAddress)
+		}
+		var to string
+		if t.TransactionToAddress != nil {
+			to = domain.DenormalizeAddressByChainId(chainID, *t.TransactionToAddress)
+		}
+		var blockNumber string
+		if t.TransactionBlockNumber != nil {
+			blockNumber = *t.TransactionBlockNumber
+		}
+
+		return &DestinationTx{
+			ChainID:     chainID,
+			Status:      status,
+			Method:      method,
+			TxHash:      domain.DenormalizeTxHashByChainId(chainID, *t.TransactionTxHash),
+			From:        from,
+			To:          to,
+			BlockNumber: blockNumber,
+			Timestamp:   t.TransactionTimestamp,
+		}, nil
+	}
+	return nil, nil
+}
+
+func (r *PostgresRepository) toNestedSourceTx(t *transactionResult) (*AttributeDoc, error) {
+
+	var attribute *AttributeDoc
+	if t.TransactionType != nil && *t.TransactionType == "nested-source-tx" {
+		var denormalizedNestedTxHash string
+		chainID := sdk.ChainID(*t.TransactionChainID)
+		if *t.TransactionTxHash != "" {
+			// denormalize tx hash for compatibility reasons.
+			denormalizedNestedTxHash = domain.DenormalizeTxHashByChainId(chainID, *t.TransactionTxHash)
+		}
+		values := map[string]any{
+			"originChainId": t.TransactionChainID,
+			"originTxHash":  denormalizedNestedTxHash,
+		}
+		if t.TransactionFromAddress != nil && *t.TransactionFromAddress != "" {
+			// denormalize from address for compatibility reasons.
+			denormalizedOriginAddress := domain.DenormalizeAddressByChainId(
+				chainID, *t.TransactionFromAddress)
+			values["originAddress"] = denormalizedOriginAddress
+		}
+
+		attribute = &AttributeDoc{
+			Type:  "wormchain-gateway",
+			Value: values,
+		}
+		return attribute, nil
+	}
+	return nil, nil
 }
