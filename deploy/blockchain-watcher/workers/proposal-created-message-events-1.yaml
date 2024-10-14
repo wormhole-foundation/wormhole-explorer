@@ -50,10 +50,10 @@ data:
             "interval": 35000,
             "filters": [
               {
-                "addresses": ["0x22bE15e73DA369066576e103D1c0e9C3AD1386A5"],
+                "addresses": [],
                 "type": "Relayer",                
                 "topics": ["0x7d84a6263ae0d98d3329bd7b46bb4e8d6f98cd35a7adb45c274c8b7fd5ebd5e0"],
-                "strategy": "GetTransactionsByBlocksStrategy"
+                "strategy": "GetTransactionsByLogFiltersStrategy"
               }
             ],
             "chain": "ethereum-sepolia",
