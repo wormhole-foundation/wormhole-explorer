@@ -27,13 +27,21 @@ require (
 
 require (
 	github.com/go-redis/redis/v8 v8.11.5
+	github.com/lib/pq v1.10.6
 	github.com/test-go/testify v1.1.4
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d
+	gotest.tools v2.2.0+incompatible
 )
 
 require (
 	github.com/algorand/go-algorand-sdk v1.23.0 // indirect
 	github.com/algorand/go-codec/codec v1.1.8 // indirect
+	github.com/aws/aws-sdk-go-v2 v1.17.4 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.28 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.22 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sns v1.20.2 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sqs v1.20.2 // indirect
+	github.com/aws/smithy-go v1.13.5 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
 	github.com/georgysavva/scany/v2 v2.1.3 // indirect
 	github.com/go-resty/resty/v2 v2.11.0 // indirect

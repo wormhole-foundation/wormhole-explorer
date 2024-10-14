@@ -147,77 +147,123 @@ func (s *Service) FindGovernorStatusByGuardianAddress(
 }
 
 // FindNotionalLimit get a notional limit for each chainID.
-func (s *Service) FindNotionalLimit(ctx context.Context, p *pagination.Pagination) (*response.Response[[]*NotionalLimit], error) {
+func (s *Service) FindNotionalLimit(ctx context.Context, usePostgres bool, p *pagination.Pagination) (*response.Response[[]*NotionalLimit], error) {
 	if p == nil {
 		p = pagination.Default()
 	}
 	query := QueryNotionalLimit().SetPagination(p)
-	notionalLimit, err := s.mongoRepo.FindNotionalLimit(ctx, query)
+	var notionalLimit []*NotionalLimit
+	var err error
+	if usePostgres {
+		notionalLimit, err = s.postgresRepo.GetGovernorNotionalLimit(ctx, query)
+	} else {
+		notionalLimit, err = s.mongoRepo.FindNotionalLimit(ctx, query)
+	}
 	res := response.Response[[]*NotionalLimit]{Data: notionalLimit}
 	return &res, err
 }
 
 // GetNotionalLimitByChainID get a notional limit by chainID.
-func (s *Service) GetNotionalLimitByChainID(ctx context.Context, p *pagination.Pagination, chainID vaa.ChainID) (*response.Response[[]*NotionalLimitDetail], error) {
+func (s *Service) GetNotionalLimitByChainID(ctx context.Context, usePostgres bool, p *pagination.Pagination, chainID vaa.ChainID) (*response.Response[[]*NotionalLimitDetail], error) {
 	query := QueryNotionalLimit().SetPagination(p).SetChain(chainID)
-	notionalLimit, err := s.mongoRepo.GetNotionalLimitByChainID(ctx, query)
+
+	var notionalLimit []*NotionalLimitDetail
+	var err error
+	if usePostgres {
+		notionalLimit, err = s.postgresRepo.GetNotionalLimitByChainID(ctx, query)
+	} else {
+		notionalLimit, err = s.mongoRepo.GetNotionalLimitByChainID(ctx, query)
+	}
+
 	res := response.Response[[]*NotionalLimitDetail]{Data: notionalLimit}
 	return &res, err
 }
 
 // GetAvailableNotional get a available notional for each chainID.
-func (s *Service) GetAvailableNotional(ctx context.Context, p *pagination.Pagination) (*response.Response[[]*NotionalAvailable], error) {
+func (s *Service) GetAvailableNotional(ctx context.Context, usePostgres bool, p *pagination.Pagination) (*response.Response[[]*NotionalAvailable], error) {
 	if p == nil {
 		p = pagination.Default()
 	}
 	query := QueryNotionalLimit().SetPagination(p)
-	notionalAvailability, err := s.mongoRepo.GetAvailableNotional(ctx, query)
+
+	var notionalAvailability []*NotionalAvailable
+	var err error
+	if usePostgres {
+		notionalAvailability, err = s.postgresRepo.GetAvailableNotional(ctx, query)
+	} else {
+		notionalAvailability, err = s.mongoRepo.GetAvailableNotional(ctx, query)
+	}
 	res := response.Response[[]*NotionalAvailable]{Data: notionalAvailability}
 	return &res, err
 }
 
 // GetAvailableNotionalByChainID get a available notional by chainID.
-func (s *Service) GetAvailableNotionalByChainID(ctx context.Context, p *pagination.Pagination, chainID vaa.ChainID) (*response.Response[[]*NotionalAvailableDetail], error) {
+func (s *Service) GetAvailableNotionalByChainID(ctx context.Context, usePostgres bool, p *pagination.Pagination, chainID vaa.ChainID) (*response.Response[[]*NotionalAvailableDetail], error) {
 	// check if chainID is valid
 	if _, ok := s.supportedChainIDs[chainID]; !ok {
 		return nil, errs.ErrNotFound
 	}
 	query := QueryNotionalLimit().SetPagination(p).SetChain(chainID)
-	notionaLAvailability, err := s.mongoRepo.GetAvailableNotionalByChainID(ctx, query)
-	res := response.Response[[]*NotionalAvailableDetail]{Data: notionaLAvailability}
+	var notionalAvailability []*NotionalAvailableDetail
+	var err error
+
+	if usePostgres {
+		notionalAvailability, err = s.postgresRepo.GetAvailableNotionalByChainID(ctx, query)
+	} else {
+		notionalAvailability, err = s.mongoRepo.GetAvailableNotionalByChainID(ctx, query)
+	}
+	res := response.Response[[]*NotionalAvailableDetail]{Data: notionalAvailability}
 	return &res, err
 }
 
 // GetMaxNotionalAvailableByChainID get a maximun notional value by chainID.
-func (s *Service) GetMaxNotionalAvailableByChainID(ctx context.Context, chainID vaa.ChainID) (*response.Response[*MaxNotionalAvailableRecord], error) {
+func (s *Service) GetMaxNotionalAvailableByChainID(ctx context.Context, usePostgres bool, chainID vaa.ChainID) (*response.Response[*MaxNotionalAvailableRecord], error) {
 	// check if chainID is valid
 	if _, ok := s.supportedChainIDs[chainID]; !ok {
 		return nil, errs.ErrNotFound
 	}
 	query := QueryNotionalLimit().SetChain(chainID)
-	maxNotionaLAvailable, err := s.mongoRepo.GetMaxNotionalAvailableByChainID(ctx, query)
+	var maxNotionaLAvailable *MaxNotionalAvailableRecord
+	var err error
+	if usePostgres {
+		maxNotionaLAvailable, err = s.postgresRepo.GetMaxNotionalAvailableByChainID(ctx, query)
+	} else {
+		maxNotionaLAvailable, err = s.mongoRepo.GetMaxNotionalAvailableByChainID(ctx, query)
+	}
 	res := response.Response[*MaxNotionalAvailableRecord]{Data: maxNotionaLAvailable}
 	return &res, err
 }
 
 // GetEnqueueVaas get all the enqueued vaa.
-func (s *Service) GetEnqueueVass(ctx context.Context, p *pagination.Pagination) (*response.Response[[]*EnqueuedVaas], error) {
+func (s *Service) GetEnqueueVass(ctx context.Context, usePostgres bool, p *pagination.Pagination) (*response.Response[[]*EnqueuedVaas], error) {
 	if p == nil {
 		p = pagination.Default()
 	}
 	query := QueryEnqueuedVaa().SetPagination(p)
-	enqueuedVaaResponse, err := s.mongoRepo.GetEnqueueVass(ctx, query)
+	var enqueuedVaaResponse []*EnqueuedVaas
+	var err error
+	if usePostgres {
+		enqueuedVaaResponse, err = s.postgresRepo.GetEnqueueVass(ctx, query)
+	} else {
+		enqueuedVaaResponse, err = s.mongoRepo.GetEnqueueVass(ctx, query)
+	}
 	res := response.Response[[]*EnqueuedVaas]{Data: enqueuedVaaResponse}
 	return &res, err
 }
 
 // GetEnqueueVassByChainID get enequeued vaa by chainID.
-func (s *Service) GetEnqueueVassByChainID(ctx context.Context, p *pagination.Pagination, chainID vaa.ChainID) (*response.Response[[]*EnqueuedVaaDetail], error) {
+func (s *Service) GetEnqueueVassByChainID(ctx context.Context, usePostgres bool, p *pagination.Pagination, chainID vaa.ChainID) (*response.Response[[]*EnqueuedVaaDetail], error) {
 	if p == nil {
 		p = pagination.Default()
 	}
 	query := QueryEnqueuedVaa().SetPagination(p).SetChain(chainID)
-	enqueuedVaaRecord, err := s.mongoRepo.GetEnqueueVassByChainID(ctx, query)
+	var enqueuedVaaRecord []*EnqueuedVaaDetail
+	var err error
+	if usePostgres {
+		enqueuedVaaRecord, err = s.postgresRepo.GetEnqueueVassByChainID(ctx, query)
+	} else {
+		enqueuedVaaRecord, err = s.mongoRepo.GetEnqueueVassByChainID(ctx, query)
+	}
 	res := response.Response[[]*EnqueuedVaaDetail]{Data: enqueuedVaaRecord}
 	return &res, err
 }
@@ -292,10 +338,18 @@ func (s *Service) IsVaaEnqueued(ctx context.Context, chainID vaa.ChainID, emitte
 
 // GetGovernorVaas get enqueued vaas.
 // Guardian api migration.
-func (s *Service) GetGovernorVaas(ctx context.Context) ([]GovernorVaaDoc, error) {
-	result, err := s.mongoRepo.GetGovernorVaas(ctx)
+func (s *Service) GetGovernorVaas(ctx context.Context, usePostgres bool) ([]GovernorVaaDoc, error) {
+	var governorVaa []GovernorVaaDoc
+	var err error
+	if usePostgres {
+		governorVaa, err = s.postgresRepo.GetGovernorVaas(ctx)
+	} else {
+		governorVaa, err = s.mongoRepo.GetGovernorVaas(ctx)
+	}
+
 	if err != nil {
 		return nil, err
 	}
-	return result, nil
+
+	return governorVaa, nil
 }

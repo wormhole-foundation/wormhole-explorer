@@ -527,9 +527,9 @@ func (c *Controller) ListTransactions(ctx *fiber.Ctx) error {
 	// Query transactions from the database
 	var dtos []transactions.TransactionDto
 	if address != "" {
-		dtos, err = c.srv.ListTransactionsByAddress(ctx.Context(), address, pagination)
+		dtos, err = c.srv.ListTransactionsByAddress(ctx.Context(), middleware.UsePostgres(ctx), address, pagination)
 	} else {
-		dtos, err = c.srv.ListTransactions(ctx.Context(), pagination)
+		dtos, err = c.srv.ListTransactions(ctx.Context(), middleware.UsePostgres(ctx), pagination)
 	}
 	if err != nil {
 		return err
@@ -621,6 +621,7 @@ func (c *Controller) GetTransactionByID(ctx *fiber.Ctx) error {
 	// Look up the VAA by ID
 	dto, err := c.srv.GetTransactionByID(
 		ctx.Context(),
+		middleware.UsePostgres(ctx),
 		chainID,
 		emitter,
 		strconv.FormatUint(seq, 10),
