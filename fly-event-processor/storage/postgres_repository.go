@@ -86,15 +86,36 @@ func (r *PostgresRepository) UpdateGovernorConfigChains(
 	return nil
 }
 
+type guardianGovernorVaa struct {
+	GuardianAddress string    `db:"guardian_address"`
+	VaaID           string    `db:"vaa_id"`
+	GuardianName    string    `db:"guardian_name"`
+	CreatedAt       time.Time `db:"created_at"`
+	UpdatedAt       time.Time `db:"updated_at"`
+}
+
 func (r *PostgresRepository) FindNodeGovernorVaaByNodeAddress(ctx context.Context, nodeAddress string) ([]NodeGovernorVaa, error) {
 	query := `SELECT guardian_address, vaa_id, guardian_name, created_at, updated_at 
 	FROM wormholescan.wh_guardian_governor_vaas WHERE guardian_address = $1`
-	var rows []NodeGovernorVaa
+	var rows []guardianGovernorVaa
 	err := r.db.Select(ctx, &rows, query, nodeAddress)
 	if err != nil {
 		return nil, err
 	}
-	return rows, nil
+
+	var nodeGovernorVaas []NodeGovernorVaa
+	for _, row := range rows {
+		nodeGovernorVaas = append(nodeGovernorVaas, NodeGovernorVaa{
+			ID:          row.GuardianAddress,
+			NodeName:    row.GuardianName,
+			NodeAddress: row.GuardianAddress,
+			VaaID:       row.VaaID,
+			CreatedAt:   &row.CreatedAt,
+			UpdatedAt:   &row.UpdatedAt,
+		})
+	}
+
+	return nodeGovernorVaas, nil
 }
 
 func (r *PostgresRepository) FindNodeGovernorVaaByVaaID(ctx context.Context, vaaID string) ([]NodeGovernorVaa, error) {
