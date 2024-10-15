@@ -1,0 +1,161 @@
+---          
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .NAME }}-proposal-created-message-events-1
+  namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-proposal-created-message-events-1
+spec:
+  selector:
+    app: {{ .NAME }}-proposal-created-message-events-1
+  ports:
+    - port: {{ .PORT }}
+      targetPort: {{ .PORT }}
+      name: {{ .NAME }}-proposal-created-message-events-1
+      protocol: TCP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: blockchain-watcher-proposal-created-message-events-1-pvc
+  namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-proposal-created-message-events-1
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Mi
+  storageClassName: gp2
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .NAME }}-proposal-created-message-events-1-jobs
+  namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-proposal-created-message-events-1
+data:
+  testnet-jobs.json: |-
+    [
+      {
+        "id": "poll-log-proposal-created-ethereum-sepolia-finalized",
+        "chain": "ethereum-sepolia",
+        "source": {
+          "action": "PollEvm",
+          "repository": "evmRepo",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "environment": "testnet",
+            "commitment": "finalized",
+            "interval": 15000,
+            "filters": [
+              {
+                "addresses": [],             
+                "topics": ["0x7d84a6263ae0d98d3329bd7b46bb4e8d6f98cd35a7adb45c274c8b7fd5ebd5e0"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              }
+            ],
+            "chain": "ethereum-sepolia",
+            "chainId": 10002
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmProposalCreatedMapper",
+            "config": {
+              "abis": [
+                {
+                  "abi": "event ProposalCreated(uint256 proposalId, address proposer,address[] targets, uint256[] values, string[] signatures, bytes[] calldatas,uint256 voteStart, uint256 voteEnd, string description)",
+                  "topic": "0x7d84a6263ae0d98d3329bd7b46bb4e8d6f98cd35a7adb45c274c8b7fd5ebd5e0"
+                }
+              ],
+              "metricName": "process_proposal_created_event"
+            }
+          }
+        ]
+      }
+    ]
+  mainnet-jobs.json: |-
+    [
+    ]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .NAME }}-proposal-created-message-events-1
+  namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-proposal-created-message-events-1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .NAME }}-proposal-created-message-events-1
+  strategy: # Rolling update strategy for restarting the pods
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: {{ .NAME }}-proposal-created-message-events-1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .PORT }}"
+    spec:
+      containers:
+        - name: {{ .NAME }}
+          image: {{ .IMAGE_NAME }}  # Docker image
+          env:
+            - name: NODE_ENV
+              value: {{ .NODE_ENV }}
+            - name: PORT
+              value: "{{ .PORT }}"
+            - name: LOG_LEVEL
+              value: {{ .LOG_LEVEL }}
+            - name: BLOCKCHAIN_ENV
+              value: {{ .BLOCKCHAIN_ENV }}
+            - name: DRY_RUN_ENABLED
+              value: "{{ .DRY_RUN_ENABLED }}"
+            - name: SNS_TOPIC_ARN
+              value: {{ .SNS_TOPIC_ARN }}
+            - name: SNS_REGION
+              value: {{ .SNS_REGION }}
+            - name: JOBS_DIR
+              value: /home/node/app/jobs
+            {{ if .ETHEREUM_SEPOLIA_RPCS }}
+            - name: ETHEREUM_SEPOLIA_RPCS
+              value: '{{ .ETHEREUM_SEPOLIA_RPCS }}'
+            {{ end }}
+          resources:
+            limits:
+              cpu: {{ .RESOURCES_LIMITS_CPU }}
+              memory: {{ .RESOURCES_LIMITS_MEMORY }}
+            requests:
+              cpu: {{ .RESOURCES_REQUESTS_CPU }}
+              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
+          volumeMounts:
+            - name: metadata-volume
+              mountPath: /home/node/app/metadata-repo 
+            - name: jobs-volume
+              mountPath: /home/node/app/jobs
+      restartPolicy: Always
+      serviceAccountName: blockchain-watcher
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: metadata-volume
+          persistentVolumeClaim:
+            claimName: blockchain-watcher-proposal-created-message-events-1-pvc
+        - name: jobs-volume
+          configMap:
+            name: {{ .NAME }}-proposal-created-message-events-1-jobs
+            items:
+              - key: {{ .BLOCKCHAIN_ENV }}-jobs.json
+                path: jobs.json

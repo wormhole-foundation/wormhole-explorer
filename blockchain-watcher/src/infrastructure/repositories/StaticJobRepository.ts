@@ -22,6 +22,7 @@ import { HandleAlgorandTransactions } from "../../domain/actions/algorand/Handle
 import { HandleSolanaTransactions } from "../../domain/actions/solana/HandleSolanaTransactions";
 import { HandleCosmosTransactions } from "../../domain/actions/cosmos/HandleCosmosTransactions";
 import { evmNttTransferSentMapper } from "../mappers/evm/evmNttTransferSentMapper";
+import { evmProposalCreatedMapper } from "../mappers/evm/evmProposalCreatedMapper";
 import { HandleAptosTransactions } from "../../domain/actions/aptos/HandleAptosTransactions";
 import { HandleNearTransactions } from "../../domain/actions/near/HandleNearTransactions";
 import { HandleWormchainRedeems } from "../../domain/actions/wormchain/HandleWormchainRedeems";
@@ -297,6 +298,7 @@ export class StaticJobRepository implements JobRepository {
     this.mappers.set("evmNttWormholeTransceiverMapper", evmNttWormholeTransceiverMapper);
     this.mappers.set("evmNttMessageAttestedToMapper", evmNttMessageAttestedToMapper);
     this.mappers.set("evmNttTransferRedeemedMapper", evmNttTransferRedeemedMapper);
+    this.mappers.set("evmProposalCreatedMapper", evmProposalCreatedMapper);
     this.mappers.set("solanaLogMessagePublishedMapper", solanaLogMessagePublishedMapper);
     this.mappers.set("solanaTransferRedeemedMapper", solanaTransferRedeemedMapper);
     this.mappers.set("solanaLogCircleMessageSentMapper", solanaLogCircleMessageSentMapper);
