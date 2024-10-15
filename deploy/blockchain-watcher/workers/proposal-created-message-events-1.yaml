@@ -50,8 +50,7 @@ data:
             "interval": 15000,
             "filters": [
               {
-                "addresses": [],
-                "type": "Relayer",                
+                "addresses": [],             
                 "topics": ["0x7d84a6263ae0d98d3329bd7b46bb4e8d6f98cd35a7adb45c274c8b7fd5ebd5e0"],
                 "strategy": "GetTransactionsByLogFiltersStrategy"
               }
