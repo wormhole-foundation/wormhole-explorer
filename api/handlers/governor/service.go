@@ -290,10 +290,13 @@ func (s *Service) GetGovernorLimit(ctx context.Context, usePostgres bool, p *pag
 
 // GetAvailNotionByChain get governor limit for each chainID.
 // Guardian api migration.
-func (s *Service) GetAvailNotionByChain(ctx context.Context) ([]*AvailableNotionalByChain, error) {
+func (s *Service) GetAvailNotionByChain(ctx context.Context, usePostgres bool) ([]*AvailableNotionalByChain, error) {
 	key := availableNotionByChain
 	return cacheable.GetOrLoad(ctx, s.logger, s.cache, 1*time.Minute, key, s.metrics,
 		func() ([]*AvailableNotionalByChain, error) {
+			if usePostgres {
+				return s.postgresRepo.GetAvailNotionByChain(ctx)
+			}
 			return s.mongoRepo.GetAvailNotionByChain(ctx)
 		})
 }

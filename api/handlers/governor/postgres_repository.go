@@ -486,6 +486,35 @@ func (r *PostgresRepository) GetAvailableNotional(
 	return result, err
 }
 
+func (r *PostgresRepository) GetAvailNotionByChain(
+	ctx context.Context,
+) ([]*AvailableNotionalByChain, error) {
+
+	query := `
+	SELECT 	wormholescan.wh_governor_status.id,
+	        wormholescan.wh_governor_status.guardian_name,
+	       	wormholescan.wh_governor_status.created_at,
+	       	wormholescan.wh_governor_status.updated_at,
+	       	(message.value ->> 'chainid')::SMALLINT AS chainId,
+	       	message.value ->> 'remainingavailablenotional' AS availableNotional
+	FROM    wormholescan.wh_governor_status,
+	     	jsonb_array_elements(wormholescan.wh_governor_status.message) AS message
+	WHERE message.value ->> 'chainid' = $1
+	ORDER BY wormholescan.wh_governor_status.id DESC
+	LIMIT $2 OFFSET $3;
+	`
+
+	var result []*AvailableNotionalByChain
+
+	err := r.db.Select(ctx, &result, query)
+	if err != nil {
+		r.logger.Error("failed to execute query", zap.Error(err), zap.String("query", query))
+	}
+
+	return result, err
+
+}
+
 func (r *PostgresRepository) GetAvailableNotionalByChainID(
 	ctx context.Context,
 	q *NotionalLimitQuery,
