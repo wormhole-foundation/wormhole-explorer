@@ -37,7 +37,7 @@ data:
   testnet-jobs.json: |-
     [
       {
-        "id": "poll-log-proposal-created-ethereum-sepolia-latest",
+        "id": "poll-log-proposal-created-ethereum-sepolia-finalized",
         "chain": "ethereum-sepolia",
         "source": {
           "action": "PollEvm",
@@ -46,7 +46,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "environment": "testnet",
-            "commitment": "latest",
+            "commitment": "finalized",
             "interval": 15000,
             "filters": [
               {
