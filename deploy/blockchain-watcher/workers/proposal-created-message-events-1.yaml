@@ -20,6 +20,8 @@ kind: PersistentVolumeClaim
 metadata:
   name: blockchain-watcher-proposal-created-message-events-1-pvc
   namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-proposal-created-message-events-1
 spec:
   accessModes:
     - ReadWriteOnce
@@ -33,6 +35,8 @@ kind: ConfigMap
 metadata:
   name: {{ .NAME }}-proposal-created-message-events-1-jobs
   namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-proposal-created-message-events-1
 data:
   testnet-jobs.json: |-
     [
@@ -86,11 +90,18 @@ kind: Deployment
 metadata:
   name: {{ .NAME }}-proposal-created-message-events-1
   namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-proposal-created-message-events-1
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: {{ .NAME }}-proposal-created-message-events-1
+  strategy: # Rolling update strategy for restarting the pods
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
   template:
     metadata:
       labels:
@@ -101,6 +112,7 @@ spec:
     spec:
       containers:
         - name: {{ .NAME }}
+          image: {{ .IMAGE_NAME }}  # Docker image
           env:
             - name: NODE_ENV
               value: {{ .NODE_ENV }}
@@ -122,7 +134,6 @@ spec:
             - name: ETHEREUM_SEPOLIA_RPCS
               value: '{{ .ETHEREUM_SEPOLIA_RPCS }}'
             {{ end }}
-          image: {{ .IMAGE_NAME }}
           resources:
             limits:
               cpu: {{ .RESOURCES_LIMITS_CPU }}
