@@ -208,11 +208,16 @@ func handleFetchTxError(ctx context.Context, logger *zap.Logger, repository Repo
 	// unprocessed originTx in the database.
 	var vaaTxDetail *chains.TxDetail
 	isSolanaOrAptos := params.ChainId == vaa.ChainIDAptos || params.ChainId == vaa.ChainIDSolana
-	if !isSolanaOrAptos {
-		txHash := chains.FormatTxHashByChain(params.ChainId, params.TxHash)
-		vaaTxDetail = &chains.TxDetail{
-			NativeTxHash: txHash,
-		}
+	if isSolanaOrAptos {
+		// if the transactions is solana or aptos, we want to reprocess the vaa,
+		// because we don't have the txHash.
+		return err
+	}
+
+	// store unprocessed originTx in the database.
+	txHash := chains.FormatTxHashByChain(params.ChainId, params.TxHash)
+	vaaTxDetail = &chains.TxDetail{
+		NativeTxHash: txHash,
 	}
 
 	e := UpsertOriginTxParams{
