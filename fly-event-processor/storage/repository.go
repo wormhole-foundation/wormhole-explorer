@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"fmt"
 
 	commonRepo "github.com/wormhole-foundation/wormhole-explorer/common/repository"
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/config"
@@ -196,6 +197,7 @@ func (r *Repository) UpdateGovernorStatus(
 	governorVaasToInsert []GovernorVaa,
 	governorVaaIdsToDelete []string) error {
 	err := r.updateGovernorStatus(ctx,
+		nodeAddress,
 		nodeGovernorVaaDocToInsert,
 		nodeGovernorVaaDocToDelete,
 		governorVaasToInsert,
@@ -209,6 +211,7 @@ func (r *Repository) UpdateGovernorStatus(
 
 func (r *Repository) updateGovernorStatus(
 	ctx context.Context,
+	nodeAddress string,
 	nodeGovernorVaaDocToInsert []NodeGovernorVaa,
 	nodeGovernorVaaDocToDelete []string,
 	governorVaasToInsert []GovernorVaa,
@@ -240,7 +243,14 @@ func (r *Repository) updateGovernorStatus(
 
 	// 3. delete node governor vaas.
 	if len(nodeGovernorVaaDocToDelete) > 0 {
-		_, err = r.nodeGovernorVaas.DeleteMany(ctx, bson.M{"_id": bson.M{"$in": nodeGovernorVaaDocToDelete}})
+
+		// build nodeGovenorVaas ids.
+		var nodeGovVaaIdsToDelete []string
+		for _, vaaID := range nodeGovernorVaaDocToDelete {
+			nodeGovVaaIdsToDelete = append(nodeGovVaaIdsToDelete, fmt.Sprintf("%s-%s", nodeAddress, vaaID))
+		}
+
+		_, err = r.nodeGovernorVaas.DeleteMany(ctx, bson.M{"_id": bson.M{"$in": nodeGovVaaIdsToDelete}})
 		if err != nil {
 			session.AbortTransaction(ctx)
 			return err
