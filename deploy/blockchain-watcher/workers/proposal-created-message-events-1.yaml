@@ -47,13 +47,13 @@ data:
             "blockBatchSize": 100,
             "environment": "testnet",
             "commitment": "latest",
-            "interval": 35000,
+            "interval": 15000,
             "filters": [
               {
-                "addresses": ["0x69cBB9a59072663625a6E3EB3aeE31E435213F7b"],
+                "addresses": [],
                 "type": "Relayer",                
                 "topics": ["0x7d84a6263ae0d98d3329bd7b46bb4e8d6f98cd35a7adb45c274c8b7fd5ebd5e0"],
-                "strategy": "GetTransactionsByBlocksStrategy"
+                "strategy": "GetTransactionsByLogFiltersStrategy"
               }
             ],
             "chain": "ethereum-sepolia",
