@@ -9,4 +9,3 @@ data:
   vaas-sqs-url: {{ .VAAS_SQS_URL }}
   observations-sqs-url: {{ .OBSERVATIONS_SQS_URL }}
   events-sns-url: {{ .EVENTS_SNS_URL }}
-  pipeline-sns-url: {{ .PIPELINE_SNS_URL }}
