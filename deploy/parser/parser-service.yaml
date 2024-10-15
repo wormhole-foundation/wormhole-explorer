@@ -25,6 +25,8 @@ spec:
               value: "8000"
             - name: LOG_LEVEL
               value: "INFO"
+            - name: DB_LAYER
+              value: "{{ .DB_LAYER }}"
             - name: MONGODB_URI
               valueFrom:
                 secretKeyRef:
@@ -35,6 +37,13 @@ spec:
                 configMapKeyRef:
                   name: config
                   key: mongo-database
+            - name: DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: postgres-url
+            - name: DB_LOG_ENABLED
+              value: "false"
             - name: PIPELINE_SQS_URL
               valueFrom:
                 configMapKeyRef:

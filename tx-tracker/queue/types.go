@@ -42,12 +42,13 @@ type EventAttributes interface {
 	*SourceChainAttributes | *TargetChainAttributes
 }
 
-// Event represents a event data to be handle.
+// Event represents a event data to be handled.
 type Event struct {
 	Source         string
 	TrackID        string
 	Type           EventType
-	ID             string
+	VaaID          string // chain/address/sequence
+	ID             string // digest
 	ChainID        sdk.ChainID
 	EmitterAddress string
 	Sequence       string

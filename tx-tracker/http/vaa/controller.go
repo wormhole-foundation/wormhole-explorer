@@ -2,6 +2,11 @@ package vaa
 
 import (
 	"encoding/hex"
+	"strconv"
+	"strings"
+
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/repository/vaa"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
@@ -11,8 +16,6 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
-	"strconv"
-	"strings"
 )
 
 // Controller definition.
@@ -20,15 +23,17 @@ type Controller struct {
 	logger           *zap.Logger
 	rpcPool          map[sdk.ChainID]*pool.Pool
 	wormchainRpcPool map[sdk.ChainID]*pool.Pool
-	vaaRepository    *Repository
-	repository       *consumer.Repository
+	vaaRepository    vaa.VAARepository
+	repository       consumer.Repository
 	metrics          metrics.Metrics
 	p2pNetwork       string
 	notionalCache    *notional.NotionalCache
 }
 
 // NewController creates a Controller instance.
-func NewController(rpcPool map[sdk.ChainID]*pool.Pool, wormchainRpcPool map[sdk.ChainID]*pool.Pool, vaaRepository *Repository, repository *consumer.Repository, p2pNetwork string, logger *zap.Logger, notionalCache *notional.NotionalCache) *Controller {
+func NewController(rpcPool map[sdk.ChainID]*pool.Pool, wormchainRpcPool map[sdk.ChainID]*pool.Pool,
+	vaaRepository vaa.VAARepository, repository consumer.Repository, p2pNetwork string, logger *zap.Logger,
+	notionalCache *notional.NotionalCache) *Controller {
 	return &Controller{
 		metrics:          metrics.NewDummyMetrics(),
 		rpcPool:          rpcPool,
@@ -50,7 +55,7 @@ func (c *Controller) Process(ctx *fiber.Ctx) error {
 
 	c.logger.Info("Processing VAA from endpoint", zap.String("id", payload.ID))
 
-	v, err := c.vaaRepository.FindById(ctx.Context(), payload.ID)
+	v, err := c.vaaRepository.GetVaa(ctx.Context(), payload.ID)
 	if err != nil {
 		return err
 	}
@@ -60,7 +65,21 @@ func (c *Controller) Process(ctx *fiber.Ctx) error {
 		return err
 	}
 
+	digest, err := domain.GetDigestFromRaw(v.Vaa)
+	if err != nil {
+		return err
+	}
+
+	txHash := v.TxHash
+	if txHash == "" {
+		txHash, err = c.vaaRepository.GetTxHash(ctx.Context(), digest)
+		if err != nil {
+			return err
+		}
+	}
+
 	p := &consumer.ProcessSourceTxParams{
+		ID:          digest,
 		TrackID:     "controller",
 		Source:      "controller",
 		Timestamp:   &vaa.Timestamp,
@@ -68,7 +87,7 @@ func (c *Controller) Process(ctx *fiber.Ctx) error {
 		ChainId:     vaa.EmitterChain,
 		Emitter:     vaa.EmitterAddress.String(),
 		Sequence:    strconv.FormatUint(vaa.Sequence, 10),
-		TxHash:      v.TxHash,
+		TxHash:      txHash,
 		Vaa:         v.Vaa,
 		IsVaaSigned: true,
 		Metrics:     c.metrics,
@@ -99,9 +118,9 @@ func (c *Controller) CreateTxHash(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid tx hash", "details": err.Error()})
 	}
 
-	c.logger.Info("Processing txHash from endpoint", zap.String("id", payload.ID))
+	c.logger.Info("Processing txHash from endpoint", zap.String("id", payload.VaaID))
 
-	vaaID := strings.Split(payload.ID, "/")
+	vaaID := strings.Split(payload.VaaID, "/")
 	if len(vaaID) != 3 {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid vaa id"})
 	}
@@ -125,7 +144,7 @@ func (c *Controller) CreateTxHash(ctx *fiber.Ctx) error {
 		return ctx.JSON(TxHashResponse{NativeTxHash: encodedTxHash})
 	}
 
-	sourceTx, err := c.repository.FindSourceTxById(ctx.Context(), payload.ID)
+	sourceTx, err := c.repository.FindSourceTxById(ctx.Context(), payload.VaaID)
 	if err == nil && sourceTx != nil {
 		if sourceTx.OriginTx != nil && sourceTx.OriginTx.NativeTxHash != "" {
 			return ctx.JSON(TxHashResponse{NativeTxHash: sourceTx.OriginTx.NativeTxHash})
@@ -136,7 +155,7 @@ func (c *Controller) CreateTxHash(ctx *fiber.Ctx) error {
 		TrackID:         "controller-tx-hash",
 		Source:          "controller",
 		Timestamp:       nil,
-		VaaId:           payload.ID,
+		VaaId:           payload.VaaID,
 		ChainId:         chainID,
 		Emitter:         emitter,
 		Sequence:        sequenceStr,

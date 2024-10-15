@@ -26,6 +26,12 @@ func (d *DummyMetrics) IncVaaParsed(chainID uint16) {}
 // IncVaaParsedInserted increments the number of parsed VAA inserted into database.
 func (d *DummyMetrics) IncVaaParsedInserted(chainID uint16) {}
 
+// IncVaaAttestationPropertiesInserted increment the number of attestation properties inserted into database.
+func (d *DummyMetrics) IncVaaAttestationPropertiesInserted(chainID uint16) {}
+
+// IncParseVaaInserted increments the number of parsed VAA inserted into database.
+func (d *DummyMetrics) IncParseVaaInserted(chainID uint16) {}
+
 // IncVaaPayloadParserRequestCount increments the number of vaa payload parser request.
 func (d *DummyMetrics) IncVaaPayloadParserRequestCount(chainID uint16) {}
 

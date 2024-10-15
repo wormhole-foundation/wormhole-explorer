@@ -3,6 +3,7 @@ package sns
 import (
 	"context"
 	"fmt"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	aws_sns "github.com/aws/aws-sdk-go-v2/service/sns"
@@ -23,7 +24,7 @@ func NewProducer(awsConfig aws.Config, url string) (*Producer, error) {
 }
 
 // SendMessage sends messages to SQS.
-func (p *Producer) SendMessage(ctx context.Context, chainId uint16, groupID, deduplicationID, body string) error {
+func (p *Producer) SendMessage(ctx context.Context, chainId sdk.ChainID, groupID, deduplicationID, body string) error {
 	attrs := map[string]types.MessageAttributeValue{
 		"chainId": {
 			DataType:    aws.String("String"),

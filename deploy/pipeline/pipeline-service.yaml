@@ -25,6 +25,8 @@ spec:
               value: "8000"
             - name: LOG_LEVEL
               value: "INFO"
+            - name: DB_LAYER
+              value: mongo
             - name: MONGODB_URI
               valueFrom:
                 secretKeyRef:

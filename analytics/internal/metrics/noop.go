@@ -1,6 +1,10 @@
 package metrics
 
-import "time"
+import (
+	"time"
+
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
+)
 
 // NoopMetrics is a no-op implementation of the Metrics interface.
 type NoopMetrics struct {
@@ -15,6 +19,12 @@ func (p *NoopMetrics) IncFailedMeasurement(measurement string) {
 }
 
 func (p *NoopMetrics) IncSuccessfulMeasurement(measurement string) {
+}
+
+func (p *NoopMetrics) IncOperationPriceInserted(chain sdk.ChainID) {
+}
+
+func (p *NoopMetrics) IncTransferPricesInserted(chain sdk.ChainID) {
 }
 
 func (p *NoopMetrics) IncMissingNotional(symbol string) {

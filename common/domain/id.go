@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	gossipv1 "github.com/certusone/wormhole/node/pkg/proto/gossip/v1"
+	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
@@ -18,4 +19,16 @@ func CreateUniqueVaaID(vaa *sdk.VAA) string {
 func CreateUniqueVaaIDByObservation(obs *gossipv1.SignedObservation) string {
 	digest := base64.StdEncoding.EncodeToString(obs.Hash)
 	return fmt.Sprintf("%s/%s", obs.MessageId, digest)
+}
+
+func GetDigest(vaa *sdk.VAA) string {
+	return utils.NormalizeHex(vaa.HexDigest())
+}
+
+func GetDigestFromRaw(raw []byte) (string, error) {
+	vaa, err := sdk.Unmarshal(raw)
+	if err != nil {
+		return "", err
+	}
+	return GetDigest(vaa), nil
 }

@@ -107,36 +107,48 @@ func addVaaVolumeFromFileCommand(parent *cobra.Command) {
 	parent.AddCommand(vaaVolumeFileCmd)
 }
 
-func addVaaVolumeFromMongoCommand(parent *cobra.Command) {
-	var mongoUri, mongoDb, output, prices, vaaPayloadParserURL, p2pNetwork string
+func addVaaVolumeFromDBCommand(parent *cobra.Command) {
+	var dbLayer, mongoUri, mongoDb, dbURL, output, prices, vaaPayloadParserURL, p2pNetwork string
 	//vaa-volume from MongoDB
-	vaaVolumeMongoCmd := &cobra.Command{
+	vaaVolumeDbCmd := &cobra.Command{
 		Use:   "mongo",
-		Short: "Generate volume metrics from MongoDB",
+		Short: "Generate volume metrics from db",
 		Run: func(_ *cobra.Command, _ []string) {
-			metrics.RunVaaVolumeFromMongo(mongoUri, mongoDb, output, prices, vaaPayloadParserURL, p2pNetwork)
+			cfg := metrics.VaasVolume{
+				DbLayer:             dbLayer,
+				MongoUri:            mongoUri,
+				MongoDb:             mongoDb,
+				DbURL:               dbURL,
+				OutputFile:          output,
+				PricesFile:          prices,
+				VaaPayloadParserUrl: vaaPayloadParserURL,
+				P2PNetwork:          p2pNetwork,
+			}
+			metrics.RunVaaVolumeFromDb(cfg)
 		},
 	}
 
 	//mongo flags
-	vaaVolumeMongoCmd.Flags().StringVar(&mongoUri, "mongo-uri", "", "Mongo connection")
-	vaaVolumeMongoCmd.Flags().StringVar(&mongoDb, "mongo-database", "", "Mongo database")
+	vaaVolumeDbCmd.Flags().StringVar(&dbLayer, "db-layer", "mongo", "DB connection")
+	vaaVolumeDbCmd.Flags().StringVar(&mongoUri, "mongo-uri", "", "Mongo connection")
+	vaaVolumeDbCmd.Flags().StringVar(&mongoDb, "mongo-database", "", "Mongo database")
+	vaaVolumeDbCmd.Flags().StringVar(&dbURL, "db-url", "", "DB connection")
 
 	// output flag
-	vaaVolumeMongoCmd.Flags().StringVar(&output, "output", "", "path to output file")
-	vaaVolumeMongoCmd.MarkFlagRequired("output")
+	vaaVolumeDbCmd.Flags().StringVar(&output, "output", "", "path to output file")
+	vaaVolumeDbCmd.MarkFlagRequired("output")
 	// prices flag
-	vaaVolumeMongoCmd.Flags().StringVar(&prices, "prices", "prices.csv", "path to prices file")
+	vaaVolumeDbCmd.Flags().StringVar(&prices, "prices", "prices.csv", "path to prices file")
 
 	//vaa-payload-parser-url flag
-	vaaVolumeMongoCmd.Flags().StringVar(&vaaPayloadParserURL, "vaa-payload-parser-url", "", "VAA payload parser URL")
-	vaaVolumeMongoCmd.MarkFlagRequired("vaa-payload-parser-url")
+	vaaVolumeDbCmd.Flags().StringVar(&vaaPayloadParserURL, "vaa-payload-parser-url", "", "VAA payload parser URL")
+	vaaVolumeDbCmd.MarkFlagRequired("vaa-payload-parser-url")
 
 	//p2p-network flag
-	vaaVolumeMongoCmd.Flags().StringVar(&p2pNetwork, "p2p-network", "", "P2P network")
-	vaaVolumeMongoCmd.MarkFlagRequired("p2p-network")
+	vaaVolumeDbCmd.Flags().StringVar(&p2pNetwork, "p2p-network", "", "P2P network")
+	vaaVolumeDbCmd.MarkFlagRequired("p2p-network")
 
-	parent.AddCommand(vaaVolumeMongoCmd)
+	parent.AddCommand(vaaVolumeDbCmd)
 
 }
 
@@ -182,7 +194,7 @@ func addVaaVolumeCommand(parent *cobra.Command) {
 	}
 
 	addVaaVolumeFromFileCommand(vaaVolumeCmd)
-	addVaaVolumeFromMongoCommand(vaaVolumeCmd)
+	addVaaVolumeFromDBCommand(vaaVolumeCmd)
 	addVaaVolumeV3FromVaasCollectionDump(vaaVolumeCmd)
 	parent.AddCommand(vaaVolumeCmd)
 }
@@ -255,10 +267,12 @@ func addVaasPrices(parent *cobra.Command) {
 		},
 	}
 
-	//mongo flags
+	//db flags
+	vaasPricesCmd.Flags().StringVar(&cfg.DbLayer, "db-layer", "mongo", "DB connection")
 	vaasPricesCmd.Flags().StringVar(&cfg.MongoUri, "mongo-uri", "", "Mongo connection")
 	vaasPricesCmd.Flags().StringVar(&cfg.MongoDb, "mongo-database", "", "Mongo database")
 	vaasPricesCmd.Flags().Int64Var(&cfg.PageSize, "page-size", 1000, "number of documents retrieved at a time")
+	vaasPricesCmd.Flags().StringVar(&cfg.DbURL, "db-url", "", "DB connection")
 
 	//p2p-network flag
 	vaasPricesCmd.Flags().StringVar(&cfg.P2PNetwork, "p2p-network", "", "P2P network")

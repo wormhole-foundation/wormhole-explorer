@@ -31,7 +31,7 @@ func TestNewTxHashHandler(t *testing.T) {
 
 	quit := make(chan bool)
 
-	var f = topic.PushFunc(func(context.Context, *topic.Event) error {
+	var f = topic.PushFunc(func(context.Context, topic.Event) error {
 		return nil
 	})
 

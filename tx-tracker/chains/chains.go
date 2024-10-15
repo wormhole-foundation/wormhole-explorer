@@ -22,12 +22,25 @@ var (
 type TxDetail struct {
 	// From is the address that signed the transaction, encoded in the chain's native format.
 	From string
+	// NormalizedFrom is the address of the sender, encoded in the normalized format.
+	NormalizedFrom string
+	// To is the address of the receiver in the source blockchain.
+	To string
+	// NormalizedTo is the address of the receiver, encoded in the normalized format.
+	NormalizesTo string
 	// NativeTxHash contains the transaction hash, encoded in the chain's native format.
+	// We will remove after db migration.
 	NativeTxHash string
+	// NormalizedTxHash contains the transaction hash, encoded in the normalized format.
+	NormalizedTxHash string
 	// Attribute contains the specific information of the transaction.
 	Attribute *AttributeTxDetail
 	// FeeDetail contains the fee of the transactions.
 	FeeDetail *FeeDetail
+	// BlockNumber contains the block number of the transaction.
+	BlockNumber string
+	// RpcResponse contains the raw response from the RPC.
+	RpcResponse string
 }
 
 type FeeDetail struct {

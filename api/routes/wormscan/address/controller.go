@@ -39,19 +39,22 @@ func NewController(srv *address.Service, logger *zap.Logger) *Controller {
 // @Router /api/v1/address/:address [get]
 func (c *Controller) FindById(ctx *fiber.Ctx) error {
 
+	// get address from path
 	address := middleware.ExtractAddressFromPath(ctx, c.logger)
 
+	// get pagination.
 	pagination, err := middleware.ExtractPagination(ctx)
 	if err != nil {
 		return err
 	}
 
-	// Check pagination max limit
+	// check pagination max limit
 	if pagination.Limit > 1000 {
 		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
 	}
 
-	response, err := c.srv.GetAddressOverview(ctx.Context(), address, pagination)
+	response, err := c.srv.GetAddressOverview(ctx.Context(), address,
+		pagination, middleware.UsePostgres(ctx))
 	if err != nil {
 		return err
 	}

@@ -2,12 +2,14 @@ package queue
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 )
 
 const (
 	DeduplicateVaaEventType = "duplicated-vaa"
 	GovernorStatusEventType = "governor-status"
+	GovernorConfigEventType = "governor-config"
 )
 
 // sqsEvent represents a event data from SQS.
@@ -18,7 +20,7 @@ type sqsEvent struct {
 
 // Event represents a event data.
 type Event interface {
-	EventDuplicateVaa | EventGovernorStatus
+	EventDuplicateVaa | EventGovernor
 }
 
 // EventDuplicateVaa defition.
@@ -41,12 +43,25 @@ type DuplicateVaa struct {
 	Timestamp        *time.Time `json:"timestamp"`
 }
 
-// EventGovernorStatus defition.
-type EventGovernorStatus struct {
-	TrackID string         `json:"trackId"`
-	Type    string         `json:"type"`
-	Source  string         `json:"source"`
-	Data    GovernorStatus `json:"data"`
+type EventGovernor struct {
+	TrackID string          `json:"trackId"`
+	Type    string          `json:"type"`
+	Source  string          `json:"source"`
+	Data    json.RawMessage `json:"data"`
+}
+
+type GovernorConfig struct {
+	NodeAddress string         `json:"nodeAddress"`
+	NodeName    string         `json:"nodeName"`
+	Counter     int64          `json:"counter"`
+	Timestamp   int64          `json:"timestamp"`
+	Chains      []*ChainConfig `json:"chains"`
+}
+
+type ChainConfig struct {
+	ChainId            uint16 `json:"chainId"`
+	NotionalLimit      uint64 `json:"notionalLimit"`
+	BigTransactionSize uint64 `json:"bigTransactionSize"`
 }
 
 // GovernorStatus defition.
