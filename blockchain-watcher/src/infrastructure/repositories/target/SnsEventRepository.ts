@@ -40,6 +40,12 @@ export class SnsEventRepository {
         Message: JSON.stringify(event),
         MessageGroupId: this.cfg.groupId ?? "blockchain-watcher",
         MessageDeduplicationId: event.trackId,
+        MessageAttributes: {
+          event: {
+            DataType: "String",
+            StringValue: event.event,
+          },
+        },
       }));
 
     // PublishBatchCommand: only supports max 10 items per batch
