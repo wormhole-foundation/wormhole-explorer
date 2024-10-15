@@ -1,5 +1,4 @@
 import { MetadataRepository, StatRepository, SuiRepository } from "../../repositories";
-import { SuiTransactionBlockReceipt } from "../../entities/sui";
 import { TransactionFilter } from "@mysten/sui.js/client";
 import winston, { Logger } from "winston";
 import { RunPollingJob } from "../RunPollingJob";
@@ -51,36 +50,18 @@ export class PollSuiTransactions extends RunPollingJob {
 
   protected async get(): Promise<any[]> {
     this.cursor = await this.getCursor();
-    const { checkpoint, digest } = this.cursor;
-    const { filters, to } = this.cfg;
 
-    this.logger.info(`[sui][exec] Processing blocks [cursor: ${checkpoint}, digest: ${digest}]`);
-
-    let txs: SuiTransactionBlockReceipt[] = [];
-
-    if (filters && filters.length > 0) {
-      const results = await Promise.allSettled(
-        filters.map((filter) => this.repo.queryTransactions(filter, digest))
-      );
-
-      txs = results.reduce((acc, result) => {
-        if (result.status === "fulfilled") {
-          acc.push(...result.value);
-        } else {
-          this.logger.error(`Failed to query transactions: ${result.reason}`);
-          throw new Error(result.reason); // Throw error and stop the polling job
-        }
-        return acc;
-      }, [] as SuiTransactionBlockReceipt[]);
-    }
+    let txs = await this.repo.queryTransactions(this.cfg.filter, this.cursor.digest);
 
     if (txs.length === 0) {
       return [];
     }
 
     // clamp down to config range if present
-    if (to) {
-      const lastCheckpointIndex = txs.find((tx) => tx.checkpoint === (to! + 1n).toString());
+    if (this.cfg.to) {
+      const lastCheckpointIndex = txs.find(
+        (tx) => tx.checkpoint === (this.cfg.to! + 1n).toString()
+      );
       if (lastCheckpointIndex) {
         // take until before the tx of the checkpoint out of range
         txs = txs.slice(0, txs.indexOf(lastCheckpointIndex));
@@ -91,11 +72,12 @@ export class PollSuiTransactions extends RunPollingJob {
     const newCursor = { checkpoint: BigInt(lastTx.checkpoint), digest: lastTx.digest };
 
     this.logger.info(
-      `[sui][PollSuiTransactions] Got ${txs.length} txs from ${checkpoint} to ${newCursor.checkpoint}`
+      `[sui][PollSuiTransactions] Got ${txs.length} txs from ${this.cursor.checkpoint} to ${newCursor.checkpoint}`
     );
 
-    this.currentCheckpoint = checkpoint;
+    this.currentCheckpoint = this.cursor.checkpoint;
     this.cursor = newCursor;
+
     return txs;
   }
 
@@ -170,8 +152,8 @@ export class PollSuiTransactionsConfig {
     return this.props.to ? BigInt(this.props.to) : undefined;
   }
 
-  public get filters(): TransactionFilter[] | undefined {
-    return this.props.filters;
+  public get filter(): TransactionFilter | undefined {
+    return this.props.filter;
   }
 }
 
@@ -180,7 +162,7 @@ export interface PollSuiTransactionsConfigProps {
   interval?: number;
   from?: bigint | string | number;
   to?: bigint | string | number;
-  filters?: TransactionFilter[];
+  filter?: TransactionFilter;
 }
 
 export type PollSuiTransactionsMetadata = {
