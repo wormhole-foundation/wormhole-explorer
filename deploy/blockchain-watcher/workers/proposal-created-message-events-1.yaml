@@ -63,7 +63,7 @@ data:
         "handlers": [
           {
             "action": "HandleEvmTransactions",
-            "target": "dummy",
+            "target": "sns",
             "mapper": "evmProposalCreatedMapper",
             "config": {
               "abis": [
