@@ -631,7 +631,10 @@ func (r *PostgresRepository) buildQueryIDsForQuery(query OperationQuery, paginat
 	condition := strings.Join(conditions, " AND ")
 	querySql := fmt.Sprintf(`
         SELECT p.id FROM wormholescan.wh_attestation_vaa_properties p
-        WHERE %s
+        WHERE exists (
+            SELECT ot.attestation_vaas_id FROM wormholescan.wh_operation_transactions ot
+            WHERE ot.attestation_vaas_id = p.id
+        ) AND %s
         ORDER BY p.timestamp %s, p.id %s
         LIMIT $%d OFFSET $%d`, condition, sort, sort, len(params)+1, len(params)+2)
 	params = append(params, pagination.Limit, pagination.Skip)

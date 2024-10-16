@@ -200,7 +200,10 @@ func Test_buildQueryIDsForQueryWithTargetChains(t *testing.T) {
 
 	expectedQuery := `
         SELECT p.id FROM wormholescan.wh_attestation_vaa_properties p
-        WHERE p.to_chain_id = ANY($1)
+        WHERE exists (
+            SELECT ot.attestation_vaas_id FROM wormholescan.wh_operation_transactions ot
+            WHERE ot.attestation_vaas_id = p.id
+        ) AND p.to_chain_id = ANY($1)
         ORDER BY p.timestamp DESC, p.id DESC
         LIMIT $2 OFFSET $3`
 
@@ -221,7 +224,10 @@ func Test_buildQueryIDsForQueryWithTargetChainsAndFrom(t *testing.T) {
 
 	expectedQuery := `
         SELECT p.id FROM wormholescan.wh_attestation_vaa_properties p
-        WHERE p.from_chain_id = ANY($1) AND p."timestamp" >= $2
+        WHERE exists (
+            SELECT ot.attestation_vaas_id FROM wormholescan.wh_operation_transactions ot
+            WHERE ot.attestation_vaas_id = p.id
+        ) AND p.from_chain_id = ANY($1) AND p."timestamp" >= $2
         ORDER BY p.timestamp DESC, p.id DESC
         LIMIT $3 OFFSET $4`
 
