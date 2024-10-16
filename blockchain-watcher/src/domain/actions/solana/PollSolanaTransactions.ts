@@ -102,6 +102,7 @@ export class PollSolanaTransactions extends RunPollingJob {
         acc.push(...result.value);
       } else {
         this.logger.error(`[exec] Promise rejected: ${result.reason}`);
+        throw new Error(result.reason);
       }
       return acc;
     }, []);
