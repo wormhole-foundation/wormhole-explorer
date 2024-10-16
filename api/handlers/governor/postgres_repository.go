@@ -843,3 +843,38 @@ func (r *PostgresRepository) GetEnqueueVassByChainID(ctx context.Context, q *Enq
 
 	return response, nil
 }
+
+func (r *PostgresRepository) GetEnqueuedVaas(ctx context.Context) ([]*EnqueuedVaaItem, error) {
+	query := `
+	WITH gov_status_msgs AS (SELECT gov_status_msg.value         as status_msg,
+                                (gov_status_msg ->> 'chainid')::smallint as chain_id
+                         FROM wormholescan.wh_governor_status,
+                              jsonb_array_elements(wormholescan.wh_governor_status.message) AS gov_status_msg),
+    	 gov_status_enqueuedvaas AS (SELECT chain_id,
+                                        emitters -> 'enqueuedvaas'    as enqueuedVaas,
+                                        emitters ->> 'emitteraddress' as emitter_address
+                                 FROM gov_status_msgs,
+                                      jsonb_array_elements(gov_status_msgs.status_msg -> 'emitters') as emitters
+                                 WHERE emitters ->> 'enqueuedvaas' IS NOT NULL)
+	SELECT chain_id as chainid,
+	       emitter_address as emitteraddress,
+	       (vaas ->> 'sequence')::bigint       as sequence,
+	       (vaas ->> 'releasetime')::bigint    as releasetime,
+	       (vaas ->> 'notionalvalue')::numeric as notionalvalue,
+	       vaas ->> 'txhash'                   as txhash
+	FROM gov_status_enqueuedvaas,
+	     jsonb_array_elements(gov_status_enqueuedvaas.enqueuedVaas) as vaas
+	ORDER BY chainid, emitteraddress, sequence, releasetime DESC;`
+
+	var result []*EnqueuedVaaItem
+
+	err := r.db.Select(ctx, &result, query)
+	if err != nil {
+		r.logger.Error("failed to execute query to get enqueued VAAs",
+			zap.Error(err),
+			zap.String("query", query))
+		return nil, err
+	}
+
+	return result, nil
+}

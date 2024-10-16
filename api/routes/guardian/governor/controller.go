@@ -94,7 +94,7 @@ type EnqueuedVaaItemResponse struct {
 // @Failure 500
 // @Router /v1/governor/enqueued_vaas [get]
 func (c *Controller) GetEnqueuedVaas(ctx *fiber.Ctx) error {
-	enqueuedVaa, err := c.srv.GetEnqueuedVaas(ctx.Context())
+	enqueuedVaa, err := c.srv.GetEnqueuedVaas(ctx.Context(), middleware.UsePostgres(ctx))
 	if err != nil {
 		return err
 	}
@@ -111,7 +111,7 @@ func (c *Controller) GetEnqueuedVaas(ctx *fiber.Ctx) error {
 			EmitterAddress: v.EmitterAddress,
 			Sequence:       seqUint64,
 			ReleaseTime:    v.ReleaseTime,
-			NotionalValue:  v.NotionalValue.String(),
+			NotionalValue:  strconv.FormatUint(v.NotionalValue, 10),
 			TxHash:         v.TxHash,
 		}
 		entries = append(entries, &r)

@@ -195,7 +195,7 @@ func (h *Handler) GovernorGetAvailableNotionalByChain(ctx context.Context, _ *pu
 
 // GovernorGetEnqueuedVAAs get enqueuedVaa.
 func (h *Handler) GovernorGetEnqueuedVAAs(ctx context.Context, _ *publicrpcv1.GovernorGetEnqueuedVAAsRequest) (*publicrpcv1.GovernorGetEnqueuedVAAsResponse, error) {
-	enqueuedVaa, err := h.govSrv.GetEnqueuedVaas(ctx)
+	enqueuedVaa, err := h.govSrv.GetEnqueuedVaas(ctx, h.usePostgres)
 	if err != nil {
 		return nil, err
 	}

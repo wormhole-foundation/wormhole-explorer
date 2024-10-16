@@ -311,6 +311,15 @@ type TokenList struct {
 
 // EnqueuedVaaItem definition
 type EnqueuedVaaItem struct {
+	EmitterChain   vaa.ChainID `db:"chainid" json:"emitterChain"`
+	EmitterAddress string      `db:"emitteraddress" json:"emitterAddress"`
+	Sequence       string      `db:"sequence" json:"sequence"`
+	ReleaseTime    int64       `db:"releasetime" json:"releaseTime"`
+	NotionalValue  uint64      `db:"notionalvalue" json:"notionalValue"`
+	TxHash         string      `db:"txhash" json:"txHash"`
+}
+
+type enqueuedVaaItemMongo struct {
 	EmitterChain   vaa.ChainID  `bson:"chainid" json:"emitterChain"`
 	EmitterAddress string       `bson:"emitteraddress" json:"emitterAddress"`
 	Sequence       string       `bson:"sequence" json:"sequence"`

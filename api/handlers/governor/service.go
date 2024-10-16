@@ -314,8 +314,14 @@ func (s *Service) GetTokenList(ctx context.Context) ([]*TokenList, error) {
 
 // GetEnqueuedVaas get enqueued vaas.
 // Guardian api migration.
-func (s *Service) GetEnqueuedVaas(ctx context.Context) ([]*EnqueuedVaaItem, error) {
-	entries, err := s.mongoRepo.GetEnqueuedVaas(ctx)
+func (s *Service) GetEnqueuedVaas(ctx context.Context, postgres bool) ([]*EnqueuedVaaItem, error) {
+	var entries []*EnqueuedVaaItem
+	var err error
+	if postgres {
+		entries, err = s.postgresRepo.GetEnqueuedVaas(ctx)
+	} else {
+		entries, err = s.mongoRepo.GetEnqueuedVaas(ctx)
+	}
 	if err != nil {
 		return nil, err
 	}
