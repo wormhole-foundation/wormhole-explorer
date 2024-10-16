@@ -83,9 +83,8 @@ export class PollSolanaTransactions extends RunPollingJob {
       );
     }
 
-    const txs: solana.Transaction[] = [];
-    for (const programId of this.cfg.programIds) {
-      const result: solana.Transaction[] = await this.getSolanaTransactions.execute(
+    const txPromises = this.cfg.programIds.map((programId) =>
+      this.getSolanaTransactions.execute(
         programId,
         { fromBlock, toBlock },
         {
@@ -94,9 +93,18 @@ export class PollSolanaTransactions extends RunPollingJob {
           chainId: this.cfg.chainId,
           chain: this.cfg.chain,
         }
-      );
-      txs.push(...result);
-    }
+      )
+    );
+
+    const txResults = await Promise.allSettled(txPromises);
+    const txs = txResults.reduce<solana.Transaction[]>((acc, result) => {
+      if (result.status === "fulfilled") {
+        acc.push(...result.value);
+      } else {
+        this.logger.error(`[exec] Promise rejected: ${result.reason}`);
+      }
+      return acc;
+    }, []);
 
     this.lastRange = range;
     return txs;

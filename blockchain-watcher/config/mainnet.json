@@ -5,7 +5,11 @@
     "solana": {
       "network": "mainnet-beta",
       "chainId": 1,
-      "rpcs": ["https://api.mainnet-beta.solana.com"]
+      "rpcs": ["https://api.mainnet-beta.solana.com"],
+      "rateLimit": {
+        "period": 10000,
+        "limit": 1000
+      }
     },
     "ethereum": {
       "network": "mainnet",
