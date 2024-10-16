@@ -491,21 +491,21 @@ func (r *PostgresRepository) GetAvailNotionByChain(
 ) ([]*AvailableNotionalByChain, error) {
 
 	query := `
-WITH gov_status_chain AS (SELECT gov_status_msg.value    as status_msg,
-                                 gov_config_chains.value as config_chains
-                          FROM wormholescan.wh_governor_status,
-                               wormholescan.wh_governor_config,
-                               jsonb_array_elements(wormholescan.wh_governor_status.message) AS gov_status_msg,
-                               jsonb_array_elements(wormholescan.wh_governor_config.chains) AS gov_config_chains
-                          WHERE wh_governor_config.id = wh_governor_status.id)
-SELECT DISTINCT ON ((status_msg ->> 'chainid')::int) (status_msg ->> 'chainid')::int                        as chainid,
-                                                     (status_msg ->> 'remainingavailablenotional')::numeric as availablenotional,
-                                                     (config_chains ->> 'notionallimit')::numeric           as notionallimit,
-                                                     (config_chains ->> 'bigtransactionsize')::numeric      as maxtransactionsize
-FROM gov_status_chain
-WHERE gov_status_chain.status_msg ->> 'chainid' = gov_status_chain.config_chains ->> 'chainid'
-ORDER BY (status_msg ->> 'chainid')::int,
-         (status_msg ->> 'remainingavailablenotional')::numeric;
+			WITH gov_status_chain AS (SELECT gov_status_msg.value    as status_msg,
+			                                 gov_config_chains.value as config_chains
+			                          FROM wormholescan.wh_governor_status,
+			                               wormholescan.wh_governor_config,
+			                               jsonb_array_elements(wormholescan.wh_governor_status.message) AS gov_status_msg,
+			                               jsonb_array_elements(wormholescan.wh_governor_config.chains) AS gov_config_chains
+			                          WHERE wh_governor_config.id = wh_governor_status.id)
+			SELECT DISTINCT ON ((status_msg ->> 'chainid')::int) (status_msg ->> 'chainid')::int                        as chainid,
+			                                                     (status_msg ->> 'remainingavailablenotional')::numeric as availablenotional,
+			                                                     (config_chains ->> 'notionallimit')::numeric           as notionallimit,
+			                                                     (config_chains ->> 'bigtransactionsize')::numeric      as maxtransactionsize
+			FROM gov_status_chain
+			WHERE gov_status_chain.status_msg ->> 'chainid' = gov_status_chain.config_chains ->> 'chainid'
+			ORDER BY (status_msg ->> 'chainid')::int,
+			         (status_msg ->> 'remainingavailablenotional')::numeric;
 	`
 
 	var result []*AvailableNotionalByChain
