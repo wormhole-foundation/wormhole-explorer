@@ -289,10 +289,10 @@ type GovernorLimit struct {
 // AvailableNotionalByChain definition.
 // This is the structure that is used in guardian api grpc api version.
 type AvailableNotionalByChain struct {
-	ChainID            vaa.ChainID `db:"chainId" json:"chainId"`
-	AvailableNotional  uint64      `db:"availableNotional" json:"remainingAvailableNotional"`
-	NotionalLimit      uint64      `db:"notionalLimit" json:"notionalLimit"`
-	MaxTransactionSize uint64      `db:"maxTransactionSize" json:"bigTransactionSize"`
+	ChainID            vaa.ChainID `db:"chainid" json:"chainId"`
+	AvailableNotional  uint64      `db:"availablenotional" json:"remainingAvailableNotional"`
+	NotionalLimit      uint64      `db:"notionallimit" json:"notionalLimit"`
+	MaxTransactionSize uint64      `db:"maxtransactionsize" json:"bigTransactionSize"`
 }
 
 type availableNotionalByChainMongo struct {
