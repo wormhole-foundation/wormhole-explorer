@@ -49,7 +49,7 @@ type AvailableNotionalItemResponse struct {
 // @Router /v1/governor/available_notional_by_chain [get]
 func (c *Controller) GetAvailNotionByChain(ctx *fiber.Ctx) error {
 	// call service to get available notional by chainID
-	availableNotional, err := c.srv.GetAvailNotionByChain(ctx.Context())
+	availableNotional, err := c.srv.GetAvailNotionByChain(ctx.Context(), middleware.UsePostgres(ctx))
 	if err != nil {
 		return err
 	}
@@ -59,9 +59,9 @@ func (c *Controller) GetAvailNotionByChain(ctx *fiber.Ctx) error {
 	for _, v := range availableNotional {
 		r := AvailableNotionalItemResponse{
 			ChainID:            v.ChainID,
-			AvailableNotional:  v.AvailableNotional.String(),
-			NotionalLimit:      v.NotionalLimit.String(),
-			MaxTransactionSize: v.MaxTransactionSize.String(),
+			AvailableNotional:  strconv.FormatUint(v.AvailableNotional, 10),
+			NotionalLimit:      strconv.FormatUint(v.NotionalLimit, 10),
+			MaxTransactionSize: strconv.FormatUint(v.MaxTransactionSize, 10),
 		}
 		entries = append(entries, &r)
 	}

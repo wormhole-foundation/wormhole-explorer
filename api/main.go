@@ -274,7 +274,7 @@ func main() {
 	guardian.RegisterRoutes(cfg, app, rootLogger, vaaService, governorService, heartbeatsService, guardianService)
 
 	// Set up gRPC handlers
-	handler := rpcApi.NewHandler(vaaService, heartbeatsService, governorService, guardianService, rootLogger)
+	handler := rpcApi.NewHandler(vaaService, heartbeatsService, governorService, guardianService, rootLogger, cfg.DB.Layer != config.DBLayerMongo)
 	grpcServer := rpcApi.NewServer(handler, rootLogger)
 	grpcWebServer := grpcweb.WrapServer(grpcServer)
 	app.Use(

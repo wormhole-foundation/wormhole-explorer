@@ -30,11 +30,12 @@ type Handler struct {
 	govSrv      *governor.Service
 	guardianSrv *guardian.Service
 	logger      *zap.Logger
+	usePostgres bool
 }
 
 // NewHandler create a new rpc Handler.
-func NewHandler(vaaSrv *vaaservice.Service, hbSrv *heartbeats.Service, govSrv *governor.Service, guardianSrv *guardian.Service, logger *zap.Logger) *Handler {
-	return &Handler{vaaSrv: vaaSrv, hbSrv: hbSrv, govSrv: govSrv, guardianSrv: guardianSrv, logger: logger}
+func NewHandler(vaaSrv *vaaservice.Service, hbSrv *heartbeats.Service, govSrv *governor.Service, guardianSrv *guardian.Service, logger *zap.Logger, usePostgres bool) *Handler {
+	return &Handler{vaaSrv: vaaSrv, hbSrv: hbSrv, govSrv: govSrv, guardianSrv: guardianSrv, logger: logger, usePostgres: usePostgres}
 }
 
 // GetSignedVAA get signedVAA by chainID, address, sequence.
@@ -172,7 +173,7 @@ func (h *Handler) GetCurrentGuardianSet(ctx context.Context, request *publicrpcv
 
 // GovernorGetAvailableNotionalByChain get availableNotional.
 func (h *Handler) GovernorGetAvailableNotionalByChain(ctx context.Context, _ *publicrpcv1.GovernorGetAvailableNotionalByChainRequest) (*publicrpcv1.GovernorGetAvailableNotionalByChainResponse, error) {
-	availableNotional, err := h.govSrv.GetAvailNotionByChain(ctx)
+	availableNotional, err := h.govSrv.GetAvailNotionByChain(ctx, h.usePostgres)
 	if err != nil {
 		return nil, err
 	}
