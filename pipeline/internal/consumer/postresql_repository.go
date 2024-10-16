@@ -30,7 +30,7 @@ func (r *PostreSqlRepositoryImpl) CreateOperationTransaction(ctx context.Context
 		`INSERT INTO wormholescan.wh_operation_transactions (chain_id, tx_hash, type, created_at,
 		 updated_at, attestation_vaas_id, message_id, from_address, timestamp)
 		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
-		 ON CONFLICT (chain_id, tx_hash) DO NOTHING`,
+		 ON CONFLICT (message_id, tx_hash) DO NOTHING`,
 		opTx.ChainID,
 		opTx.TxHash,
 		opTx.Type,
