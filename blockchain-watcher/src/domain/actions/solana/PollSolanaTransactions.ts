@@ -83,9 +83,8 @@ export class PollSolanaTransactions extends RunPollingJob {
       );
     }
 
-    const txs: solana.Transaction[] = [];
-    for (const programId of this.cfg.programIds) {
-      const result: solana.Transaction[] = await this.getSolanaTransactions.execute(
+    const txPromises = this.cfg.programIds.map((programId) =>
+      this.getSolanaTransactions.execute(
         programId,
         { fromBlock, toBlock },
         {
@@ -94,12 +93,13 @@ export class PollSolanaTransactions extends RunPollingJob {
           chainId: this.cfg.chainId,
           chain: this.cfg.chain,
         }
-      );
-      txs.push(...result);
-    }
+      )
+    );
+
+    const txResults = await Promise.all(txPromises);
 
     this.lastRange = range;
-    return txs;
+    return txResults.flat();
   }
 
   protected async persist(): Promise<void> {
