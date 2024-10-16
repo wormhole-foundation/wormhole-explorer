@@ -96,19 +96,10 @@ export class PollSolanaTransactions extends RunPollingJob {
       )
     );
 
-    const txResults = await Promise.allSettled(txPromises);
-    const txs = txResults.reduce<solana.Transaction[]>((acc, result) => {
-      if (result.status === "fulfilled") {
-        acc.push(...result.value);
-      } else {
-        this.logger.error(`[exec] Promise rejected: ${result.reason}`);
-        throw new Error(result.reason);
-      }
-      return acc;
-    }, []);
+    const txResults = await Promise.all(txPromises);
 
     this.lastRange = range;
-    return txs;
+    return txResults.flat();
   }
 
   protected async persist(): Promise<void> {
