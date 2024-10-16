@@ -119,9 +119,9 @@ func (r *PostgresRepository) FindAll(ctx context.Context, query OperationQuery) 
 
 	// filter operations by address or txHash
 	if query.Address != "" {
-		querySql, params = r.buildQueryIDsForAddress(query.Address, query.Pagination)
+		querySql, params = r.buildQueryIDsForAddress(query.Address, query.From, query.To, query.Pagination)
 	} else if query.TxHash != "" {
-		querySql, params = r.buildQueryIDsForTxHash(query.TxHash, query.Pagination)
+		querySql, params = r.buildQueryIDsForTxHash(query.TxHash, query.From, query.To, query.Pagination)
 	} else {
 		querySql, params = r.buildQueryIDsForQuery(query, query.Pagination)
 	}
@@ -505,27 +505,59 @@ func (r *PostgresRepository) findOperationByIDs(ctx context.Context, ids []strin
 	return ops, nil
 }
 
-func (r *PostgresRepository) buildQueryIDsForTxHash(txHash string, pagination pagination.Pagination) (string, []any) {
+func (r *PostgresRepository) buildQueryIDsForTxHash(txHash string, from, to *time.Time, pagination pagination.Pagination) (string, []any) {
 	sort := pagination.SortOrder
+	params := []any{txHash, pagination.Limit, pagination.Skip}
+	var conditions []string
+	if from != nil {
+		params = append(params, *from)
+		conditions = append(conditions, fmt.Sprintf(`t."timestamp" >= $%d`, len(params)))
+	}
+	if to != nil {
+		params = append(params, *to)
+		conditions = append(conditions, fmt.Sprintf(`t."timestamp" <= $%d`, len(params)))
+	}
+
+	var timestampCondition string
+	if len(conditions) > 0 {
+		timestampCondition = " AND " + strings.Join(conditions, " AND ")
+	}
 	query := fmt.Sprintf(`
-        SELECT t.attestation_vaas_id FROM wormholescan.wh_operation_transactions t 
-        WHERE t.tx_hash = $1
+        SELECT t.attestation_vaas_id FROM wormholescan.wh_operation_transactions t
+        WHERE t.tx_hash = $1 %s
         ORDER BY t.timestamp %s, t.attestation_vaas_id %s
-        LIMIT $2 OFFSET $3`, sort, sort)
-	return query, []any{txHash, pagination.Limit, pagination.Skip}
+        LIMIT $2 OFFSET $3`, timestampCondition, sort, sort)
+	return query, params
 }
 
-func (r *PostgresRepository) buildQueryIDsForAddress(address string, pagination pagination.Pagination) (string, []any) {
+func (r *PostgresRepository) buildQueryIDsForAddress(address string, from, to *time.Time, pagination pagination.Pagination) (string, []any) {
 	sort := pagination.SortOrder
+	params := []any{address, pagination.Limit, pagination.Skip}
+	var conditions []string
+	if from != nil {
+		params = append(params, *from)
+		conditions = append(conditions, fmt.Sprintf(`oa."timestamp" >= $%d`, len(params)))
+	}
+	if to != nil {
+		params = append(params, *to)
+		conditions = append(conditions, fmt.Sprintf(`oa."timestamp" <= $%d`, len(params)))
+	}
+
+	var timestampCondition string
+	if len(conditions) > 0 {
+		timestampCondition = " AND " + strings.Join(conditions, " AND ")
+	}
+
 	query := fmt.Sprintf(`
         SELECT oa.id FROM wormholescan.wh_operation_addresses oa
         WHERE oa.address = $1 AND exists (
             SELECT ot.attestation_vaas_id FROM wormholescan.wh_operation_transactions ot
             WHERE ot.attestation_vaas_id = oa.id 
-        )
+        ) %s
         ORDER BY oa."timestamp" %s, oa.id %s
-        LIMIT $2 OFFSET $3`, sort, sort)
-	return query, []any{address, pagination.Limit, pagination.Skip}
+        LIMIT $2 OFFSET $3`, timestampCondition, sort, sort)
+	return query, params
+
 }
 
 func (r *PostgresRepository) buildQueryIDsForQuery(query OperationQuery, pagination pagination.Pagination) (string, []any) {
@@ -564,12 +596,36 @@ func (r *PostgresRepository) buildQueryIDsForQuery(query OperationQuery, paginat
 
 	sort := pagination.SortOrder
 	if len(conditions) == 0 {
+		params := []any{pagination.Limit, pagination.Skip}
+		var conditions []string
+		if query.From != nil {
+			params = append(params, *query.From)
+			conditions = append(conditions, fmt.Sprintf(`op."timestamp" >= $%d`, len(params)))
+		}
+		if query.To != nil {
+			params = append(params, *query.To)
+			conditions = append(conditions, fmt.Sprintf(`op."timestamp" <= $%d`, len(params)))
+		}
+		var timestampCondition string
+		if len(conditions) > 0 {
+			timestampCondition = " AND " + strings.Join(conditions, " AND ")
+		}
 		querySql := fmt.Sprintf(`
             SELECT op.attestation_vaas_id FROM wormholescan.wh_operation_transactions op
-            WHERE op."type" = 'source-tx'
+            WHERE op."type" = 'source-tx' %s
             ORDER BY op."timestamp" %s, op.attestation_vaas_id %s
-            LIMIT $1 OFFSET $2`, sort, sort)
-		return querySql, []any{pagination.Limit, pagination.Skip}
+            LIMIT $1 OFFSET $2`, timestampCondition, sort, sort)
+		return querySql, params
+	}
+
+	if query.From != nil {
+		params = append(params, *query.From)
+		conditions = append(conditions, fmt.Sprintf(`p."timestamp" >= $%d`, len(params)))
+	}
+
+	if query.To != nil {
+		params = append(params, *query.To)
+		conditions = append(conditions, fmt.Sprintf(`p."timestamp" <= $%d`, len(params)))
 	}
 
 	condition := strings.Join(conditions, " AND ")
@@ -581,5 +637,4 @@ func (r *PostgresRepository) buildQueryIDsForQuery(query OperationQuery, paginat
 	params = append(params, pagination.Limit, pagination.Skip)
 
 	return querySql, params
-
 }

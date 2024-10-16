@@ -83,11 +83,12 @@ func (s *SnsEventDispatcher) NewGovernorStatus(ctx context.Context, e GovernorSt
 	if err != nil {
 		return err
 	}
-	groupID := fmt.Sprintf("gov-status-%s-%v", e.NodeAddress, e.Timestamp)
+	groupID := "governor-status"
+	deduplicationID := fmt.Sprintf("gov-status-%s-%v", e.NodeAddress, e.Timestamp)
 	_, err = s.api.Publish(ctx,
 		&aws_sns.PublishInput{
 			MessageGroupId:         aws.String(groupID),
-			MessageDeduplicationId: aws.String(groupID),
+			MessageDeduplicationId: aws.String(deduplicationID),
 			Message:                aws.String(string(body)),
 			TopicArn:               aws.String(s.processorUrl),
 			MessageAttributes:      attrs,

@@ -305,18 +305,12 @@ func (p *Processor) updateGovernorStatus(ctx context.Context,
 		})
 	}
 
-	// convert nodeGovernorVaas vaaIds to ids
-	var nodeGovVaaIdsToDelete []string
-	for vaaID := range nodeGovernorVaaIdsToDelete {
-		nodeGovVaaIdsToDelete = append(nodeGovVaaIdsToDelete, fmt.Sprintf("%s-%s", node.Address, vaaID))
-	}
-
 	return p.repository.UpdateGovernorStatus(
 		ctx,
 		node.Name,
 		node.Address,
 		nodeGovernorVaasToAddDoc,
-		nodeGovVaaIdsToDelete,
+		nodeGovernorVaaIdsToDelete.ToSlice(),
 		governorVaasToAddDoc,
 		governorVaaIdsToDelete.ToSlice())
 }
