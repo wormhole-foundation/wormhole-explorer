@@ -236,7 +236,7 @@ func (h *Handler) GovernorIsVAAEnqueued(ctx context.Context, request *publicrpcv
 		return nil, status.Error(codes.InvalidArgument, "Invalid emitter address")
 	}
 
-	isEnqueued, err := h.govSrv.IsVaaEnqueued(ctx, chainID, emitterAddress, strconv.FormatUint(request.MessageId.Sequence, 10))
+	isEnqueued, err := h.govSrv.IsVaaEnqueued(ctx, chainID, emitterAddress, strconv.FormatUint(request.MessageId.Sequence, 10), h.usePostgres)
 	if err != nil {
 		return nil, err
 	}

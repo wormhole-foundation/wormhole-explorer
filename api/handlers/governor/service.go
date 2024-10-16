@@ -340,8 +340,14 @@ func (s *Service) GetEnqueuedVaas(ctx context.Context, postgres bool) ([]*Enqueu
 
 // IsVaaEnqueued check vaa is enqueued.
 // Guardian api migration.
-func (s *Service) IsVaaEnqueued(ctx context.Context, chainID vaa.ChainID, emitter *types.Address, seq string) (bool, error) {
-	isEnqueued, err := s.mongoRepo.IsVaaEnqueued(ctx, chainID, emitter, seq)
+func (s *Service) IsVaaEnqueued(ctx context.Context, chainID vaa.ChainID, emitter *types.Address, seq string, usePostgres bool) (bool, error) {
+	var isEnqueued bool
+	var err error
+	if usePostgres {
+		isEnqueued, err = s.postgresRepo.IsVaaEnqueued(ctx, chainID, emitter, seq)
+	} else {
+		isEnqueued, err = s.mongoRepo.IsVaaEnqueued(ctx, chainID, emitter, seq)
+	}
 	return isEnqueued, err
 }
 

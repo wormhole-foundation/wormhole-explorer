@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/wormhole-foundation/wormhole-explorer/common/types"
+	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	"sort"
 	"strconv"
 	"time"
@@ -877,4 +879,41 @@ func (r *PostgresRepository) GetEnqueuedVaas(ctx context.Context) ([]*EnqueuedVa
 	}
 
 	return result, nil
+}
+
+func (r *PostgresRepository) IsVaaEnqueued(ctx context.Context, chainID sdk.ChainID, emitterAddr *types.Address, seq string) (bool, error) {
+	query := `
+	WITH gov_status_msgs AS (SELECT gov_status_msg.value         as status_msg,
+                                (gov_status_msg ->> 'chainid')::smallint as chain_id
+                         FROM wormholescan.wh_governor_status,
+                              jsonb_array_elements(wormholescan.wh_governor_status.message) AS gov_status_msg
+						 WHERE gov_status_msg ->> 'chainid' = $1),
+    	 gov_status_enqueuedvaas AS (SELECT chain_id,
+                                        emitters -> 'enqueuedvaas'    as enqueuedVaas,
+                                        emitters ->> 'emitteraddress' as emitter_address
+                                 FROM gov_status_msgs,
+                                      jsonb_array_elements(gov_status_msgs.status_msg -> 'emitters') as emitters
+                                 WHERE emitters ->> 'enqueuedvaas' IS NOT NULL AND emitters ->> 'emitteraddress' = $2)
+	SELECT chain_id as chainid,
+	       emitter_address as emitteraddress,
+	       (vaas ->> 'sequence')::bigint       as sequence,
+	       (vaas ->> 'releasetime')::bigint    as releasetime,
+	       (vaas ->> 'notionalvalue')::numeric as notionalvalue,
+	       vaas ->> 'txhash'                   as txhash
+	FROM gov_status_enqueuedvaas,
+	     jsonb_array_elements(gov_status_enqueuedvaas.enqueuedVaas) as vaas
+	WHERE (vaas ->> 'sequence')::bigint = $3;`
+
+	var result []*EnqueuedVaaItem
+	chainIDStr := strconv.Itoa(int(chainID))
+	addr := utils.DenormalizeHex(emitterAddr.Hex())
+	err := r.db.Select(ctx, &result, query, chainIDStr, addr, seq)
+	if err != nil {
+		r.logger.Error("failed to execute query to get enqueued VAAs",
+			zap.Error(err),
+			zap.String("query", query))
+		return false, err
+	}
+
+	return len(result) > 0, nil
 }

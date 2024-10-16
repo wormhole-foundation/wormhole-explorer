@@ -139,7 +139,7 @@ func (c *Controller) IsVaaEnqueued(ctx *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	isEnqueued, err := c.srv.IsVaaEnqueued(ctx.Context(), chainID, emitter, strconv.FormatUint(seq, 10))
+	isEnqueued, err := c.srv.IsVaaEnqueued(ctx.Context(), chainID, emitter, strconv.FormatUint(seq, 10), middleware.UsePostgres(ctx))
 	if err != nil {
 		return err
 	}
