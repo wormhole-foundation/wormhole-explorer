@@ -303,11 +303,15 @@ func (s *Service) GetAvailNotionByChain(ctx context.Context, usePostgres bool) (
 
 // Get governor token list.
 // Guardian api migration.
-func (s *Service) GetTokenList(ctx context.Context) ([]*TokenList, error) {
+func (s *Service) GetTokenList(ctx context.Context, postgres bool) ([]*TokenList, error) {
 	key := tokenList
 	return cacheable.GetOrLoad(ctx, s.logger, s.cache, 1*time.Minute, key, s.metrics,
 		func() ([]*TokenList, error) {
-			return s.mongoRepo.GetTokenList(ctx)
+			if postgres {
+				return s.postgresRepo.GetTokenList(ctx)
+			} else {
+				return s.mongoRepo.GetTokenList(ctx)
+			}
 		})
 
 }

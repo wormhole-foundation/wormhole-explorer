@@ -166,7 +166,7 @@ func (c *Controller) IsVaaEnqueued(ctx *fiber.Ctx) error {
 // @Failure 500
 // @Router /v1/governor/token_list [get]
 func (c *Controller) GetTokenList(ctx *fiber.Ctx) error {
-	tokenList, err := c.srv.GetTokenList(ctx.Context())
+	tokenList, err := c.srv.GetTokenList(ctx.Context(), middleware.UsePostgres(ctx))
 	if err != nil {
 		return err
 	}

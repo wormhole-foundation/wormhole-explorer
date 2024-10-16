@@ -917,3 +917,37 @@ func (r *PostgresRepository) IsVaaEnqueued(ctx context.Context, chainID sdk.Chai
 
 	return len(result) > 0, nil
 }
+
+func (r *PostgresRepository) GetTokenList(ctx context.Context) ([]*TokenList, error) {
+	query := `
+	WITH governor_cfg_tokens AS (SELECT (gov_cfg_tokens ->> 'originchainid')::smallint as originchainid,
+                                    gov_cfg_tokens ->> 'originaddress'             as originaddress,
+                                    (gov_cfg_tokens ->> 'price')::numeric          as price
+                             FROM wormholescan.wh_governor_config,
+                                  jsonb_array_elements(wormholescan.wh_governor_config.tokens) AS gov_cfg_tokens),
+     price_counts AS (SELECT originchainid,
+                             originaddress,
+                             price,
+                             COUNT(*) as occurrences
+                      FROM governor_cfg_tokens
+                      GROUP BY originchainid, originaddress, price)
+	SELECT DISTINCT ON (originchainid, originaddress) originchainid,
+	                                                  originaddress,
+	                                                  price
+	FROM price_counts
+	ORDER BY originchainid,
+	         originaddress,
+	         occurrences DESC;
+	`
+
+	var result []*TokenList
+	err := r.db.Select(ctx, &result, query)
+	if err != nil {
+		r.logger.Error("failed to execute query to get token list",
+			zap.Error(err),
+			zap.String("query", query))
+		return nil, err
+	}
+
+	return result, nil
+}

@@ -304,9 +304,9 @@ type availableNotionalByChainMongo struct {
 
 // TokenList definition
 type TokenList struct {
-	OriginChainID vaa.ChainID `bson:"originchainid" json:"originChainId"`
-	OriginAddress string      `bson:"originaddress" json:"originAddress"`
-	Price         float32     `bson:"price" json:"price"`
+	OriginChainID vaa.ChainID `db:"originchainid" bson:"originchainid" json:"originChainId"`
+	OriginAddress string      `db:"originaddress" bson:"originaddress" json:"originAddress"`
+	Price         float32     `db:"price" bson:"price" json:"price"`
 }
 
 // EnqueuedVaaItem definition

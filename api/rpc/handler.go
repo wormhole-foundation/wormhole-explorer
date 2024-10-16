@@ -246,7 +246,7 @@ func (h *Handler) GovernorIsVAAEnqueued(ctx context.Context, request *publicrpcv
 
 // GovernorGetTokenList get governor token list.
 func (h *Handler) GovernorGetTokenList(ctx context.Context, _ *publicrpcv1.GovernorGetTokenListRequest) (*publicrpcv1.GovernorGetTokenListResponse, error) {
-	tokenList, err := h.govSrv.GetTokenList(ctx)
+	tokenList, err := h.govSrv.GetTokenList(ctx, h.usePostgres)
 	if err != nil {
 		return nil, err
 	}
