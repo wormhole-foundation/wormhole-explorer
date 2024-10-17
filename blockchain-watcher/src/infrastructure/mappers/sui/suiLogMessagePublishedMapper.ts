@@ -18,7 +18,7 @@ export const suiLogMessagePublishedMapper = (
 
   const logMessage = extractEventInfo(event);
   if (!logMessage) return undefined;
-  const { nonce, sender, sequence, payload, consistencyLevel } = logMessage;
+  const { nonce, sender, sequence, payload, consistencyLevel, timestamp } = logMessage;
 
   logger.info(
     `[sui] Source event info: [digest: ${receipt.digest}][VAA: ${CHAIN_ID_SUI}/${sender}/${sequence}]`
@@ -28,7 +28,7 @@ export const suiLogMessagePublishedMapper = (
     name: "log-message-published",
     address: event.packageId,
     blockHeight: BigInt(receipt.checkpoint || 0),
-    blockTime: Math.floor(Number(receipt.timestampMs) / 1000), // convert to seconds
+    blockTime: Math.floor(timestamp / 1000), // convert to seconds
     chainId: CHAIN_ID_SUI,
     txHash: receipt.digest,
     attributes: {
@@ -41,7 +41,7 @@ export const suiLogMessagePublishedMapper = (
   };
 };
 
-function extractEventInfo(event: SuiEvent): LogMessagePublished | undefined {
+function extractEventInfo(event: SuiEvent): SuiLogMessagePublished | undefined {
   const json = event.parsedJson as SuiSourceEvent;
 
   return {
@@ -50,6 +50,7 @@ function extractEventInfo(event: SuiEvent): LogMessagePublished | undefined {
     sequence: Number(json.sequence),
     payload: Buffer.from(json.payload).toString("hex"),
     consistencyLevel: json.consistency_level,
+    timestamp: json.timestamp,
   };
 }
 
@@ -59,4 +60,7 @@ interface SuiSourceEvent {
   sequence: string;
   payload: number[];
   consistency_level: number;
+  timestamp: number;
 }
+
+type SuiLogMessagePublished = LogMessagePublished & { timestamp: number };
