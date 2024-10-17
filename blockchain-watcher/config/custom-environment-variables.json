@@ -221,6 +221,13 @@
         "__format": "json"
       }
     },
+    "unichain": {
+      "network": "UNICHAIN_NETWORK",
+      "rpcs": {
+        "__name": "UNICHAIN_RPCS",
+        "__format": "json"
+      }
+    },
     "polygon-sepolia": {
       "network": "POLYGON_SEPOLIA_NETWORK",
       "rpcs": {

@@ -80,6 +80,7 @@ const EVM_CHAINS = new Map([
   ["xlayer", "evmRepo"],
   ["snaxchain", "evmRepo"],
   ["berachain", "evmRepo"],
+  ["unichain", "evmRepo"],
 ]);
 
 const POOL_STRATEGY = "healthy";
