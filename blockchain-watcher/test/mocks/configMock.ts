@@ -193,6 +193,13 @@ export const configMock = (): Config => {
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
+    unichain: {
+      name: "unichain",
+      network: "testnet",
+      chainId: 44,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
     evmos: {
       name: "evmos",
       network: "testnet",
