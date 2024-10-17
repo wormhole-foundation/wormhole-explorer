@@ -70,7 +70,7 @@ func (h *Handler) GetSignedVAA(ctx context.Context, request *publicrpcv1.GetSign
 	// get VAA by Id.
 	vaa, err := h.vaaSrv.FindById(
 		ctx,
-		false, //TODO modifiy api migration.
+		h.usePostgres,
 		chainID,
 		addr,
 		sequence,
