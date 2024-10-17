@@ -215,9 +215,11 @@ func handleFetchTxError(ctx context.Context, logger *zap.Logger, repository Repo
 	}
 
 	// store unprocessed originTx in the database.
-	txHash := chains.FormatTxHashByChain(params.ChainId, params.TxHash)
+	nativeTxHash := chains.FormatTxHashByChain(params.ChainId, params.TxHash)
+	normalizedTxHash := domain.NormalizeTxHashByChainId(params.ChainId, nativeTxHash)
 	vaaTxDetail = &chains.TxDetail{
-		NativeTxHash: txHash,
+		NativeTxHash:     nativeTxHash,
+		NormalizedTxHash: normalizedTxHash,
 	}
 
 	e := UpsertOriginTxParams{
