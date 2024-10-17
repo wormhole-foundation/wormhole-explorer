@@ -302,7 +302,7 @@ data:
               }
             ],
             "chain": "unichain",
-            "chainId": 13
+            "chainId": 44
           }
         },
         "handlers": [

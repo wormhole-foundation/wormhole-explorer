@@ -250,7 +250,7 @@
     "unichain": {
       "name": "unichain",
       "network": "testnet",
-      "chainId": 43,
+      "chainId": 44,
       "rpcs": ["https://sepolia.unichain.org"],
       "timeout": 10000
     },
