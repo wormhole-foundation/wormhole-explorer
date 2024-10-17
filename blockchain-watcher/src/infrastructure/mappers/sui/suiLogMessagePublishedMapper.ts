@@ -28,7 +28,7 @@ export const suiLogMessagePublishedMapper = (
     name: "log-message-published",
     address: event.packageId,
     blockHeight: BigInt(receipt.checkpoint || 0),
-    blockTime: Math.floor(timestamp / 1000), // convert to seconds
+    blockTime: timestamp,
     chainId: CHAIN_ID_SUI,
     txHash: receipt.digest,
     attributes: {
