@@ -144,7 +144,7 @@ func (q *ObservationQuery) toQuery() (string, []any) {
 
 	query := "SELECT obs.* FROM wormholescan.wh_observations obs \n"
 	if hasTxHash {
-		query += "JOIN wormholescan.wh_operation_transactions ot ON obs.hash = ot.attestation_vaas_id \n"
+		query += "JOIN wormholescan.wh_operation_transactions ot ON obs.hash = ot.attestation_id \n"
 	}
 
 	query += fmt.Sprintf("WHERE %s \n", where)

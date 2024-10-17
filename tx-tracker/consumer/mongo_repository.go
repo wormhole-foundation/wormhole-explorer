@@ -44,6 +44,7 @@ type TargetTxUpdate struct {
 	ID          string         `bson:"digest"`
 	VaaID       string         `bson:"_id"`
 	Destination *DestinationTx `bson:"destinationTx"`
+	Source      string         `bson:"-"`
 	TrackID     string         `bson:"-"`
 }
 
@@ -75,6 +76,7 @@ type UpsertOriginTxParams struct {
 	VaaId     string // {chain/address/sequence}
 	Id        string // digest
 	TxType    string
+	Source    string
 	TrackID   string
 	ChainId   sdk.ChainID
 	TxDetail  *chains.TxDetail

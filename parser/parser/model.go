@@ -44,6 +44,8 @@ type AttestationVaaProperties struct {
 	Timestamp         time.Time        `json:"timestamp" db:"timestamp"`
 	CreatedAt         time.Time        `json:"created_at" db:"created_at"`
 	UpdatedAt         time.Time        `json:"updated_at" db:"updated_at"`
+	SourceEvent       string           `json:"source_event" db:"source_event"`
+	TrackIDEvent      string           `json:"track_id_event" db:"track_id_event"`
 }
 
 type OperationAddress struct {

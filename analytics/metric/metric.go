@@ -124,6 +124,8 @@ func (m *Metric) Push(ctx context.Context, params *Params) error {
 				},
 				transferredToken.Clone(),
 				m.tokenProvider,
+				params.Source,
+				params.TrackID,
 			)
 
 		} else {
