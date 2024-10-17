@@ -10,8 +10,8 @@ import (
 	"go.uber.org/zap"
 )
 
-// Repository definition.
-type Repository struct {
+// MongoHearbeatRepository definition.
+type MongoHearbeatRepository struct {
 	db          *mongo.Database
 	logger      *zap.Logger
 	collections struct {
@@ -19,16 +19,16 @@ type Repository struct {
 	}
 }
 
-// NewRepository create a new Repository.
-func NewRepository(db *mongo.Database, logger *zap.Logger) *Repository {
-	return &Repository{db: db,
+// NewMongoRepository create a new MongoHearbeatRepository.
+func NewMongoRepository(db *mongo.Database, logger *zap.Logger) *MongoHearbeatRepository {
+	return &MongoHearbeatRepository{db: db,
 		logger:      logger.With(zap.String("module", "HeartbeatsRepository")),
 		collections: struct{ heartbeats *mongo.Collection }{heartbeats: db.Collection("heartbeats")},
 	}
 }
 
 // FindByIDS get a list of HeartbeatDoc pointer.
-func (r *Repository) FindByIDs(ctx context.Context, ids []string) ([]*HeartbeatDoc, error) {
+func (r *MongoHearbeatRepository) FindByIDs(ctx context.Context, ids []string) ([]*HeartbeatDoc, error) {
 	in := bson.M{"_id": bson.M{"$in": ids}}
 	cur, err := r.collections.heartbeats.Find(ctx, in)
 	if err != nil {

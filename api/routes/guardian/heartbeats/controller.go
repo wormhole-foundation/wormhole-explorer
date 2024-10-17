@@ -91,7 +91,7 @@ func (c *Controller) GetLastHeartbeats(ctx *fiber.Ctx) error {
 	guardianAddresses := guardianSet.KeysAsHexStrings()
 
 	// get last heartbeats by ids.
-	heartbeats, err := c.srv.GetHeartbeatsByIds(ctx.Context(), guardianAddresses)
+	heartbeats, err := c.srv.GetHeartbeatsByIds(ctx.Context(), middleware.UsePostgres(ctx), guardianAddresses)
 	if err != nil {
 		return err
 	}
