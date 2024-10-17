@@ -49,7 +49,7 @@ type AvailableNotionalItemResponse struct {
 // @Router /v1/governor/available_notional_by_chain [get]
 func (c *Controller) GetAvailNotionByChain(ctx *fiber.Ctx) error {
 	// call service to get available notional by chainID
-	availableNotional, err := c.srv.GetAvailNotionByChain(ctx.Context())
+	availableNotional, err := c.srv.GetAvailNotionByChain(ctx.Context(), middleware.UsePostgres(ctx))
 	if err != nil {
 		return err
 	}
@@ -59,9 +59,9 @@ func (c *Controller) GetAvailNotionByChain(ctx *fiber.Ctx) error {
 	for _, v := range availableNotional {
 		r := AvailableNotionalItemResponse{
 			ChainID:            v.ChainID,
-			AvailableNotional:  v.AvailableNotional.String(),
-			NotionalLimit:      v.NotionalLimit.String(),
-			MaxTransactionSize: v.MaxTransactionSize.String(),
+			AvailableNotional:  strconv.FormatUint(v.AvailableNotional, 10),
+			NotionalLimit:      strconv.FormatUint(v.NotionalLimit, 10),
+			MaxTransactionSize: strconv.FormatUint(v.MaxTransactionSize, 10),
 		}
 		entries = append(entries, &r)
 	}
@@ -94,7 +94,7 @@ type EnqueuedVaaItemResponse struct {
 // @Failure 500
 // @Router /v1/governor/enqueued_vaas [get]
 func (c *Controller) GetEnqueuedVaas(ctx *fiber.Ctx) error {
-	enqueuedVaa, err := c.srv.GetEnqueuedVaas(ctx.Context())
+	enqueuedVaa, err := c.srv.GetEnqueuedVaas(ctx.Context(), middleware.UsePostgres(ctx))
 	if err != nil {
 		return err
 	}
@@ -111,7 +111,7 @@ func (c *Controller) GetEnqueuedVaas(ctx *fiber.Ctx) error {
 			EmitterAddress: v.EmitterAddress,
 			Sequence:       seqUint64,
 			ReleaseTime:    v.ReleaseTime,
-			NotionalValue:  v.NotionalValue.String(),
+			NotionalValue:  strconv.FormatUint(v.NotionalValue, 10),
 			TxHash:         v.TxHash,
 		}
 		entries = append(entries, &r)
@@ -139,7 +139,7 @@ func (c *Controller) IsVaaEnqueued(ctx *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	isEnqueued, err := c.srv.IsVaaEnqueued(ctx.Context(), chainID, emitter, strconv.FormatUint(seq, 10))
+	isEnqueued, err := c.srv.IsVaaEnqueued(ctx.Context(), chainID, emitter, strconv.FormatUint(seq, 10), middleware.UsePostgres(ctx))
 	if err != nil {
 		return err
 	}
@@ -166,7 +166,7 @@ func (c *Controller) IsVaaEnqueued(ctx *fiber.Ctx) error {
 // @Failure 500
 // @Router /v1/governor/token_list [get]
 func (c *Controller) GetTokenList(ctx *fiber.Ctx) error {
-	tokenList, err := c.srv.GetTokenList(ctx.Context())
+	tokenList, err := c.srv.GetTokenList(ctx.Context(), middleware.UsePostgres(ctx))
 	if err != nil {
 		return err
 	}
