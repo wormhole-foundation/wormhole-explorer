@@ -16,36 +16,51 @@ import (
 )
 
 type Service struct {
-	repo       *repository.MongoGuardianSetRepository
-	p2pNetwork string
-	cache      cache.Cache
-	metrics    metrics.Metrics
-	logger     *zap.Logger
+	mongoGSRepository    *repository.MongoGuardianSetRepository
+	postgresGSRepository *repository.PostgresGuardianSetRepository
+	p2pNetwork           string
+	cache                cache.Cache
+	metrics              metrics.Metrics
+	logger               *zap.Logger
 }
 
 const currentGuardianSetKey = "current-guardian-set"
 
-func NewService(repo *repository.MongoGuardianSetRepository, p2pNetwork string, cache cache.Cache,
-	metrics metrics.Metrics, logger *zap.Logger) *Service {
+func NewService(
+	mongoGSRepo *repository.MongoGuardianSetRepository,
+	postgresGSRepo *repository.PostgresGuardianSetRepository,
+	p2pNetwork string,
+	cache cache.Cache,
+	metrics metrics.Metrics,
+	logger *zap.Logger,
+) *Service {
 	return &Service{
-		repo:       repo,
-		p2pNetwork: p2pNetwork,
-		cache:      cache,
-		metrics:    metrics,
-		logger:     logger.With(zap.String("module", "GuardianService")),
+		mongoGSRepository:    mongoGSRepo,
+		postgresGSRepository: postgresGSRepo,
+		p2pNetwork:           p2pNetwork,
+		cache:                cache,
+		metrics:              metrics,
+		logger:               logger.With(zap.String("module", "GuardianService")),
 	}
 }
 
-func (s *Service) GetGuardianSet(ctx context.Context) (*GuardianSet, error) {
+func (s *Service) GetGuardianSet(ctx context.Context, usePostgres bool) (*GuardianSet, error) {
 	return cacheable.GetOrLoad(ctx, s.logger, s.cache, 1*time.Minute, currentGuardianSetKey, s.metrics,
 		func() (*GuardianSet, error) {
-			return s.getGuardianSet(ctx)
+			return s.getGuardianSet(ctx, usePostgres)
 		})
 }
 
-func (s *Service) getGuardianSet(ctx context.Context) (*GuardianSet, error) {
+func (s *Service) getGuardianSet(ctx context.Context, usePostgres bool) (*GuardianSet, error) {
 
-	docs, err := s.repo.FindAll(ctx)
+	var docs []*repository.GuardianSet
+	var err error
+	if usePostgres {
+		docs, err = s.postgresGSRepository.FindAll(ctx)
+	} else {
+		docs, err = s.mongoGSRepository.FindAll(ctx)
+	}
+
 	if err != nil {
 		s.logger.Error("failed to get guardian set from repository", zap.Error(err))
 		gs := getByEnv(s.p2pNetwork)

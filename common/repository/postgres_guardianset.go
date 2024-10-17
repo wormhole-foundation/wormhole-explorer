@@ -52,7 +52,7 @@ func (r *PostgresGuardianSetRepository) FindAll(ctx context.Context) ([]*Guardia
 	ORDER BY guardian_set_id ASC, address_index ASC;
 	`
 
-	guardianSets := []*dbGuardianSet{}
+	var guardianSets []*dbGuardianSet
 	err := r.db.Select(ctx, &guardianSets, query)
 	if err != nil {
 		r.logger.Error("failed to select guardian sets", zap.Error(err))

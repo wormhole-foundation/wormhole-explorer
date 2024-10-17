@@ -1,6 +1,7 @@
 package heartbeats
 
 import (
+	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -66,7 +67,7 @@ type HeartbeatNetworkResponse struct {
 // @Router /v1/heartbeats [get]
 func (c *Controller) GetLastHeartbeats(ctx *fiber.Ctx) error {
 
-	gs, err := c.guardianService.GetGuardianSet(ctx.Context())
+	gs, err := c.guardianService.GetGuardianSet(ctx.Context(), middleware.UsePostgres(ctx))
 	if err != nil {
 		c.logger.Error("failed to get guardian set", zap.Error(err))
 		return response.NewApiError(ctx, fiber.StatusInternalServerError, response.Internal,

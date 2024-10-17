@@ -206,7 +206,8 @@ func main() {
 		cfg.Influx.Bucket30Days,
 		cfg.Influx.Bucket24Hours,
 		rootLogger)
-	guardianSetRepository := repository.NewMongoGuardianSetRepository(storage.mongoDB.Database, rootLogger)
+	mongoGsRepository := repository.NewMongoGuardianSetRepository(storage.mongoDB.Database, rootLogger)
+	postgresGsRepository := repository.NewPostgresGuardianSetRepository(storage.postgresDB, rootLogger)
 
 	metrics := metrics.NewPrometheusMetrics(cfg.Environment)
 
@@ -228,7 +229,7 @@ func main() {
 	operationsService := operations.NewService(mongoOperationsRepo, postgresOperationsRepo, rootLogger)
 	statsService := stats.NewService(statsRepo, statsAddressRepo, statsHolderRepo, cache, expirationTime, metrics, rootLogger)
 	protocolsService := protocols.NewService(cfg.Protocols, protocolsRepo, rootLogger, cache, cfg.Cache.ProtocolsStatsKey, cfg.Cache.ProtocolsStatsExpiration, metrics, tvl)
-	guardianService := guardianHandlers.NewService(guardianSetRepository, cfg.P2pNetwork, cache, metrics, rootLogger)
+	guardianService := guardianHandlers.NewService(mongoGsRepository, postgresGsRepository, cfg.P2pNetwork, cache, metrics, rootLogger)
 	supplyService := supply.NewService(rootLogger)
 
 	// Set up a custom error handler
