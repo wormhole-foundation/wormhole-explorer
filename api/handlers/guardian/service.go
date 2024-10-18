@@ -16,7 +16,7 @@ import (
 )
 
 type Service struct {
-	repo       *repository.GuardianSetRepository
+	repo       *repository.MongoGuardianSetRepository
 	p2pNetwork string
 	cache      cache.Cache
 	metrics    metrics.Metrics
@@ -25,7 +25,7 @@ type Service struct {
 
 const currentGuardianSetKey = "current-guardian-set"
 
-func NewService(repo *repository.GuardianSetRepository, p2pNetwork string, cache cache.Cache,
+func NewService(repo *repository.MongoGuardianSetRepository, p2pNetwork string, cache cache.Cache,
 	metrics metrics.Metrics, logger *zap.Logger) *Service {
 	return &Service{
 		repo:       repo,

@@ -59,7 +59,7 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 		TxHash:     txHash,
 	}
 
-	obs, err := c.srv.FindAll(ctx.Context(), params)
+	obs, err := c.srv.FindAll(ctx.Context(), middleware.UsePostgres(ctx), params)
 	if err != nil {
 		return err
 	}
@@ -95,7 +95,7 @@ func (c *Controller) FindAllByChain(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	obs, err := c.srv.FindByChain(ctx.Context(), chainID, p)
+	obs, err := c.srv.FindByChain(ctx.Context(), middleware.UsePostgres(ctx), chainID, p)
 	if err != nil {
 		return err
 	}
@@ -131,7 +131,7 @@ func (c *Controller) FindAllByEmitter(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	obs, err := c.srv.FindByEmitter(ctx.Context(), chainID, addr, p)
+	obs, err := c.srv.FindByEmitter(ctx.Context(), middleware.UsePostgres(ctx), chainID, addr, p)
 	if err != nil {
 		return err
 	}
@@ -167,7 +167,7 @@ func (c *Controller) FindAllByVAA(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	obs, err := c.srv.FindByVAA(ctx.Context(), chainID, addr, strconv.FormatUint(seq, 10), p)
+	obs, err := c.srv.FindByVAA(ctx.Context(), middleware.UsePostgres(ctx), chainID, addr, strconv.FormatUint(seq, 10), p)
 	if err != nil {
 		return err
 	}
@@ -199,7 +199,7 @@ func (c *Controller) FindOne(ctx *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	obs, err := c.srv.FindOne(ctx.Context(), chainID, addr, strconv.FormatUint(seq, 10), signerAddr, []byte(hash))
+	obs, err := c.srv.FindOne(ctx.Context(), middleware.UsePostgres(ctx), chainID, addr, strconv.FormatUint(seq, 10), signerAddr, []byte(hash))
 	if err != nil {
 		return err
 	}

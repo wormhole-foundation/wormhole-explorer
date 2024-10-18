@@ -10,6 +10,7 @@ import (
 
 // PrometheusMetrics is a Prometheus implementation of Metric interface.
 type PrometheusMetrics struct {
+	dbLayer                       string
 	vaaParseCount                 *prometheus.CounterVec
 	vaaPayloadParserRequest       *prometheus.CounterVec
 	vaaPayloadParserResponseCount *prometheus.CounterVec
@@ -18,7 +19,7 @@ type PrometheusMetrics struct {
 }
 
 // NewPrometheusMetrics returns a new instance of PrometheusMetrics.
-func NewPrometheusMetrics(environment string) *PrometheusMetrics {
+func NewPrometheusMetrics(environment string, dbLayer string) *PrometheusMetrics {
 	constLabels := map[string]string{
 		"environment": environment,
 		"service":     serviceName,
@@ -28,7 +29,7 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 			Name:        "parse_vaa_count_by_chain",
 			Help:        "Total number of vaa parser by chain",
 			ConstLabels: constLabels,
-		}, []string{"chain", "type"})
+		}, []string{"chain", "type", "dbLayer"})
 	vaaPayloadParserRequestCount := promauto.NewCounterVec(
 		prometheus.CounterOpts{
 			Name:        "parse_vaa_payload_request_count_by_chain",
@@ -70,31 +71,43 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 // IncVaaConsumedQueue increments the number of consumed VAA.
 func (m *PrometheusMetrics) IncVaaConsumedQueue(chainID uint16) {
 	chain := vaa.ChainID(chainID).String()
-	m.vaaParseCount.WithLabelValues(chain, "consumed").Inc()
+	m.vaaParseCount.WithLabelValues(chain, "consumed", m.dbLayer).Inc()
 }
 
 // IncVaaUnfiltered increments the number of unfiltered VAA.
 func (m *PrometheusMetrics) IncVaaUnfiltered(chainID uint16) {
 	chain := vaa.ChainID(chainID).String()
-	m.vaaParseCount.WithLabelValues(chain, "unfiltered").Inc()
+	m.vaaParseCount.WithLabelValues(chain, "unfiltered", m.dbLayer).Inc()
 }
 
 // IncVaaUnexpired increments the number of unexpired VAA.
 func (m *PrometheusMetrics) IncVaaUnexpired(chainID uint16) {
 	chain := vaa.ChainID(chainID).String()
-	m.vaaParseCount.WithLabelValues(chain, "unexpired").Inc()
+	m.vaaParseCount.WithLabelValues(chain, "unexpired", m.dbLayer).Inc()
 }
 
 // IncVaaParsed increments the number of parsed VAA.
 func (m *PrometheusMetrics) IncVaaParsed(chainID uint16) {
 	chain := vaa.ChainID(chainID).String()
-	m.vaaParseCount.WithLabelValues(chain, "parsed").Inc()
+	m.vaaParseCount.WithLabelValues(chain, "parsed", m.dbLayer).Inc()
 }
 
 // IncVaaParsedInserted increments the number of parsed VAA inserted into database.
 func (m *PrometheusMetrics) IncVaaParsedInserted(chainID uint16) {
 	chain := vaa.ChainID(chainID).String()
-	m.vaaParseCount.WithLabelValues(chain, "inserted").Inc()
+	m.vaaParseCount.WithLabelValues(chain, "inserted", m.dbLayer).Inc()
+}
+
+// IncVaaAttestationPropertiesInserted increment the number of attestation properties inserted into database.
+func (m *PrometheusMetrics) IncVaaAttestationPropertiesInserted(chainID uint16) {
+	chain := vaa.ChainID(chainID).String()
+	m.vaaParseCount.WithLabelValues(chain, "attestation_properties_inserted", m.dbLayer).Inc()
+}
+
+// IncParseVaaInserted increments the number of parsed VAA inserted into database.
+func (m *PrometheusMetrics) IncParseVaaInserted(chainID uint16) {
+	chain := vaa.ChainID(chainID).String()
+	m.vaaParseCount.WithLabelValues(chain, "parsed_vaa_inserted", m.dbLayer).Inc()
 }
 
 // IncVaaPayloadParserRequestCount increments the number of vaa payload parser request.

@@ -11,8 +11,11 @@ build:
 	make -C analytics/ build
 	make -C api/ build
 	make -C fly/ build
-	make -C spy/ build
+	make -C fly-event-processor/ build
+	make -C jobs/ build
 	make -C parser/ build
+	make -C pipeline/ build
+	make -C spy/ build
 	make -C tx-tracker/ build
 	
 doc:

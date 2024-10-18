@@ -18,6 +18,8 @@ type PrometheusMetrics struct {
 	vaaProcessed             *prometheus.CounterVec
 	wormchainUnknown         *prometheus.CounterVec
 	vaaProcessingDuration    *prometheus.HistogramVec
+	globalTxCount            *prometheus.CounterVec
+	operationTxCount         *prometheus.CounterVec
 }
 
 // NewPrometheusMetrics returns a new instance of PrometheusMetrics.
@@ -71,6 +73,18 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 		},
 		[]string{"chain"},
 	)
+	globalTxCount := promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name:        "global_tx_count_by_chain",
+			Help:        "Total number of global tx processed by tx tracker by chain",
+			ConstLabels: constLabels,
+		}, []string{"chain", "type"})
+	operationTxCount := promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name:        "operation_tx_count_by_chain",
+			Help:        "Total number of operation tx processed by tx tracker by chain",
+			ConstLabels: constLabels,
+		}, []string{"chain", "type"})
 	return &PrometheusMetrics{
 		vaaTxTrackerCount:        vaaTxTrackerCount,
 		vaaProcesedDuration:      vaaProcesedDuration,
@@ -79,6 +93,8 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 		vaaProcessed:             vaaProcessed,
 		wormchainUnknown:         wormchainUnknown,
 		vaaProcessingDuration:    vaaProcessingDuration,
+		globalTxCount:            globalTxCount,
+		operationTxCount:         operationTxCount,
 	}
 }
 
@@ -162,4 +178,28 @@ func (p *PrometheusMetrics) VaaProcessingDuration(chain string, start *time.Time
 	}
 	elapsed := float64(time.Since(*start).Nanoseconds()) / 1e9
 	p.vaaProcessingDuration.WithLabelValues(chain).Observe(elapsed)
+}
+
+// IncOperationTxSourceInserted increments the number of inserted operation tx.
+func (p *PrometheusMetrics) IncOperationTxSourceInserted(chainID uint16) {
+	chain := vaa.ChainID(chainID).String()
+	p.operationTxCount.WithLabelValues(chain, "source").Inc()
+}
+
+// IncGlobalTxSourceInserted increments the number of inserted global tx.
+func (p *PrometheusMetrics) IncGlobalTxSourceInserted(chainID uint16) {
+	chain := vaa.ChainID(chainID).String()
+	p.globalTxCount.WithLabelValues(chain, "source").Inc()
+}
+
+// IncOperationTxTargetInserted increments the number of inserted operation tx.
+func (p *PrometheusMetrics) IncOperationTxTargetInserted(chainID uint16) {
+	chain := vaa.ChainID(chainID).String()
+	p.operationTxCount.WithLabelValues(chain, "target").Inc()
+}
+
+// IncGlobalTxDestinationTxInserted increments the number of inserted global tx.
+func (p *PrometheusMetrics) IncGlobalTxDestinationTxInserted(chainID uint16) {
+	chain := vaa.ChainID(chainID).String()
+	p.globalTxCount.WithLabelValues(chain, "target").Inc()
 }

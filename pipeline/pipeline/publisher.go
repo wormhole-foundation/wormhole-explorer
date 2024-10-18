@@ -38,7 +38,7 @@ func (p *Publisher) Publish(ctx context.Context, e *watcher.Event) {
 	// create a Event.
 	event := topic.Event{
 		ID:               e.ID,
-		ChainID:          e.ChainID,
+		ChainID:          vaa.ChainID(e.ChainID),
 		EmitterAddress:   e.EmitterAddress,
 		Sequence:         e.Sequence,
 		GuardianSetIndex: e.GuardianSetIndex,
@@ -72,7 +72,7 @@ func (p *Publisher) Publish(ctx context.Context, e *watcher.Event) {
 	}
 
 	// push messages to topic.
-	err := p.pushFunc(ctx, &event)
+	err := p.pushFunc(ctx, event)
 	if err != nil {
 		p.logger.Error("can not push event to topic", zap.Error(err), zap.String("event", event.ID))
 	}

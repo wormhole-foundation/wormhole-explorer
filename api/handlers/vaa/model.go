@@ -28,8 +28,6 @@ type VaaDoc struct {
 	IndexedAt         *time.Time  `bson:"indexedAt" json:"indexedAt"`
 	// TxHash is an extension field - it is not present in the guardian API.
 	TxHash *string `bson:"txHash" json:"txHash,omitempty"`
-	// AppId is an extension field - it is not present in the guardian API.
-	AppId string `bson:"appId" json:"appId,omitempty"`
 	// Payload is an extension field - it is not present in the guardian API.
 	Payload map[string]interface{} `bson:"payload" json:"payload,omitempty"`
 

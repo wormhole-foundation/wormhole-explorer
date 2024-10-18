@@ -12,29 +12,40 @@ import (
 
 // Service definition.
 type Service struct {
-	repo   *Repository
-	logger *zap.Logger
+	mongoRepo    *MongoRepository
+	postgresRepo *PostgresRepository
+	logger       *zap.Logger
 }
 
 // NewService create a new Service.
-func NewService(dao *Repository, logger *zap.Logger) *Service {
-	return &Service{repo: dao, logger: logger.With(zap.String("module", "ObservationsService"))}
+func NewService(mongoRepo *MongoRepository, postgresRepo *PostgresRepository, logger *zap.Logger) *Service {
+	return &Service{mongoRepo: mongoRepo,
+		postgresRepo: postgresRepo,
+		logger:       logger.With(zap.String("module", "ObservationsService"))}
 }
 
 // FindAll get all the observations.
-func (s *Service) FindAll(ctx context.Context, p *FindAllParams) ([]*ObservationDoc, error) {
-	return s.repo.Find(ctx, Query().SetPagination(p.Pagination).SetTxHash(p.TxHash))
+func (s *Service) FindAll(ctx context.Context, usePostgres bool, p *FindAllParams) ([]*ObservationDoc, error) {
+	query := Query().SetPagination(p.Pagination).SetTxHash(p.TxHash)
+	if usePostgres {
+		return s.postgresRepo.Find(ctx, query)
+	}
+	return s.mongoRepo.Find(ctx, query)
 }
 
 // FindByChain get all the observations by chainID.
-func (s *Service) FindByChain(ctx context.Context, chain vaa.ChainID, p *pagination.Pagination) ([]*ObservationDoc, error) {
+func (s *Service) FindByChain(ctx context.Context, usePostgres bool, chain vaa.ChainID, p *pagination.Pagination) ([]*ObservationDoc, error) {
 	query := Query().SetChain(chain).SetPagination(p)
-	return s.repo.Find(ctx, query)
+	if usePostgres {
+		return s.postgresRepo.Find(ctx, query)
+	}
+	return s.mongoRepo.Find(ctx, query)
 }
 
 // FindByEmitter get all the observations by chainID and emitter address.
 func (s *Service) FindByEmitter(
 	ctx context.Context,
+	usePostgres bool,
 	chain vaa.ChainID,
 	emitter *types.Address,
 	p *pagination.Pagination,
@@ -45,12 +56,16 @@ func (s *Service) FindByEmitter(
 		SetEmitter(emitter.Hex()).
 		SetPagination(p)
 
-	return s.repo.Find(ctx, query)
+	if usePostgres {
+		return s.postgresRepo.Find(ctx, query)
+	}
+	return s.mongoRepo.Find(ctx, query)
 }
 
 // FindByVAA get all the observations for a VAA (chainID, emitter addrress and sequence number).
 func (s *Service) FindByVAA(
 	ctx context.Context,
+	usePostgres bool,
 	chain vaa.ChainID,
 	emitter *types.Address,
 	seq string,
@@ -63,12 +78,16 @@ func (s *Service) FindByVAA(
 		SetSequence(seq).
 		SetPagination(p)
 
-	return s.repo.Find(ctx, query)
+	if usePostgres {
+		return s.postgresRepo.Find(ctx, query)
+	}
+	return s.mongoRepo.Find(ctx, query)
 }
 
 // FindOne get a observation by chainID, emitter address, sequence, signer address and hash.
 func (s *Service) FindOne(
 	ctx context.Context,
+	usePostgres bool,
 	chainID vaa.ChainID,
 	emitterAddr *types.Address,
 	seq string,
@@ -83,5 +102,8 @@ func (s *Service) FindOne(
 		SetGuardianAddr(signerAddr.String()).
 		SetHash(hash)
 
-	return s.repo.FindOne(ctx, query)
+	if usePostgres {
+		return s.postgresRepo.FindOne(ctx, query)
+	}
+	return s.mongoRepo.FindOne(ctx, query)
 }

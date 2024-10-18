@@ -5,6 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/metric"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/storage"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
@@ -12,12 +13,12 @@ import (
 // Controller controller struct definition.
 type Controller struct {
 	pushMetric metric.MetricPushFunc
-	repository *Repository
+	repository storage.VaaRepository
 	logger     *zap.Logger
 }
 
 // NewController create a new controller.
-func NewController(pushMetric metric.MetricPushFunc, repository *Repository, logger *zap.Logger) *Controller {
+func NewController(pushMetric metric.MetricPushFunc, repository storage.VaaRepository, logger *zap.Logger) *Controller {
 	return &Controller{pushMetric: pushMetric, repository: repository, logger: logger}
 }
 
@@ -34,7 +35,7 @@ func (c *Controller) PushVAAMetrics(ctx *fiber.Ctx) error {
 
 	c.logger.Info("Push VAA from endpoint", zap.String("id", payload.ID))
 
-	vaaDoc, err := c.repository.FindById(ctx.Context(), payload.ID)
+	vaaDoc, err := c.repository.FindByVaaID(ctx.Context(), payload.ID)
 	if err != nil {
 		c.logger.Error("Error finding VAA", zap.Error(err))
 		return err
@@ -47,7 +48,7 @@ func (c *Controller) PushVAAMetrics(ctx *fiber.Ctx) error {
 	}
 
 	trackID := fmt.Sprintf("controller-%s", vaa.MessageID())
-	err = c.pushMetric(ctx.Context(), &metric.Params{TrackID: trackID, Vaa: vaa})
+	err = c.pushMetric(ctx.Context(), &metric.Params{Source: "controller", TrackID: trackID, Vaa: vaa})
 	if err != nil {
 		c.logger.Error("Error pushing metric", zap.Error(err))
 		return err

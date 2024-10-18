@@ -1,12 +1,19 @@
 package metrics
 
-import "time"
+import (
+	"time"
+
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
+)
 
 const serviceName = "wormscan-analytics"
 
 type Metrics interface {
 	IncFailedMeasurement(measurement string)
 	IncSuccessfulMeasurement(measurement string)
+	IncOperationPriceInserted(chainID sdk.ChainID)
+	// TODO remove IncTransferPricesInserted after to db migration.
+	IncTransferPricesInserted(chainID sdk.ChainID)
 	IncMissingNotional(symbol string)
 	IncFoundNotional(symbol string)
 	IncMissingToken(chain, token string)

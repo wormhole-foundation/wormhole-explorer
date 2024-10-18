@@ -3,10 +3,13 @@ package chains
 import (
 	"context"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
+
+	"strconv"
 	"time"
 
-	notional "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 
 	"github.com/mr-tron/base58"
@@ -25,8 +28,9 @@ type solanaTransactionSignature struct {
 }
 
 type solanaGetTransactionResponse struct {
-	BlockTime int64 `json:"blockTime"`
-	Meta      struct {
+	BlockTime   int64  `json:"blockTime"`
+	BlockNumber uint64 `json:"slot"`
+	Meta        struct {
 		InnerInstructions []struct {
 			Instructions []struct {
 				ParsedInstruction struct {
@@ -95,6 +99,10 @@ func (a *apiSolana) FetchSolanaTx(
 			metrics.IncCallRpcError(uint16(sdk.ChainIDSolana), rpc.Description)
 			logger.Debug("Failed to fetch transaction from Solana node", zap.String("url", rpc.Id), zap.Error(err))
 		}
+	}
+
+	if err != nil {
+		return nil, err
 	}
 
 	if txDetail != nil && txDetail.FeeDetail != nil && txDetail.FeeDetail.Fee != "" && a.p2pNetwork == domain.P2pMainNet {
@@ -186,9 +194,13 @@ func (a *apiSolana) fetchSolanaTx(
 		}
 	}
 
+	respJson, _ := json.Marshal(response)
+
 	// populate the response object
 	txDetail := TxDetail{
 		NativeTxHash: nativeTxHash,
+		BlockNumber:  strconv.FormatUint(response.BlockNumber, 10),
+		RpcResponse:  string(respJson),
 	}
 
 	// set sender/receiver
@@ -211,15 +223,15 @@ func (a *apiSolana) fetchSolanaTx(
 				"fee": fmt.Sprintf("%d", *response.Meta.Fee),
 			},
 		}
-		feeDetail.Fee = SolanaCalculateFee(*response.Meta.Fee).String()
+		feeDetail.Fee = SolanaCalculateFee(*response.Meta.Fee)
 		txDetail.FeeDetail = feeDetail
 	}
 
 	return &txDetail, nil
 }
 
-func SolanaCalculateFee(fee uint64) decimal.Decimal {
+func SolanaCalculateFee(fee uint64) string {
 	rawFee := decimal.NewFromUint64(fee)
 	calculatedFee := rawFee.DivRound(decimal.NewFromInt(1e9), 9)
-	return calculatedFee
+	return calculatedFee.String()
 }
