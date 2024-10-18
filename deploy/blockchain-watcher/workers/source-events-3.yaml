@@ -236,6 +236,45 @@ data:
               }
           }
         ]
+      },
+      {
+        "id": "poll-log-message-published-unichain-latest",
+        "chain": "unichain",
+        "source": {
+          "repository": "evmRepo",
+          "action": "PollEvm",
+          "config": {
+              "blockBatchSize": 100,
+              "commitment": "latest",
+              "interval": 5000,
+              "filters": [
+                {
+                  "addresses": ["0xBB73cB66C26740F31d1FabDC6b7A46a038A300dd"],
+                  "type": "Portal Token Bridge",
+                  "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+                }
+              ],
+              "chain": "unichain",
+              "chainId": 44
+          }
+        },
+        "handlers": [
+          {
+              "action": "HandleEvmLogs",
+              "target": "sns",
+              "mapper": "evmLogMessagePublishedMapper",
+              "config": {
+                "abis": [
+                  {
+                    "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                    "topic": "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2",
+                    "type": "Portal Token Bridge"
+                  }
+                ],
+                "metricName": "process_source_event"
+              }
+          }
+        ]
       }
     ]
   mainnet-jobs.json: |-
@@ -358,47 +397,6 @@ data:
                 "job": "poll-log-message-published-algorand",
                 "chain": "algorand",
                 "commitment": "latest"
-              }
-            }
-          }
-        ]
-      },
-      {
-        "id": "poll-log-message-published-terra-immediate",
-        "chain": "terra",
-        "source": {
-          "action": "PollCosmos",
-          "repository": "cosmosRepo",
-          "config": {
-            "blockBatchSize": 100,
-            "commitment": "immediate",
-            "environment": "mainnet",
-            "interval": 60000,
-            "filter": {
-              "addresses": [
-                "terra1dq03ugtd40zu9hcgdzrsq6z2z4hwhc9tqk2uy5"
-              ]
-            },
-            "chain": "terra",
-            "chainId": 3
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleCosmosTransactions",
-            "target": "sns",
-            "mapper": "cosmosLogMessagePublishedMapper",
-            "config": {
-              "filter": {
-                "addresses": [
-                  "terra1dq03ugtd40zu9hcgdzrsq6z2z4hwhc9tqk2uy5"
-                ]
-              },
-              "metricName": "process_source_event",
-              "metricLabels": {
-                "job": "poll-log-message-published-terra",
-                "chain": "terra",
-                "commitment": "immediate"
               }
             }
           }

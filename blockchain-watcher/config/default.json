@@ -247,6 +247,13 @@
       "rpcs": ["https://testnet.snaxchain.io/"],
       "timeout": 10000
     },
+    "unichain": {
+      "name": "unichain",
+      "network": "testnet",
+      "chainId": 44,
+      "rpcs": ["https://sepolia.unichain.org"],
+      "timeout": 10000
+    },
     "evmos": {
       "name": "evmos",
       "network": "testnet",
