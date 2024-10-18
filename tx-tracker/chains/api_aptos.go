@@ -34,6 +34,25 @@ func FetchAptosTx(
 	logger *zap.Logger,
 ) (*TxDetail, error) {
 
+	if isCreationNumber(txHash) {
+		return fetchAptosTxByCreationNumber(ctx, pool, txHash, metrics, logger)
+	}
+	return fetchAptosTxByTxHash(ctx, pool, txHash, metrics, logger)
+}
+
+func isCreationNumber(txHash string) bool {
+	_, err := strconv.ParseUint(txHash, 16, 64)
+	return err == nil
+}
+
+func fetchAptosTxByCreationNumber(
+	ctx context.Context,
+	pool *pool.Pool,
+	txHash string,
+	metrics metrics.Metrics,
+	logger *zap.Logger,
+) (*TxDetail, error) {
+
 	// Parse the Aptos event creation number
 	creationNumber, err := strconv.ParseUint(txHash, 16, 64)
 	if err != nil {
@@ -82,7 +101,7 @@ func FetchAptosTx(
 	for _, rpc := range rpcs {
 		// Wait for the RPC rate limiter
 		rpc.Wait(ctx)
-		tx, err = fetchAptosTx(ctx, rpc.Id, events[0].Version)
+		tx, err = fetchAptosTxByVersion(ctx, rpc.Id, events[0].Version)
 		if err != nil {
 			metrics.IncCallRpcError(uint16(sdk.ChainIDAptos), rpc.Description)
 			logger.Debug("Failed to fetch transaction from Aptos node", zap.String("url", rpc.Id), zap.Error(err))
@@ -132,22 +151,86 @@ func fetchAptosAccountEvents(ctx context.Context, baseUrl string, contractAddres
 	return events, nil
 }
 
-// fetchAptosTx queries the Aptos node API for the transaction details of a given version.
-func fetchAptosTx(ctx context.Context, baseUrl string, version uint64) (*aptosTx, error) {
+// fetchAptosTxByVersion queries the Aptos node API for the transaction details of a given version.
+func fetchAptosTxByVersion(ctx context.Context, baseUrl string, version uint64) (*aptosTx, error) {
 	// Build the URI for the events endpoint
 	uri := fmt.Sprintf("%s/v1/transactions/by_version/%d", baseUrl, version)
 
 	// Query the events endpoint
 	body, err := httpGet(ctx, uri)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query transactions endpoint: %w", err)
+		return nil, fmt.Errorf("failed to query transactions by version endpoint: %w", err)
 	}
 
 	// Deserialize the response
 	var tx aptosTx
 	err = json.Unmarshal(body, &tx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse response body from transactions endpoint: %w", err)
+		return nil, fmt.Errorf("failed to parse response body from transactions by version endpoint: %w", err)
+	}
+
+	return &tx, nil
+}
+
+func fetchAptosTxByTxHash(
+	ctx context.Context,
+	pool *pool.Pool,
+	txHash string,
+	metrics metrics.Metrics,
+	logger *zap.Logger,
+) (*TxDetail, error) {
+
+	// get rpc sorted by score and priority.
+	rpcs := pool.GetItems()
+	if len(rpcs) == 0 {
+		return nil, ErrChainNotSupported
+	}
+
+	// Get the transaction from the Aptos node API.
+	var tx *aptosTx
+	var err error
+	for _, rpc := range rpcs {
+		// Wait for the RPC rate limiter
+		rpc.Wait(ctx)
+		tx, err = fetchAptosTxByHash(ctx, rpc.Id, txHash)
+		if err != nil {
+			metrics.IncCallRpcError(uint16(sdk.ChainIDAptos), rpc.Description)
+			logger.Debug("Failed to fetch transaction by hash from Aptos node", zap.String("url", rpc.Id), zap.Error(err))
+			continue
+		}
+		metrics.IncCallRpcSuccess(uint16(sdk.ChainIDAptos), rpc.Description)
+		break
+	}
+
+	// Return an error if the transaction is not found
+	if tx == nil {
+		return nil, ErrTransactionNotFound
+	}
+
+	// Build the result struct and return
+	TxDetail := TxDetail{
+		NativeTxHash: tx.Hash,
+		From:         tx.Sender,
+	}
+	return &TxDetail, nil
+}
+
+// fetchAptosTxByHash queries the Aptos node API for the transaction details of a given hash.
+func fetchAptosTxByHash(ctx context.Context, baseUrl string, hash string) (*aptosTx, error) {
+	// Build the URI for the events endpoint
+	uri := fmt.Sprintf("%s/v1/transactions/by_hash/%s", baseUrl, hash)
+
+	// Query the events endpoint
+	body, err := httpGet(ctx, uri)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query transactions by hash endpoint: %w", err)
+	}
+
+	// Deserialize the response
+	var tx aptosTx
+	err = json.Unmarshal(body, &tx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse response body from transactions by hash endpoint: %w", err)
 	}
 
 	return &tx, nil
