@@ -101,7 +101,8 @@ func FetchTx(
 		sdk.ChainIDXLayer,
 		sdk.ChainIDMantle,
 		sdk.ChainIDPolygonSepolia, // polygon amoy
-		sdk.ChainIDSnaxchain:
+		sdk.ChainIDSnaxchain,
+		sdk.ChainIDUnichain:
 		apiEvm := &apiEvm{
 			chainId:       chainId,
 			notionalCache: notionalCache,
