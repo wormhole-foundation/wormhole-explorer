@@ -12,11 +12,11 @@ export const aptosLogMessagePublishedMapper = (
 ): LogFoundEvent<LogMessagePublished> | undefined => {
   const wormholeEvent = transaction.events.find((tx: any) => tx.type.includes(REDEEM_EVENT_TAIL));
   const wormholeData = wormholeEvent.data;
-
   const address = transaction.payload.function.split("::")[0];
+  const sender = wormholeData.sender.padStart(64, "0");
 
   logger.info(
-    `[aptos] Source event info: [tx: ${transaction.hash}][VAA: ${CHAIN_ID_APTOS}/${wormholeData.sender}/${wormholeData.sequence}]`
+    `[aptos] Source event info: [tx: ${transaction.hash}][VAA: ${CHAIN_ID_APTOS}/${sender}/${wormholeData.sequence}]`
   );
 
   return {
@@ -27,7 +27,7 @@ export const aptosLogMessagePublishedMapper = (
     blockHeight: transaction.blockHeight,
     blockTime: wormholeData.timestamp,
     attributes: {
-      sender: wormholeData.sender,
+      sender: sender,
       sequence: Number(wormholeData.sequence),
       payload: wormholeData.payload,
       nonce: Number(wormholeData.nonce),
