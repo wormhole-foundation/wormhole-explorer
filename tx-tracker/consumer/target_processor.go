@@ -69,6 +69,7 @@ func ProcessTargetTx(
 
 	update := &TargetTxUpdate{
 		VaaID:   params.VaaID,
+		Source:  params.Source,
 		TrackID: params.TrackID,
 		Destination: &DestinationTx{
 			ChainID:     params.ChainID,

@@ -110,7 +110,7 @@ func runMongoBackfiller(ctx context.Context, logger *zap.Logger,
 		}
 		for _, v := range vaas {
 			logger.Debug("Processing vaa", zap.String("id", v.ID))
-			p := &processor.Params{Vaa: v.Vaa, TrackID: fmt.Sprintf("backfiller-%s", v.ID)}
+			p := &processor.Params{Vaa: v.Vaa, Source: "backfiller", TrackID: fmt.Sprintf("backfiller-%s", v.ID)}
 			_, err := eventProcessor.Process(ctx, p)
 			if err != nil {
 				logger.Error("Failed to process vaa", zap.String("id", v.ID), zap.Error(err))
@@ -212,7 +212,7 @@ func runPostgresBackfiller(ctx context.Context, logger *zap.Logger,
 		for _, attestationVaa := range attestationVaas {
 			logger.Debug("Processing attestation vaa", zap.String("id", attestationVaa.ID),
 				zap.String("vaaId", attestationVaa.VaaID))
-			p := &processor.Params{Vaa: attestationVaa.Raw, TrackID: fmt.Sprintf("backfiller-%s", attestationVaa.ID)}
+			p := &processor.Params{Vaa: attestationVaa.Raw, Source: "backfiller", TrackID: fmt.Sprintf("backfiller-%s", attestationVaa.ID)}
 			_, err := eventProcessor.Process(ctx, p)
 			if err != nil {
 				logger.Error("Failed to process attestation vaa",

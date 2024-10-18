@@ -48,7 +48,7 @@ func (c *Controller) PushVAAMetrics(ctx *fiber.Ctx) error {
 	}
 
 	trackID := fmt.Sprintf("controller-%s", vaa.MessageID())
-	err = c.pushMetric(ctx.Context(), &metric.Params{TrackID: trackID, Vaa: vaa})
+	err = c.pushMetric(ctx.Context(), &metric.Params{Source: "controller", TrackID: trackID, Vaa: vaa})
 	if err != nil {
 		c.logger.Error("Error pushing metric", zap.Error(err))
 		return err

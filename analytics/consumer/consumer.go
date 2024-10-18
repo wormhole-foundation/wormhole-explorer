@@ -50,7 +50,10 @@ func (c *Consumer) Start(ctx context.Context) {
 			}
 
 			// push vaa metrics.
-			err = c.pushMetric(ctx, &metric.Params{TrackID: event.TrackID, Vaa: vaa, VaaIsSigned: event.VaaIsSigned})
+			err = c.pushMetric(
+				ctx,
+				&metric.Params{Source: event.Source, TrackID: event.TrackID, Vaa: vaa, VaaIsSigned: event.VaaIsSigned},
+			)
 			if err != nil {
 				msg.Failed()
 				c.metrics.IncUnprocessedMessage(chainID, event.Source, msg.Retry())
