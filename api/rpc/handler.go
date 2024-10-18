@@ -107,7 +107,7 @@ func (h *Handler) GetLastHeartbeats(ctx context.Context, request *publicrpcv1.Ge
 	guardianAddresses := guardianSet.KeysAsHexStrings()
 
 	// get last heartbeats by ids.
-	heartbeats, err := h.hbSrv.GetHeartbeatsByIds(ctx, false, guardianAddresses)
+	heartbeats, err := h.hbSrv.GetHeartbeatsByIds(ctx, h.usePostgres, guardianAddresses)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "internal server error")
 	}
