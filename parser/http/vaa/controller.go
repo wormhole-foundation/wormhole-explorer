@@ -48,7 +48,7 @@ func (c *Controller) Parse(ctx *fiber.Ctx) error {
 
 	trackID := fmt.Sprintf("controller-%s", payload.ID)
 
-	vaaParsed, err := c.processor(ctx.Context(), &processor.Params{Vaa: rawVaa, TrackID: trackID})
+	vaaParsed, err := c.processor(ctx.Context(), &processor.Params{Vaa: rawVaa, Source: "controller", TrackID: trackID})
 	if err != nil {
 		return err
 	}

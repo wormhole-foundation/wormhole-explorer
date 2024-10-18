@@ -13,6 +13,8 @@ type PricesRepository interface {
 }
 
 type OperationPrice struct {
+	Source        string
+	TrackID       string
 	Digest        string
 	VaaID         string
 	ChainID       sdk.ChainID

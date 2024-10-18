@@ -28,9 +28,9 @@ func (r *PostreSqlRepositoryImpl) GetTxHash(ctx context.Context, vaaDigest strin
 func (r *PostreSqlRepositoryImpl) CreateOperationTransaction(ctx context.Context, opTx OperationTransaction) error {
 	_, err := r.db.Exec(ctx,
 		`INSERT INTO wormholescan.wh_operation_transactions (chain_id, tx_hash, type, created_at,
-		 updated_at, attestation_vaas_id, vaa_id, from_address, timestamp) 
-		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
-		 ON CONFLICT (chain_id, tx_hash) DO NOTHING`,
+		 updated_at, attestation_id, message_id, from_address, timestamp, source_event, track_id_event)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+		 ON CONFLICT (message_id, tx_hash) DO NOTHING`,
 		opTx.ChainID,
 		opTx.TxHash,
 		opTx.Type,
@@ -39,6 +39,8 @@ func (r *PostreSqlRepositoryImpl) CreateOperationTransaction(ctx context.Context
 		opTx.AttestationVaaID,
 		opTx.VaaID,
 		opTx.FromAddress,
-		opTx.Timestamp)
+		opTx.Timestamp,
+		opTx.Source,
+		opTx.TrackID)
 	return err
 }

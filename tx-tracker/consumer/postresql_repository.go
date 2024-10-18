@@ -72,14 +72,14 @@ func (p *PostgreSQLRepository) upsertSourceTx(ctx context.Context, params *Upser
 
 	query := `
 		INSERT INTO wormholescan.wh_operation_transactions 
-		(chain_id, tx_hash, type, created_at, updated_at, attestation_vaas_id, message_id, status, from_address, to_address, block_number, blockchain_method, fee_detail, timestamp, rpc_response)
-		VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+		(chain_id, tx_hash, type, created_at, updated_at, attestation_id, message_id, status, from_address, to_address, block_number, blockchain_method, fee_detail, timestamp, rpc_response, source_event, track_id_event)
+		VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
 		ON CONFLICT (message_id, tx_hash) DO UPDATE
 		SET 
 			type = EXCLUDED.type,
 			created_at = wormholescan.wh_operation_transactions.created_at,
 			updated_at = EXCLUDED.updated_at,
-			attestation_vaas_id = EXCLUDED.attestation_vaas_id,
+			attestation_id = EXCLUDED.attestation_id,
 			message_id = EXCLUDED.message_id,
 			status = EXCLUDED.status,
 			from_address = COALESCE(EXCLUDED.from_address, wormholescan.wh_operation_transactions.from_address),
@@ -88,7 +88,9 @@ func (p *PostgreSQLRepository) upsertSourceTx(ctx context.Context, params *Upser
 			blockchain_method = COALESCE(EXCLUDED.blockchain_method, wormholescan.wh_operation_transactions.blockchain_method),
 			fee_detail = COALESCE(EXCLUDED.fee_detail, wormholescan.wh_operation_transactions.fee_detail),
 			timestamp = EXCLUDED.timestamp,
-			rpc_response = COALESCE(EXCLUDED.rpc_response, wormholescan.wh_operation_transactions.rpc_response)
+			rpc_response = COALESCE(EXCLUDED.rpc_response, wormholescan.wh_operation_transactions.rpc_response),
+			source_event = COALESCE(EXCLUDED.source_event, wormholescan.wh_operation_transactions.source_event),
+			track_id_event = COALESCE(EXCLUDED.track_id_event, wormholescan.wh_operation_transactions.track_id_event)
 		`
 
 	var from, to, rpcResponse, nativeTxHash *string
@@ -124,7 +126,7 @@ func (p *PostgreSQLRepository) upsertSourceTx(ctx context.Context, params *Upser
 		params.TxType,    // type
 		time.Now(),       // created_at
 		time.Now(),       // updated_at
-		params.Id,        // attestation_vaas_id
+		params.Id,        // attestation_id
 		params.VaaId,     // message_id
 		params.TxStatus,  // status
 		from,             // from_address
@@ -134,6 +136,8 @@ func (p *PostgreSQLRepository) upsertSourceTx(ctx context.Context, params *Upser
 		feeDetail,        // fee_detail
 		params.Timestamp, // timestamp
 		rpcResponse,      // rpc_response
+		params.Source,    // source_event
+		params.TrackID,   // track_id_event
 	)
 
 	if err != nil {
@@ -195,7 +199,7 @@ func (p *PostgreSQLRepository) registerProcessedVaa(ctx context.Context, params 
 
 	// insert into wh_operation_transactions_processed.
 	_, err := p.dbClient.Exec(ctx,
-		`INSERT INTO wormholescan.wh_operation_transactions_processed (message_id,tx_hash,attestation_vaas_id,"type", processed,created_at,updated_at)
+		`INSERT INTO wormholescan.wh_operation_transactions_processed (message_id,tx_hash,attestation_id,"type", processed,created_at,updated_at)
 				VALUES ($1,$2,$3,$4,true,$5,$6)
 				ON CONFLICT (message_id, tx_hash) DO UPDATE
 					SET updated_at = EXCLUDED.updated_at`,
@@ -206,14 +210,14 @@ func (p *PostgreSQLRepository) registerProcessedVaa(ctx context.Context, params 
 func (p *PostgreSQLRepository) UpsertTargetTx(ctx context.Context, params *TargetTxUpdate) error {
 	query := `
 		INSERT INTO wormholescan.wh_operation_transactions 
-		(chain_id, tx_hash, type, created_at, updated_at, attestation_vaas_id, message_id, status, from_address, to_address, block_number, blockchain_method, fee_detail, timestamp, rpc_response)
-		VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+		(chain_id, tx_hash, type, created_at, updated_at, attestation_id, message_id, status, from_address, to_address, block_number, blockchain_method, fee_detail, timestamp, rpc_response, source_event, track_id_event)
+		VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
 		ON CONFLICT (message_id, tx_hash) DO UPDATE
 		SET 
 			type = EXCLUDED.type,
 			created_at = wormholescan.wh_operation_transactions.created_at,
 			updated_at = EXCLUDED.updated_at,
-			attestation_vaas_id = EXCLUDED.attestation_vaas_id,
+			attestation_id = EXCLUDED.attestation_id,
 			message_id = EXCLUDED.message_id,
 			status = COALESCE(EXCLUDED.status, wormholescan.wh_operation_transactions.status),
 			from_address = COALESCE(EXCLUDED.from_address, wormholescan.wh_operation_transactions.from_address),
@@ -222,7 +226,9 @@ func (p *PostgreSQLRepository) UpsertTargetTx(ctx context.Context, params *Targe
 			blockchain_method = COALESCE(EXCLUDED.blockchain_method, wormholescan.wh_operation_transactions.blockchain_method),
 			fee_detail = COALESCE(EXCLUDED.fee_detail, wormholescan.wh_operation_transactions.fee_detail),
 			timestamp = EXCLUDED.timestamp,
-			rpc_response = COALESCE(EXCLUDED.rpc_response, wormholescan.wh_operation_transactions.rpc_response)
+			rpc_response = COALESCE(EXCLUDED.rpc_response, wormholescan.wh_operation_transactions.rpc_response),
+			source_event = COALESCE(EXCLUDED.source_event, wormholescan.wh_operation_transactions.source_event),
+			track_id_event = COALESCE(EXCLUDED.track_id_event, wormholescan.wh_operation_transactions.track_id_event)
 		`
 
 	var from, to, blockchainMethod, status, txHash *string
@@ -259,7 +265,7 @@ func (p *PostgreSQLRepository) UpsertTargetTx(ctx context.Context, params *Targe
 		"target-tx",      // type
 		time.Now(),       // created_at
 		updatedAt,        // updated_at
-		params.ID,        // attestation_vaas_id
+		params.ID,        // attestation_id
 		params.VaaID,     // message_id
 		status,           // status
 		from,             // from_address
@@ -269,6 +275,9 @@ func (p *PostgreSQLRepository) UpsertTargetTx(ctx context.Context, params *Targe
 		feeDetail,        // fee_detail
 		timestamp,        // timestamp
 		nil,              // rpc_response
+		params.Source,    // source_event
+		params.TrackID,   // track_id_event
+
 	)
 	if err != nil {
 		return err

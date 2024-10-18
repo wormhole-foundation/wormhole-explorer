@@ -20,8 +20,8 @@ func Test_buildQueryIDsForAddress(t *testing.T) {
 	expectedQuery := `
         SELECT oa.id FROM wormholescan.wh_operation_addresses oa
         WHERE oa.address = $1 AND exists (
-            SELECT ot.attestation_vaas_id FROM wormholescan.wh_operation_transactions ot
-            WHERE ot.attestation_vaas_id = oa.id 
+            SELECT ot.attestation_id FROM wormholescan.wh_operation_transactions ot
+            WHERE ot.attestation_id = oa.id 
         ) 
         ORDER BY oa."timestamp" DESC, oa.id DESC
         LIMIT $2 OFFSET $3`
@@ -43,8 +43,8 @@ func Test_buildQueryIDsForAddressWithFromAndTo(t *testing.T) {
 	expectedQuery := `
         SELECT oa.id FROM wormholescan.wh_operation_addresses oa
         WHERE oa.address = $1 AND exists (
-            SELECT ot.attestation_vaas_id FROM wormholescan.wh_operation_transactions ot
-            WHERE ot.attestation_vaas_id = oa.id 
+            SELECT ot.attestation_id FROM wormholescan.wh_operation_transactions ot
+            WHERE ot.attestation_id = oa.id 
         )  AND oa."timestamp" >= $4 AND oa."timestamp" <= $5
         ORDER BY oa."timestamp" DESC, oa.id DESC
         LIMIT $2 OFFSET $3`
@@ -70,8 +70,8 @@ func Test_buildQueryIDsForAddressWithTo(t *testing.T) {
 	expectedQuery := `
         SELECT oa.id FROM wormholescan.wh_operation_addresses oa
         WHERE oa.address = $1 AND exists (
-            SELECT ot.attestation_vaas_id FROM wormholescan.wh_operation_transactions ot
-            WHERE ot.attestation_vaas_id = oa.id 
+            SELECT ot.attestation_id FROM wormholescan.wh_operation_transactions ot
+            WHERE ot.attestation_id = oa.id 
         )  AND oa."timestamp" <= $4
         ORDER BY oa."timestamp" DESC, oa.id DESC
         LIMIT $2 OFFSET $3`
@@ -93,9 +93,9 @@ func Test_buildQueryIDsForTxHash(t *testing.T) {
 	pagination := pagination.Default()
 
 	expectedQuery := `
-        SELECT t.attestation_vaas_id FROM wormholescan.wh_operation_transactions t
+        SELECT t.attestation_id FROM wormholescan.wh_operation_transactions t
         WHERE t.tx_hash = $1 
-        ORDER BY t.timestamp DESC, t.attestation_vaas_id DESC
+        ORDER BY t.timestamp DESC, t.attestation_id DESC
         LIMIT $2 OFFSET $3`
 
 	query, params := repo.buildQueryIDsForTxHash("0x87ebf4ae9a729855e491557270dc3e69da04092e6f6ca0025b2f88a2c1ea9be6", nil, nil, *pagination)
@@ -115,9 +115,9 @@ func Test_buildQueryIDsForTxHashWithFromAndTo(t *testing.T) {
 	to := time.Date(2024, 7, 6, 0, 36, 0, 0, time.UTC)
 
 	expectedQuery := `
-        SELECT t.attestation_vaas_id FROM wormholescan.wh_operation_transactions t
+        SELECT t.attestation_id FROM wormholescan.wh_operation_transactions t
         WHERE t.tx_hash = $1  AND t."timestamp" >= $4 AND t."timestamp" <= $5
-        ORDER BY t.timestamp DESC, t.attestation_vaas_id DESC
+        ORDER BY t.timestamp DESC, t.attestation_id DESC
         LIMIT $2 OFFSET $3`
 
 	query, params := repo.buildQueryIDsForTxHash("0x87ebf4ae9a729855e491557270dc3e69da04092e6f6ca0025b2f88a2c1ea9be6", &from, &to, *pagination)
@@ -136,9 +136,9 @@ func Test_buildQueryIDsForQuery(t *testing.T) {
 	pagination := pagination.Default()
 
 	expectedQuery := `
-            SELECT op.attestation_vaas_id FROM wormholescan.wh_operation_transactions op
+            SELECT op.attestation_id FROM wormholescan.wh_operation_transactions op
             WHERE op."type" = 'source-tx' 
-            ORDER BY op."timestamp" DESC, op.attestation_vaas_id DESC
+            ORDER BY op."timestamp" DESC, op.attestation_id DESC
             LIMIT $1 OFFSET $2`
 
 	query, params := repo.buildQueryIDsForQuery(OperationQuery{}, *pagination)
@@ -157,9 +157,9 @@ func Test_buildQueryIDsForQueryWithFromAndTo(t *testing.T) {
 	q := OperationQuery{From: &from, To: &to}
 
 	expectedQuery := `
-            SELECT op.attestation_vaas_id FROM wormholescan.wh_operation_transactions op
+            SELECT op.attestation_id FROM wormholescan.wh_operation_transactions op
             WHERE op."type" = 'source-tx'  AND op."timestamp" >= $3 AND op."timestamp" <= $4
-            ORDER BY op."timestamp" DESC, op.attestation_vaas_id DESC
+            ORDER BY op."timestamp" DESC, op.attestation_id DESC
             LIMIT $1 OFFSET $2`
 
 	query, params := repo.buildQueryIDsForQuery(q, *pagination)
@@ -179,9 +179,9 @@ func Test_buildQueryIDsForQueryWithFrom(t *testing.T) {
 	q := OperationQuery{From: &from}
 
 	expectedQuery := `
-            SELECT op.attestation_vaas_id FROM wormholescan.wh_operation_transactions op
+            SELECT op.attestation_id FROM wormholescan.wh_operation_transactions op
             WHERE op."type" = 'source-tx'  AND op."timestamp" >= $3
-            ORDER BY op."timestamp" DESC, op.attestation_vaas_id DESC
+            ORDER BY op."timestamp" DESC, op.attestation_id DESC
             LIMIT $1 OFFSET $2`
 
 	query, params := repo.buildQueryIDsForQuery(q, *pagination)
@@ -199,8 +199,11 @@ func Test_buildQueryIDsForQueryWithTargetChains(t *testing.T) {
 	q := OperationQuery{TargetChainIDs: []sdk.ChainID{sdk.ChainIDSolana, sdk.ChainIDEthereum}}
 
 	expectedQuery := `
-        SELECT p.id FROM wormholescan.wh_attestation_vaa_properties p
-        WHERE p.to_chain_id = ANY($1)
+        SELECT p.id FROM wormholescan.wh_operation_properties p
+        WHERE exists (
+            SELECT ot.attestation_id FROM wormholescan.wh_operation_transactions ot
+            WHERE ot.attestation_id = p.id
+        ) AND p.to_chain_id = ANY($1)
         ORDER BY p.timestamp DESC, p.id DESC
         LIMIT $2 OFFSET $3`
 
@@ -220,8 +223,11 @@ func Test_buildQueryIDsForQueryWithTargetChainsAndFrom(t *testing.T) {
 	q := OperationQuery{From: &from, SourceChainIDs: []sdk.ChainID{sdk.ChainIDAptos}}
 
 	expectedQuery := `
-        SELECT p.id FROM wormholescan.wh_attestation_vaa_properties p
-        WHERE p.from_chain_id = ANY($1) AND p."timestamp" >= $2
+        SELECT p.id FROM wormholescan.wh_operation_properties p
+        WHERE exists (
+            SELECT ot.attestation_id FROM wormholescan.wh_operation_transactions ot
+            WHERE ot.attestation_id = p.id
+        ) AND p.from_chain_id = ANY($1) AND p."timestamp" >= $2
         ORDER BY p.timestamp DESC, p.id DESC
         LIMIT $3 OFFSET $4`
 

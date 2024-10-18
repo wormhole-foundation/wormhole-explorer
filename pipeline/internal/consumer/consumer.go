@@ -133,6 +133,8 @@ func buildOperationTransaction(event *queue.Event, txHash string) OperationTrans
 		VaaID:            event.VaaID,
 		FromAddress:      &event.EmitterAddress,
 		Timestamp:        &event.Timestamp,
+		Source:           event.Source,
+		TrackID:          event.TrackID,
 	}
 }
 
@@ -142,8 +144,10 @@ type OperationTransaction struct {
 	Type             string      `json:"type"`
 	CreatedAt        time.Time   `json:"created_at"`
 	UpdatedAt        time.Time   `json:"updated_at"`
-	AttestationVaaID string      `json:"attestation_vaas_id"`
+	AttestationVaaID string      `json:"attestation_id"`
 	VaaID            string      `json:"vaaId"`
 	FromAddress      *string     `json:"from_address"`
 	Timestamp        *time.Time  `json:"timestamp"`
+	Source           string      `json:"source"`
+	TrackID          string      `json:"track_id"`
 }
