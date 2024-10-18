@@ -13,7 +13,7 @@ export const aptosLogMessagePublishedMapper = (
   const wormholeEvent = transaction.events.find((tx: any) => tx.type.includes(REDEEM_EVENT_TAIL));
   const wormholeData = wormholeEvent.data;
   const address = transaction.payload.function.split("::")[0];
-  const sender = `000000000000000000000000000000000000000000000000000000000000000${wormholeData.sender}`;
+  const sender = wormholeData.sender.padStart(64, "0");
 
   logger.info(
     `[aptos] Source event info: [tx: ${transaction.hash}][VAA: ${CHAIN_ID_APTOS}/${sender}/${wormholeData.sequence}]`
