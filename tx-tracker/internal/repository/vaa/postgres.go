@@ -33,7 +33,7 @@ func (r *RepositoryPostreSQL) GetVaa(ctx context.Context, id string) (*VaaDoc, e
 		err = r.postreSQLClient.SelectOne(
 			ctx,
 			res,
-			"SELECT attestation_vaas_id as id, message_id, tx_hash FROM wormholescan.wh_operation_transactions WHERE message_id = $1 LIMIT 1", // LIMIT 1 is due to wormchain transactions which have 2 txs.
+			"SELECT attestation_id as id, message_id, tx_hash FROM wormholescan.wh_operation_transactions WHERE message_id = $1 LIMIT 1", // LIMIT 1 is due to wormchain transactions which have 2 txs.
 			id)
 	}
 	return res, err

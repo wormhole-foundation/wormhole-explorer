@@ -42,7 +42,7 @@ type vaaResult struct {
 	// field TxHash belongs to table wh_operation_transactions.
 	// It was added for compatibility.
 	TxHash *string `db:"tx_hash"`
-	// field ParsedPayload belongs to table wh_attestation_vaa_properties.
+	// field ParsedPayload belongs to table wh_operation_properties.
 	// It was added for compatibility.
 	ParsedPayload map[string]any `db:"payload"`
 }
@@ -142,10 +142,10 @@ func (q VaaQuery) toQueryByIds() (string, []any) {
 	}
 
 	query += "FROM wormholescan.wh_attestation_vaas as v \n"
-	query += "LEFT JOIN wormholescan.wh_operation_transactions as t ON v.id = t.attestation_vaas_id \n"
+	query += "LEFT JOIN wormholescan.wh_operation_transactions as t ON v.id = t.attestation_id \n"
 
 	if q.includeParsedPayload {
-		query += "LEFT JOIN wormholescan.wh_attestation_vaa_properties as p ON v.id = p.id \n"
+		query += "LEFT JOIN wormholescan.wh_operation_properties as p ON v.id = p.id \n"
 	}
 
 	conditions := make([]string, 0, len(q.ids))
@@ -177,10 +177,10 @@ func (q *VaaQuery) toQueryByTxHash() (string, []any) {
 	}
 
 	query += "FROM wormholescan.wh_operation_transactions as t \n"
-	query += "INNER JOIN wormholescan.wh_attestation_vaas as v ON v.id = t.attestation_vaas_id AND v.active = TRUE \n"
+	query += "INNER JOIN wormholescan.wh_attestation_vaas as v ON v.id = t.attestation_id AND v.active = TRUE \n"
 
 	if q.includeParsedPayload {
-		query += "LEFT JOIN wormholescan.wh_attestation_vaa_properties as p ON t.attestation_vaas_id = p.id \n"
+		query += "LEFT JOIN wormholescan.wh_operation_properties as p ON t.attestation_id = p.id \n"
 	}
 
 	query += "WHERE t.tx_hash = $1 \n"
@@ -207,10 +207,10 @@ func (q *VaaQuery) toQueryWithFilters() (string, []any) {
 		query += "FROM wormholescan.wh_attestation_vaas_pythnet as v \n"
 	}
 
-	query += "LEFT JOIN wormholescan.wh_operation_transactions as t ON v.id = t.attestation_vaas_id \n"
+	query += "LEFT JOIN wormholescan.wh_operation_transactions as t ON v.id = t.attestation_id \n"
 
 	if q.includeParsedPayload {
-		query += "LEFT JOIN wormholescan.wh_attestation_vaa_properties as p ON v.id = p.id \n"
+		query += "LEFT JOIN wormholescan.wh_operation_properties as p ON v.id = p.id \n"
 	}
 
 	query += "WHERE v.active = TRUE \n"
@@ -243,9 +243,9 @@ func (q *VaaQuery) toQueryByToChain() (string, []any) {
 		query += "\n"
 	}
 
-	query += "FROM wormholescan.wh_attestation_vaa_properties as p \n"
+	query += "FROM wormholescan.wh_operation_properties as p \n"
 	query += "INNER JOIN wormholescan.wh_attestation_vaas as v ON v.id = p.id AND v.active = TRUE \n"
-	query += "LEFT JOIN wormholescan.wh_operation_transactions as t ON p.id = t.attestation_vaas_id \n"
+	query += "LEFT JOIN wormholescan.wh_operation_transactions as t ON p.id = t.attestation_id \n"
 
 	if q.toChain > 0 {
 		query += "WHERE p.to_chain_id = $1 \n"

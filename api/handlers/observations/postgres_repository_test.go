@@ -41,7 +41,7 @@ func TestPostgresRepository_toQueryWithTxHash(t *testing.T) {
 	assert.Equal(t, 1, len(params))
 	assert.Equal(t,
 		`SELECT obs.* FROM wormholescan.wh_observations obs 
-JOIN wormholescan.wh_operation_transactions ot ON obs.hash = ot.attestation_vaas_id 
+JOIN wormholescan.wh_operation_transactions ot ON obs.hash = ot.attestation_id 
 WHERE ot.tx_hash = $1 
 ORDER BY obs.created_at DESC 
 LIMIT 50 OFFSET 0`, query)

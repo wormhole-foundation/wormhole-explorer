@@ -102,7 +102,7 @@ func (p *Processor) Process(ctx context.Context, params *Params) (*parser.Parsed
 		params.TrackID, vaa.MessageID(), vaaParseResponse.StandardizedProperties)
 	now := time.Now()
 	err = p.upserteVaaParse(ctx, vaa, vaaParseResponse,
-		standardizedProperties, now, logger)
+		standardizedProperties, now, params.Source, params.TrackID, logger)
 	if err != nil {
 		logger.Error("Error inserting parsed vaa",
 			zap.String("trackId", params.TrackID),
@@ -145,6 +145,7 @@ func (p *Processor) Process(ctx context.Context, params *Params) (*parser.Parsed
 func (p *Processor) upserteVaaParse(ctx context.Context, vaa *sdk.VAA,
 	vaaParseResponse *vaaPayloadParser.ParseVaaWithStandarizedPropertiesdResponse,
 	standardizedProperties vaaPayloadParser.StandardizedProperties, now time.Time,
+	sourceEvent, trackIDEvent string,
 	logger *zap.Logger) error {
 
 	emitterAddress := vaa.EmitterAddress.String()
@@ -172,7 +173,7 @@ func (p *Processor) upserteVaaParse(ctx context.Context, vaa *sdk.VAA,
 		return err
 	case config.DbLayerPostgres:
 		attestationVaaProperties, err := buildAttestationVaaProperties(
-			vaa, standardizedProperties, vaaParseResponse, logger)
+			vaa, standardizedProperties, vaaParseResponse, sourceEvent, trackIDEvent, logger)
 		if err != nil {
 			return err
 		}
@@ -208,7 +209,7 @@ func (p *Processor) upserteVaaParse(ctx context.Context, vaa *sdk.VAA,
 
 		// upsert postgres
 		attestationVaaProperties, err := buildAttestationVaaProperties(
-			vaa, standardizedProperties, vaaParseResponse, p.logger)
+			vaa, standardizedProperties, vaaParseResponse, sourceEvent, trackIDEvent, p.logger)
 		if err != nil {
 			return err
 		}
@@ -229,6 +230,7 @@ func buildAttestationVaaProperties(
 	vaa *sdk.VAA,
 	standardizedProperties vaaPayloadParser.StandardizedProperties,
 	vaaParseResponse *vaaPayloadParser.ParseVaaWithStandarizedPropertiesdResponse,
+	sourceEvent, trackIDEvent string,
 	logger *zap.Logger) (parser.AttestationVaaProperties, error) {
 
 	// get raw payload.
@@ -365,6 +367,8 @@ func buildAttestationVaaProperties(
 		FeeAddress:        feeAddress,
 		Fee:               fee,
 		Timestamp:         vaa.Timestamp,
+		SourceEvent:       sourceEvent,
+		TrackIDEvent:      trackIDEvent,
 	}, nil
 }
 

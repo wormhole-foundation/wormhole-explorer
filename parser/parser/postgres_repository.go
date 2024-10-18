@@ -48,14 +48,14 @@ func (r *PostgresRepository) UpsertAttestationVaaProperties(ctx context.Context,
 func (r *PostgresRepository) upsertAttestationVaaProperties(ctx context.Context,
 	attestationVaaProperites AttestationVaaProperties) error {
 
-	query := `INSERT INTO wormholescan.wh_attestation_vaa_properties (id, message_id, app_id, payload,
+	query := `INSERT INTO wormholescan.wh_operation_properties (id, message_id, app_id, payload,
 	payload_type, raw_standard_fields, from_chain_id, from_address, to_chain_id, to_address, token_chain_id,
 	token_address, amount, fee_chain_id, fee_address, fee, "timestamp", created_at, 
-	updated_at) VAlUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16,
-	$17, $18, $19) ON CONFLICT (id) DO UPDATE SET message_id = $2, app_id = $3, payload = $4, payload_type = $5,
+	updated_at, source_event, track_id_event) VAlUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16,
+	$17, $18, $19, $20, $21) ON CONFLICT (id) DO UPDATE SET message_id = $2, app_id = $3, payload = $4, payload_type = $5,
 	raw_standard_fields = $6, from_chain_id = $7, from_address = $8, to_chain_id = $9, 
 	to_address = $10, token_chain_id = $11, token_address = $12, amount = $13, fee_chain_id = $14,
-	fee_address = $15, fee = $16, "timestamp" = $17, updated_at = $18`
+	fee_address = $15, fee = $16, "timestamp" = $17, updated_at = $18, source_event = $20, track_id_event = $21`
 
 	now := time.Now()
 	_, err := r.db.Exec(ctx,
@@ -78,7 +78,10 @@ func (r *PostgresRepository) upsertAttestationVaaProperties(ctx context.Context,
 		attestationVaaProperites.Fee,
 		attestationVaaProperites.Timestamp,
 		now,
-		now)
+		now,
+		attestationVaaProperites.SourceEvent,
+		attestationVaaProperites.TrackIDEvent,
+	)
 
 	if err != nil {
 		r.logger.Error("Error upserting attestation vaa properties", zap.Error(err))

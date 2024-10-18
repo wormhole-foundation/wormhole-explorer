@@ -2,6 +2,7 @@ package vaa
 
 import (
 	"encoding/hex"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -80,7 +81,7 @@ func (c *Controller) Process(ctx *fiber.Ctx) error {
 
 	p := &consumer.ProcessSourceTxParams{
 		ID:          digest,
-		TrackID:     "controller",
+		TrackID:     fmt.Sprintf("controller-%s", payload.ID),
 		Source:      "controller",
 		Timestamp:   &vaa.Timestamp,
 		VaaId:       vaa.MessageID(),

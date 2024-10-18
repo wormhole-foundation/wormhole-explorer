@@ -2,6 +2,7 @@ package prices
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -139,6 +140,8 @@ func RunVaasPrices(cfg VaasPrices) {
 				},
 				transferredToken,
 				tokenProvider,
+				"backfiller",
+				fmt.Sprintf("backfiller-%s", vaa.MessageID()),
 			); err != nil {
 				logger.Error("Failed to upsert transfer prices", zap.String("id", v.ID), zap.Error(err))
 			}
