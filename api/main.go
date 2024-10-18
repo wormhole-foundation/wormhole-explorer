@@ -160,7 +160,8 @@ func main() {
 	obsPostgresRepo := observations.NewPostgresRepository(storage.postgresDB, rootLogger)
 	mongoGovernorRepo := governor.NewMongoRepository(storage.mongoDB.Database, rootLogger)
 	postgresGovernorRepo := governor.NewPostgresRepository(storage.postgresDB, rootLogger)
-	heartbeatsRepo := heartbeats.NewRepository(storage.mongoDB.Database, rootLogger)
+	heartbeatsRepo := heartbeats.NewMongoRepository(storage.mongoDB.Database, rootLogger)
+	heartbeatsPostgresRepo := heartbeats.NewPostresqlRepository(storage.postgresDB, rootLogger)
 	transactionsRepo := transactions.NewRepository(
 		tvl,
 		cfg.P2pNetwork,
@@ -206,7 +207,8 @@ func main() {
 		cfg.Influx.Bucket30Days,
 		cfg.Influx.Bucket24Hours,
 		rootLogger)
-	guardianSetRepository := repository.NewMongoGuardianSetRepository(storage.mongoDB.Database, rootLogger)
+	mongoGsRepository := repository.NewMongoGuardianSetRepository(storage.mongoDB.Database, rootLogger)
+	postgresGsRepository := repository.NewPostgresGuardianSetRepository(storage.postgresDB, rootLogger)
 
 	metrics := metrics.NewPrometheusMetrics(cfg.Environment)
 
@@ -222,13 +224,13 @@ func main() {
 	vaaService := vaa.NewService(vaaMongoRepo, vaaPostgresRepo, cache.Get, vaaParserFunc, rootLogger)
 	obsService := observations.NewService(obsMongoRepo, obsPostgresRepo, rootLogger)
 	governorService := governor.NewService(mongoGovernorRepo, postgresGovernorRepo, cache, metrics, rootLogger)
-	heartbeatsService := heartbeats.NewService(heartbeatsRepo, rootLogger)
+	heartbeatsService := heartbeats.NewService(heartbeatsRepo, heartbeatsPostgresRepo, rootLogger)
 	transactionsService := transactions.NewService(transactionsRepo, cache, expirationTime, tokenProvider, metrics, rootLogger)
 	relaysService := relays.NewService(mongoRelaysRepo, postgresRelaysRepo, rootLogger)
 	operationsService := operations.NewService(mongoOperationsRepo, postgresOperationsRepo, rootLogger)
 	statsService := stats.NewService(statsRepo, statsAddressRepo, statsHolderRepo, cache, expirationTime, metrics, rootLogger)
 	protocolsService := protocols.NewService(cfg.Protocols, protocolsRepo, rootLogger, cache, cfg.Cache.ProtocolsStatsKey, cfg.Cache.ProtocolsStatsExpiration, metrics, tvl)
-	guardianService := guardianHandlers.NewService(guardianSetRepository, cfg.P2pNetwork, cache, metrics, rootLogger)
+	guardianService := guardianHandlers.NewService(mongoGsRepository, postgresGsRepository, cfg.P2pNetwork, cache, metrics, rootLogger)
 	supplyService := supply.NewService(rootLogger)
 
 	// Set up a custom error handler
@@ -274,7 +276,7 @@ func main() {
 	guardian.RegisterRoutes(cfg, app, rootLogger, vaaService, governorService, heartbeatsService, guardianService)
 
 	// Set up gRPC handlers
-	handler := rpcApi.NewHandler(vaaService, heartbeatsService, governorService, guardianService, rootLogger)
+	handler := rpcApi.NewHandler(vaaService, heartbeatsService, governorService, guardianService, rootLogger, cfg.DB.Layer != config.DBLayerMongo)
 	grpcServer := rpcApi.NewServer(handler, rootLogger)
 	grpcWebServer := grpcweb.WrapServer(grpcServer)
 	app.Use(
