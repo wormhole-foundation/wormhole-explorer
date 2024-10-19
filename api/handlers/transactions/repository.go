@@ -144,8 +144,10 @@ type Repository struct {
 	collections             repositoryCollections
 	supportedChainIDs       map[sdk.ChainID]string
 	logger                  *zap.Logger
-	mayanHttpClient         *http.Client
+	mayanHttpClient         httpDoEr
 }
+
+type httpDoEr func(req *http.Request) (*http.Response, error)
 
 type influxQueryAPI interface {
 	Query(ctx context.Context, query string) (influxQueryResult, error)
@@ -219,7 +221,7 @@ func NewRepository(
 		},
 		supportedChainIDs: domain.GetSupportedChainIDs(),
 		logger:            logger,
-		mayanHttpClient:   &http.Client{},
+		mayanHttpClient:   (&http.Client{}).Do,
 	}
 
 	return &r
@@ -777,6 +779,31 @@ func (r *Repository) get30dVolume(ctx context.Context) (string, error) {
 }
 
 func (r *Repository) getMayanVolume(ctx context.Context, from offset) (uint64, error) {
+	queryMayan := buildMayanQuery(r.bucketInfiniteRetention, from)
+	result, err := r.queryAPI.Query(ctx, queryMayan)
+	if err != nil {
+		r.logger.Error("failed to query mayan volume", zap.Error(err))
+		return 0, err
+	}
+	if result.Err() != nil {
+		r.logger.Error("volume query result has errors", zap.Error(err), zap.Any("from", from))
+		return 0, result.Err()
+	}
+	if !result.Next() {
+		return 0, fmt.Errorf("expected at least one record in %s volume query result", from)
+	}
+	// deserialize the row returned
+	row := struct {
+		Volume uint64 `mapstructure:"_value"`
+	}{}
+	if err = mapstructure.Decode(result.Record().Values(), &row); err != nil {
+		return 0, fmt.Errorf("failed to decode %s volume count query response: %w", from, err)
+	}
+
+	return row.Volume, nil
+}
+
+func buildMayanQuery(bucket string, from offset) string {
 	queryTemplate := `
 		mayanData = from(bucket: "%s")
 						|> range(start: -%s)
@@ -799,32 +826,11 @@ union(tables:[volumeNow,volume30daysAgo])
 	|> pivot(rowKey:["protocol"], columnKey: ["_field"], valueColumn: "_value")
 	|> map(fn: (r) => ({
 			r with 
-				volume : r.volume_now - r.volume_start
+				_value : r.volume_now - r.volume_start
 	}))
 	`
-
-	queryMayan := fmt.Sprintf(queryTemplate, r.bucketInfiniteRetention, from)
-	result, err := r.queryAPI.Query(ctx, queryMayan)
-	if err != nil {
-		r.logger.Error("failed to query mayan volume", zap.Error(err))
-		return 0, err
-	}
-	if result.Err() != nil {
-		r.logger.Error("volume query result has errors", zap.Error(err), zap.Any("from", from))
-		return 0, result.Err()
-	}
-	if !result.Next() {
-		return 0, fmt.Errorf("expected at least one record in %s volume query result", from)
-	}
-	// deserialize the row returned
-	row := struct {
-		Volume uint64 `mapstructure:"volume"`
-	}{}
-	if err = mapstructure.Decode(result.Record().Values(), &row); err != nil {
-		return 0, fmt.Errorf("failed to decode %s volume count query response: %w", from, err)
-	}
-
-	return row.Volume, nil
+	queryMayan := fmt.Sprintf(queryTemplate, bucket, from)
+	return queryMayan
 }
 
 func buildVolumeQuery(bucketInfinite string, from offset, excludeAppIDs []string) string {
@@ -2057,7 +2063,7 @@ func (r *Repository) getMayanOverview(ctx context.Context) (*StatsOverview, erro
 		return nil, fmt.Errorf("failed to create Mayan stats request: %v", err)
 	}
 
-	resp, err := r.mayanHttpClient.Do(req)
+	resp, err := r.mayanHttpClient(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch Mayan stats from %s: %v", url, err)
 	}
