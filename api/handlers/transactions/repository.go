@@ -562,7 +562,6 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 	go func() {
 		defer wg.Done()
 		var err error
-		//volume7d, err = r.getVolume(ctxWithCancel, _7d)
 		volume7d, err = r.get7dVolume(ctxWithCancel)
 		handleErr("failed to get 7d volume", err)
 	}()
@@ -571,7 +570,6 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 	go func() {
 		defer wg.Done()
 		var err error
-		//volume30d, err = r.getVolume(ctxWithCancel, _30d)
 		volume30d, err = r.get30dVolume(ctxWithCancel)
 		handleErr("failed to get 30d volume", err)
 	}()
@@ -737,31 +735,34 @@ func (r *Repository) get24hVolume(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	volume, err := r.getVolume(ctx, _24h, []string{"MAYAN"})
 	if err != nil {
 		return "", err
 	}
-
-	volume += mayanStats.Last24h.Volume
-	return convertToDecimal(volume), nil
+	decimalVolume := float64(volume) / 1e8
+	decimalVolume += float64(mayanStats.Last24h.Volume)
+	res := fmt.Sprintf("%.8f", decimalVolume)
+	return res, nil
 }
 
 func (r *Repository) get7dVolume(ctx context.Context) (string, error) {
-	mayanVolume, err := r.getMayanVolume(ctx, _7d)
+	mayanStats, err := r.getMayanVolume(ctx, _7d)
 	if err != nil {
 		return "", err
 	}
-	volume7d, err := r.getVolume(ctx, _7d, []string{"MAYAN"})
+	volume, err := r.getVolume(ctx, _7d, []string{"MAYAN"})
 	if err != nil {
 		return "", err
 	}
-	volume7d += mayanVolume
-	return convertToDecimal(volume7d), nil
+
+	decimalVolume := float64(volume) / 1e8
+	decimalVolume += float64(mayanStats)
+	res := fmt.Sprintf("%.8f", decimalVolume)
+	return res, nil
 }
 
 func (r *Repository) get30dVolume(ctx context.Context) (string, error) {
-	mayanVolume, err := r.getMayanVolume(ctx, _30d)
+	mayanStats, err := r.getMayanVolume(ctx, _30d)
 	if err != nil {
 		return "", err
 	}
@@ -769,8 +770,10 @@ func (r *Repository) get30dVolume(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	volume += mayanVolume
-	return convertToDecimal(volume), nil
+	decimalVolume := float64(volume) / 1e8
+	decimalVolume += float64(mayanStats)
+	res := fmt.Sprintf("%.8f", decimalVolume)
+	return res, nil
 }
 
 func (r *Repository) getMayanVolume(ctx context.Context, from offset) (uint64, error) {
@@ -828,10 +831,10 @@ func buildVolumeQuery(bucketInfinite string, from offset, excludeAppIDs []string
 
 	var filterAppIDs string
 	if len(excludeAppIDs) > 0 {
-		val := fmt.Sprintf("r.app_id == \"%s\"", excludeAppIDs[0])
+		val := fmt.Sprintf("r.app_id != \"%s\"", excludeAppIDs[0])
 		buff := ""
 		for _, tc := range excludeAppIDs[1:] {
-			buff += fmt.Sprintf(" or r.app_id == \"%s\"", tc)
+			buff += fmt.Sprintf(" and r.app_id != \"%s\"", tc)
 		}
 		filterAppIDs = fmt.Sprintf("|> filter(fn: (r) => %s%s)", val, buff)
 	}
