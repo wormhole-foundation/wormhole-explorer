@@ -2,12 +2,15 @@ package transactions
 
 import (
 	"context"
+	"encoding/json"
 	errors2 "errors"
 	"fmt"
 	"github.com/influxdata/influxdb-client-go/v2/api"
 	"github.com/influxdata/influxdb-client-go/v2/api/query"
 	"github.com/pkg/errors"
 	"github.com/valyala/fasthttp"
+	"io"
+	"net/http"
 	"strconv"
 	"strings"
 	"sync"
@@ -51,6 +54,7 @@ const queryTemplateVolume = `
 from(bucket: "%s")
   |> range(start: -%s)
   |> filter(fn: (r) => r._measurement == "vaa_volume_v2")
+  %s
   |> filter(fn:(r) => r._field == "volume")
   |> group()
   |> sum(column: "_value")
@@ -140,6 +144,7 @@ type Repository struct {
 	collections             repositoryCollections
 	supportedChainIDs       map[sdk.ChainID]string
 	logger                  *zap.Logger
+	mayanHttpClient         *http.Client
 }
 
 type influxQueryAPI interface {
@@ -214,6 +219,7 @@ func NewRepository(
 		},
 		supportedChainIDs: domain.GetSupportedChainIDs(),
 		logger:            logger,
+		mayanHttpClient:   &http.Client{},
 	}
 
 	return &r
@@ -548,7 +554,7 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 	go func() {
 		defer wg.Done()
 		var err error
-		volume24h, err = r.getVolume(ctxWithCancel, _24h)
+		volume24h, err = r.get24hVolume(ctxWithCancel)
 		handleErr("failed to get 24h volume", err)
 	}()
 
@@ -556,7 +562,8 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 	go func() {
 		defer wg.Done()
 		var err error
-		volume7d, err = r.getVolume(ctxWithCancel, _7d)
+		//volume7d, err = r.getVolume(ctxWithCancel, _7d)
+		volume7d, err = r.get7dVolume(ctxWithCancel)
 		handleErr("failed to get 7d volume", err)
 	}()
 
@@ -564,7 +571,8 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 	go func() {
 		defer wg.Done()
 		var err error
-		volume30d, err = r.getVolume(ctxWithCancel, _30d)
+		//volume30d, err = r.getVolume(ctxWithCancel, _30d)
+		volume30d, err = r.get30dVolume(ctxWithCancel)
 		handleErr("failed to get 30d volume", err)
 	}()
 
@@ -693,21 +701,21 @@ func buildMessages24HrQuery(bucket24Hr string) string {
 	return fmt.Sprintf(queryTemplateMessages24h, bucket24Hr, bucket24Hr)
 }
 
-func (r *Repository) getVolume(ctx context.Context, from offset) (string, error) {
+func (r *Repository) getVolume(ctx context.Context, from offset, excludeAppIDs []string) (uint64, error) {
 
 	// query volume
-	queryVolume := buildVolumeQuery(r.bucketInfiniteRetention, from)
+	queryVolume := buildVolumeQuery(r.bucketInfiniteRetention, from, excludeAppIDs)
 	result, err := r.queryAPI.Query(ctx, queryVolume)
 	if err != nil {
 		r.logger.Error("failed to query volume", zap.Any("from", from), zap.Error(err))
-		return "", err
+		return 0, err
 	}
 	if result.Err() != nil {
 		r.logger.Error("volume query result has errors", zap.Error(err), zap.Any("from", from))
-		return "", result.Err()
+		return 0, result.Err()
 	}
 	if !result.Next() {
-		return "", fmt.Errorf("expected at least one record in %s volume query result", from)
+		return 0, fmt.Errorf("expected at least one record in %s volume query result", from)
 	}
 
 	// deserialize the row returned
@@ -715,16 +723,120 @@ func (r *Repository) getVolume(ctx context.Context, from offset) (string, error)
 		Value uint64 `mapstructure:"_value"`
 	}{}
 	if err = mapstructure.Decode(result.Record().Values(), &row); err != nil {
-		return "", fmt.Errorf("failed to decode %s volume count query response: %w", from, err)
+		return 0, fmt.Errorf("failed to decode %s volume count query response: %w", from, err)
 	}
 
 	// convert the volume to a string and return
-	volume := convertToDecimal(row.Value)
-	return volume, nil
+	//volume := convertToDecimal(row.Value)
+	return row.Value, nil
 }
 
-func buildVolumeQuery(bucketInfinite string, from offset) string {
-	return fmt.Sprintf(queryTemplateVolume, bucketInfinite, from)
+func (r *Repository) get24hVolume(ctx context.Context) (string, error) {
+
+	mayanStats, err := r.getMayanOverview(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	volume, err := r.getVolume(ctx, _24h, []string{"MAYAN"})
+	if err != nil {
+		return "", err
+	}
+
+	volume += mayanStats.Last24h.Volume
+	return convertToDecimal(volume), nil
+}
+
+func (r *Repository) get7dVolume(ctx context.Context) (string, error) {
+	mayanVolume, err := r.getMayanVolume(ctx, _7d)
+	if err != nil {
+		return "", err
+	}
+	volume7d, err := r.getVolume(ctx, _7d, []string{"MAYAN"})
+	if err != nil {
+		return "", err
+	}
+	volume7d += mayanVolume
+	return convertToDecimal(volume7d), nil
+}
+
+func (r *Repository) get30dVolume(ctx context.Context) (string, error) {
+	mayanVolume, err := r.getMayanVolume(ctx, _30d)
+	if err != nil {
+		return "", err
+	}
+	volume, err := r.getVolume(ctx, _30d, []string{"MAYAN"})
+	if err != nil {
+		return "", err
+	}
+	volume += mayanVolume
+	return convertToDecimal(volume), nil
+}
+
+func (r *Repository) getMayanVolume(ctx context.Context, from offset) (uint64, error) {
+	queryTemplate := `
+		mayanData = from(bucket: "%s")
+						|> range(start: -%s)
+						|> filter(fn: (r) => r._measurement == "protocols_stats_1d")
+						|> filter(fn: (r) => exists r.protocol  and r.protocol == "mayan")
+						|> filter(fn: (r) => r._field == "volume")
+	
+	
+volume30daysAgo = mayanData 
+							|> first()
+							|> map(fn: (r) => ({r with _field : "volume_start"}))
+							|> keep(columns:["protocol","_field","_value"])
+
+volumeNow = mayanData 
+					|> last()
+					|> map(fn: (r) => ({r with _field : "volume_now"}))
+					|> keep(columns:["protocol","_field","_value"])
+
+union(tables:[volumeNow,volume30daysAgo])
+	|> pivot(rowKey:["protocol"], columnKey: ["_field"], valueColumn: "_value")
+	|> map(fn: (r) => ({
+			r with 
+				volume : r.volume_now - r.volume_start
+	}))
+	`
+
+	queryMayan := fmt.Sprintf(queryTemplate, r.bucketInfiniteRetention, from)
+	result, err := r.queryAPI.Query(ctx, queryMayan)
+	if err != nil {
+		r.logger.Error("failed to query mayan volume", zap.Error(err))
+		return 0, err
+	}
+	if result.Err() != nil {
+		r.logger.Error("volume query result has errors", zap.Error(err), zap.Any("from", from))
+		return 0, result.Err()
+	}
+	if !result.Next() {
+		return 0, fmt.Errorf("expected at least one record in %s volume query result", from)
+	}
+	// deserialize the row returned
+	row := struct {
+		Volume uint64 `mapstructure:"volume"`
+	}{}
+	if err = mapstructure.Decode(result.Record().Values(), &row); err != nil {
+		return 0, fmt.Errorf("failed to decode %s volume count query response: %w", from, err)
+	}
+
+	return row.Volume, nil
+}
+
+func buildVolumeQuery(bucketInfinite string, from offset, excludeAppIDs []string) string {
+
+	var filterAppIDs string
+	if len(excludeAppIDs) > 0 {
+		val := fmt.Sprintf("r.app_id == \"%s\"", excludeAppIDs[0])
+		buff := ""
+		for _, tc := range excludeAppIDs[1:] {
+			buff += fmt.Sprintf(" or r.app_id == \"%s\"", tc)
+		}
+		filterAppIDs = fmt.Sprintf("|> filter(fn: (r) => %s%s)", val, buff)
+	}
+
+	return fmt.Sprintf(queryTemplateVolume, bucketInfinite, from, filterAppIDs)
 }
 
 // GetTransactionCount get the last transactions.
@@ -1932,4 +2044,35 @@ func (r *Repository) buildTotalsAppActivityQueryMonthly(q ApplicationActivityQue
 	from := time.Date(q.From.Year(), q.From.Month(), 1, 0, 0, 0, 0, q.From.Location())
 	to := time.Date(q.To.Year(), q.To.Month(), 1, 0, 0, 0, 0, q.To.Location())
 	return fmt.Sprintf(query, bucket, from.Format(time.RFC3339), to.Format(time.RFC3339), filterMeasurement, filterByAppID)
+}
+
+func (r *Repository) getMayanOverview(ctx context.Context) (*StatsOverview, error) {
+	url := "https://explorer-api.mayan.finance/v3/stats/overview"
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create Mayan stats request: %v", err)
+	}
+
+	resp, err := r.mayanHttpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch Mayan stats from %s: %v", url, err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("received non-200 response status when fetching Mayan stats from %s: %d", url, resp.StatusCode)
+	}
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body from %s: %v", url, err)
+	}
+
+	var overview StatsOverview
+	if err = json.Unmarshal(bodyBytes, &overview); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response body from %s: %v", url, err)
+	}
+
+	return &overview, nil
 }
