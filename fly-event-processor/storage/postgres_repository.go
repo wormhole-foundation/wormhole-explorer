@@ -120,23 +120,49 @@ func (r *PostgresRepository) FindNodeGovernorVaaByNodeAddress(ctx context.Contex
 func (r *PostgresRepository) FindNodeGovernorVaaByVaaID(ctx context.Context, vaaID string) ([]NodeGovernorVaa, error) {
 	query := `SELECT guardian_address, vaa_id, guardian_name, created_at, updated_at 
 	FROM wormholescan.wh_guardian_governor_vaas WHERE vaa_id = $1`
-	var rows []NodeGovernorVaa
+	var rows []guardianGovernorVaa
 	err := r.db.Select(ctx, &rows, query, vaaID)
 	if err != nil {
 		return nil, err
 	}
-	return rows, nil
+
+	var nodeGovernorVaas []NodeGovernorVaa
+	for _, row := range rows {
+		nodeGovernorVaas = append(nodeGovernorVaas, NodeGovernorVaa{
+			ID:          row.GuardianAddress,
+			NodeName:    row.GuardianName,
+			NodeAddress: row.GuardianAddress,
+			VaaID:       row.VaaID,
+			CreatedAt:   &row.CreatedAt,
+			UpdatedAt:   &row.UpdatedAt,
+		})
+	}
+
+	return nodeGovernorVaas, nil
 }
 
 func (r *PostgresRepository) FindNodeGovernorVaaByVaaIDs(ctx context.Context, vaaID []string) ([]NodeGovernorVaa, error) {
 	query := `SELECT guardian_address, vaa_id, guardian_name, created_at, updated_at 
 	FROM wormholescan.wh_guardian_governor_vaas WHERE vaa_id = ANY($1)`
-	var rows []NodeGovernorVaa
+	var rows []guardianGovernorVaa
 	err := r.db.Select(ctx, &rows, query, vaaID)
 	if err != nil {
 		return nil, err
 	}
-	return rows, nil
+
+	var nodeGovernorVaas []NodeGovernorVaa
+	for _, row := range rows {
+		nodeGovernorVaas = append(nodeGovernorVaas, NodeGovernorVaa{
+			ID:          row.GuardianAddress,
+			NodeName:    row.GuardianName,
+			NodeAddress: row.GuardianAddress,
+			VaaID:       row.VaaID,
+			CreatedAt:   &row.CreatedAt,
+			UpdatedAt:   &row.UpdatedAt,
+		})
+	}
+
+	return nodeGovernorVaas, nil
 }
 
 func (r *PostgresRepository) FindGovernorVaaByVaaIDs(ctx context.Context, vaaID []string) ([]GovernorVaa, error) {

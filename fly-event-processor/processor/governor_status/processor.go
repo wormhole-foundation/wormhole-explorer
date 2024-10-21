@@ -45,7 +45,7 @@ func (p *Processor) Process(
 		zap.String("trackId", params.TrackID),
 	)
 
-	// 1. Check if the event is valid.
+	// 1. check if the event is valid.
 	if params.NodeGovernorVaa == nil {
 		logger.Info("event is nil")
 		return errors.New("event cannot be nil")
@@ -56,7 +56,7 @@ func (p *Processor) Process(
 		return errors.New("node is invalid")
 	}
 
-	// 2. Get new and current governorVaa by node.
+	// 2. get new and current governor vaa by node.
 	newNodeGovernorVaas := params.NodeGovernorVaa
 	nodeGovernorVaaIds, err := p.getNodeGovernorVaaIds(ctx, node, logger)
 	if err != nil {
@@ -66,13 +66,13 @@ func (p *Processor) Process(
 		return err
 	}
 
-	// 3. Get nodeGovernorVaa to add and delete.
+	// 3. get node governor vaas to add and delete.
 	nodeGovernorVaasToAdd := getNodeGovernorVaasToAdd(
 		newNodeGovernorVaas.GovernorVaas, nodeGovernorVaaIds)
 	nodeGovernorVaaIdsToDelete := getNodeGovernorVaasToDelete(
 		newNodeGovernorVaas.GovernorVaas, nodeGovernorVaaIds)
 
-	// 4. Get governorVaa to add and delete.
+	// 4. get governor vaa to add and delete.
 	governorVaasToAdd, err := p.getGovernorVaaToAdd(ctx, nodeGovernorVaasToAdd, logger)
 	if err != nil {
 		logger.Error("failed to get governorVaa to insert",
@@ -88,7 +88,7 @@ func (p *Processor) Process(
 		return err
 	}
 
-	// 5. Check if there are no changes in governor.
+	// 5. check if there are no changes in governor.
 	changeNodeGovernorVaas := len(nodeGovernorVaasToAdd) > 0 || len(nodeGovernorVaaIdsToDelete) > 0
 	changeGovernorVaas := len(governorVaasToAdd) > 0 || len(governorVaaIdsToDelete) > 0
 	if !changeNodeGovernorVaas && !changeGovernorVaas {
@@ -97,7 +97,7 @@ func (p *Processor) Process(
 		return nil
 	}
 
-	// 6. Update governor data for the node.
+	// 6. update governor data for the node.
 	err = p.updateGovernorStatus(ctx,
 		node,
 		nodeGovernorVaasToAdd,
