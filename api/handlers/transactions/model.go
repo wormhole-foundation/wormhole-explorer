@@ -290,3 +290,17 @@ type TokenSymbolActivityResult struct {
 	EmitterChain        sdk.ChainID `json:"emitter_chain"`
 	DestinationChain    sdk.ChainID `json:"destination_chain"`
 }
+
+// StatsOverview Mayan overview stats
+type StatsOverview struct {
+	Last24h StatsData `json:"last24h"`
+	AllTime StatsData `json:"allTime"`
+}
+
+type StatsData struct {
+	Volume        uint64 `json:"volume"`
+	ToSolCount    uint64 `json:"toSolCount"`
+	FromSolCount  uint64 `json:"fromSolCount"`
+	Swaps         uint64 `json:"swaps"`
+	ActiveTraders uint64 `json:"activeTraders"`
+}

@@ -75,7 +75,7 @@ func (s *Service) GetScorecards(ctx context.Context) (*Scorecards, error) {
 	return cacheable.GetOrLoad(ctx, s.logger, s.cache, s.expiration, scorecardsKey, s.metrics,
 		func() (*Scorecards, error) {
 			return s.repo.GetScorecards(ctx)
-		})
+		}, cacheable.WithAutomaticRenew())
 }
 
 func (s *Service) GetTopAssets(ctx context.Context, timeSpan *TopStatisticsTimeSpan) ([]AssetDTO, error) {

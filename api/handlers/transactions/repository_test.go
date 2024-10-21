@@ -1,6 +1,7 @@
 package transactions
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"github.com/influxdata/influxdb-client-go/v2/api/query"
@@ -11,6 +12,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/integration/mtest"
 	"go.uber.org/zap"
+	"io"
+	"net/http"
 	"strings"
 	"testing"
 	"time"
@@ -759,9 +762,11 @@ func TestGetScorecards(t *testing.T) {
 				"messages24h":   {mockInfluxResult(100), buildMessages24HrQuery("wormscan-24hours")},
 				"totalTxCount":  {mockInfluxResult(100), buildTotalTrxCountQuery("wormscan", "wormscan-30days", time.Now())},
 				"totalTxVolume": {mockInfluxResult(1000e8), buildTotalTrxVolumeQuery("wormscan", "wormscan-30days", time.Now())},
-				"volume24h":     {mockInfluxResult(200e8), buildVolumeQuery("wormscan", _24h)},
-				"volume7d":      {mockInfluxResult(1500e8), buildVolumeQuery("wormscan", _7d)},
-				"volume30d":     {mockInfluxResult(5000e8), buildVolumeQuery("wormscan", _30d)},
+				"volume24h":     {mockInfluxResult(200e8), buildVolumeQuery("wormscan", _24h, []string{"MAYAN"})},
+				"volume7d":      {mockInfluxResult(1500e8), buildVolumeQuery("wormscan", _7d, []string{"MAYAN"})},
+				"mayan7d":       {mockInfluxResult(5000e8), buildMayanQuery("wormscan", _7d)},
+				"volume30d":     {mockInfluxResult(5000e8), buildVolumeQuery("wormscan", _30d, []string{"MAYAN"})},
+				"mayan30d":      {mockInfluxResult(5000e8), buildMayanQuery("wormscan", _30d)},
 			},
 			mockPythResponse: bson.D{{"_id", "some-id"}, {"sequence", "123456"}},
 			expectedErr:      false,
@@ -771,11 +776,12 @@ func TestGetScorecards(t *testing.T) {
 				TotalTxCount:  "100",
 				TotalTxVolume: "1000.00000000",
 				Tvl:           "1000",
-				Volume24h:     "200.00000000",
-				Volume7d:      "1500.00000000",
-				Volume30d:     "5000.00000000",
+				Volume24h:     "13294486.00000000",
+				Volume7d:      "500000001500.00000000",
+				Volume30d:     "500000005000.00000000",
 			},
 		},
+
 		{
 			name:          "Tvl query fails",
 			mockTvlReturn: "",
@@ -787,9 +793,11 @@ func TestGetScorecards(t *testing.T) {
 				"messages24h":   {mockInfluxResult(100), buildMessages24HrQuery("wormscan-24hours")},
 				"totalTxCount":  {mockInfluxResult(100), buildTotalTrxCountQuery("wormscan", "wormscan-30days", time.Now())},
 				"totalTxVolume": {mockInfluxResult(1000e8), buildTotalTrxVolumeQuery("wormscan", "wormscan-30days", time.Now())},
-				"volume24h":     {mockInfluxResult(200e8), buildVolumeQuery("wormscan", _24h)},
-				"volume7d":      {mockInfluxResult(1500e8), buildVolumeQuery("wormscan", _7d)},
-				"volume30d":     {mockInfluxResult(5000e8), buildVolumeQuery("wormscan", _30d)},
+				"volume24h":     {mockInfluxResult(200e8), buildVolumeQuery("wormscan", _24h, []string{"MAYAN"})},
+				"volume7d":      {mockInfluxResult(1500e8), buildVolumeQuery("wormscan", _7d, []string{"MAYAN"})},
+				"volume30d":     {mockInfluxResult(5000e8), buildVolumeQuery("wormscan", _30d, []string{"MAYAN"})},
+				"mayan7d":       {mockInfluxResult(5000e8), buildMayanQuery("wormscan", _7d)},
+				"mayan30d":      {mockInfluxResult(5000e8), buildMayanQuery("wormscan", _30d)},
 			},
 			mockPythResponse:   bson.D{{"_id", "some-id"}, {"sequence", "123456"}},
 			expectedErr:        true,
@@ -807,9 +815,11 @@ func TestGetScorecards(t *testing.T) {
 				"messages24h":   {mockInfluxError("failed_query"), buildMessages24HrQuery("wormscan-24hours")},
 				"totalTxCount":  {mockInfluxResult(100), buildTotalTrxCountQuery("wormscan", "wormscan-30days", time.Now())},
 				"totalTxVolume": {mockInfluxError("failed_query"), buildTotalTrxVolumeQuery("wormscan", "wormscan-30days", time.Now())},
-				"volume24h":     {mockInfluxResult(200e8), buildVolumeQuery("wormscan", _24h)},
-				"volume7d":      {mockInfluxResult(1500e8), buildVolumeQuery("wormscan", _7d)},
-				"volume30d":     {mockInfluxResult(5000e8), buildVolumeQuery("wormscan", _30d)},
+				"volume24h":     {mockInfluxResult(200e8), buildVolumeQuery("wormscan", _24h, []string{"MAYAN"})},
+				"volume7d":      {mockInfluxResult(1500e8), buildVolumeQuery("wormscan", _7d, []string{"MAYAN"})},
+				"volume30d":     {mockInfluxResult(5000e8), buildVolumeQuery("wormscan", _30d, []string{"MAYAN"})},
+				"mayan7d":       {mockInfluxResult(5000e8), buildMayanQuery("wormscan", _7d)},
+				"mayan30d":      {mockInfluxResult(5000e8), buildMayanQuery("wormscan", _30d)},
 			},
 			mockPythResponse:   nil, // Simulating no documents found
 			expectedErr:        true,
@@ -834,6 +844,7 @@ func TestGetScorecards(t *testing.T) {
 				bucket24HoursRetention:  "wormscan-24hours",
 				bucket30DaysRetention:   "wormscan-30days",
 				bucketInfiniteRetention: "wormscan",
+				mayanHttpClient:         mockMayanHttpClient,
 			}
 
 			tvlMock.On("Get", mock.Anything).Return(tt.mockTvlReturn, tt.mockTvlErr)
@@ -907,4 +918,35 @@ func (m *mockInfluxQueryResult) Next() bool {
 func (m *mockInfluxQueryResult) Record() *query.FluxRecord {
 	args := m.Called()
 	return args.Get(0).(*query.FluxRecord)
+}
+
+func mockMayanHttpClient(req *http.Request) (*http.Response, error) {
+	jsonData := `{
+		"last24h": {
+			"volume": 13294286,
+			"toSolCount": 3440,
+			"fromSolCount": 1471,
+			"swaps": 6092,
+			"activeTraders": 5045
+		},
+		"allTime": {
+			"volume": 1619896737,
+			"toSolCount": 277735,
+			"fromSolCount": 170532,
+			"swaps": 617677,
+			"activeTraders": 248313
+		}
+	}`
+
+	// Create a new reader with the JSON string
+	r := io.NopCloser(bytes.NewReader([]byte(jsonData)))
+
+	// Create a new HTTP response
+	resp := &http.Response{
+		StatusCode: http.StatusOK,
+		Body:       r,
+		Header:     make(http.Header),
+	}
+
+	return resp, nil
 }
