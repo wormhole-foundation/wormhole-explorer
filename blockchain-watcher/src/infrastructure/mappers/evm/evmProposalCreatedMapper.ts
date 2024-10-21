@@ -81,15 +81,18 @@ const mapLogFromTopics: ProposalCreatedMapper = (
     const iface = new ethers.utils.Interface([abi.abi]);
     const parsedLog = iface.parseLog(log);
 
+    const values = Array.from(parsedLog.args.values()).map((arg: any) => Number(arg));
+
     return {
       description: parsedLog.args.description,
-      proposalId: parsedLog.args.proposalId.toString(),
+      proposalId: BigInt(parsedLog.args.proposalId),
       signatures: parsedLog.args.signatures,
-      callDatas: parsedLog.args.calldatas,
-      voteStart: parsedLog.args.voteStart.toString(),
+      calldatas: parsedLog.args.calldatas,
+      voteStart: Number(parsedLog.args.voteStart),
       proposer: parsedLog.args.proposer.toString("hex"),
-      voteEnd: parsedLog.args.voteEnd.toString(),
+      voteEnd: Number(parsedLog.args.voteEnd),
       targets: parsedLog.args.targets,
+      values: values,
     };
   } catch (e) {
     logger.error(`[${cfg.chain}] Failed to parse proposal created message for [tx: ${hash}]`, e);
@@ -99,13 +102,14 @@ const mapLogFromTopics: ProposalCreatedMapper = (
 
 type ProposalCreated = {
   description: string;
-  proposalId: string;
   signatures: string[];
-  callDatas: string[];
-  voteStart: string;
+  proposalId: bigint;
+  calldatas: string[];
+  voteStart: number;
   proposer: string;
-  voteEnd: string;
   targets: string[];
+  voteEnd: number;
+  values: number[];
 };
 
 const EVENT_TOPICS: Record<string, ProposalCreatedMapper> = {
