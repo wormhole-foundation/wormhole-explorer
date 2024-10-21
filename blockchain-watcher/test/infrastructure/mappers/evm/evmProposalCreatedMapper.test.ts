@@ -77,14 +77,14 @@ describe("evmProposalCreatedMapper", () => {
       "0xf7f0ad2be72df41be9f0e4511f6a77b0656089b4147d71a9c50930a56d889cf0"
     );
     expect(result?.attributes.description).toBe("# test74\ntest");
-    expect(result?.attributes.callDatas).toEqual(["0x"]);
+    expect(result?.attributes.calldatas).toEqual(["0x"]);
     expect(result?.attributes.targets).toEqual(["0xBa78C48C386a5c43F689af7c8FEB77207aCa8477"]);
-    expect(result?.attributes.voteStart).toEqual("1722619902");
-    expect(result?.attributes.voteEnd).toEqual("1722621702");
+    expect(result?.attributes.voteStart).toEqual(1722619902);
+    expect(result?.attributes.voteEnd).toEqual(1722621702);
     expect(result?.attributes.signatures).toEqual([""]);
     expect(result?.attributes.proposer).toEqual("0xBa78C48C386a5c43F689af7c8FEB77207aCa8477");
     expect(result?.attributes.proposalId).toEqual(
-      "34221398034165561516589469039816796864932763323281094730950106591996231109919"
+      34221398034165561516589469039816796864932763323281094730950106591996231109919n
     );
   });
 });
