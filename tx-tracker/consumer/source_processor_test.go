@@ -21,6 +21,7 @@ func Test_ProcessSourceTx_AlreadyProcessed(t *testing.T) {
 		{
 			name: "Test_ProcessSourceTx_DbLayerMongodb_AlreadyProcessed_Error",
 			params: &consumer.ProcessSourceTxParams{
+				ID:        "vaa_digest",
 				VaaId:     "vaa_id_test",
 				Overwrite: false,
 			},
@@ -29,7 +30,7 @@ func Test_ProcessSourceTx_AlreadyProcessed(t *testing.T) {
 			},
 			mockMongoDB: func() *mockMongoDBRepository {
 				m := &mockMongoDBRepository{}
-				m.On("AlreadyProcessed", mock.Anything, mock.Anything).Return(false, errors.New("mocked_error"))
+				m.On("AlreadyProcessed", mock.Anything, mock.Anything, mock.Anything).Return(false, errors.New("mocked_error"))
 				return m
 			},
 			expectedErr: errors.New("mocked_error"),
@@ -37,6 +38,7 @@ func Test_ProcessSourceTx_AlreadyProcessed(t *testing.T) {
 		{
 			name: "Test_ProcessSourceTx_DbLayerMongodb_AlreadyProcessed",
 			params: &consumer.ProcessSourceTxParams{
+				ID:        "vaa_digest",
 				VaaId:     "vaa_id_test",
 				Overwrite: false,
 			},
@@ -45,7 +47,7 @@ func Test_ProcessSourceTx_AlreadyProcessed(t *testing.T) {
 			},
 			mockMongoDB: func() *mockMongoDBRepository {
 				m := &mockMongoDBRepository{}
-				m.On("AlreadyProcessed", mock.Anything, mock.Anything).Return(true, nil)
+				m.On("AlreadyProcessed", mock.Anything, mock.Anything, mock.Anything).Return(true, nil)
 				return m
 			},
 			expectedErr: consumer.ErrAlreadyProcessed,
@@ -53,8 +55,8 @@ func Test_ProcessSourceTx_AlreadyProcessed(t *testing.T) {
 		{
 			name: "Test_ProcessSourceTx_DbLayerPostgresql_AlreadyProcessed",
 			params: &consumer.ProcessSourceTxParams{
-				VaaId:     "vaa_id_test",
 				ID:        "vaa_digest",
+				VaaId:     "vaa_id_test",
 				Overwrite: false,
 			},
 			mockMongoDB: func() *mockMongoDBRepository {
@@ -62,7 +64,7 @@ func Test_ProcessSourceTx_AlreadyProcessed(t *testing.T) {
 			},
 			mockSQL: func() *mockSqlRepository {
 				m := &mockSqlRepository{}
-				m.On("AlreadyProcessed", mock.Anything, mock.Anything).Return(true, nil)
+				m.On("AlreadyProcessed", mock.Anything, mock.Anything, mock.Anything).Return(true, nil)
 				return m
 			},
 			expectedErr: consumer.ErrAlreadyProcessed,
@@ -79,7 +81,7 @@ func Test_ProcessSourceTx_AlreadyProcessed(t *testing.T) {
 			},
 			mockSQL: func() *mockSqlRepository {
 				m := &mockSqlRepository{}
-				m.On("AlreadyProcessed", mock.Anything, mock.Anything).Return(false, errors.New("mocked_error"))
+				m.On("AlreadyProcessed", mock.Anything, mock.Anything, mock.Anything).Return(false, errors.New("mocked_error"))
 				return m
 			},
 			expectedErr: errors.New("mocked_error"),
@@ -93,12 +95,12 @@ func Test_ProcessSourceTx_AlreadyProcessed(t *testing.T) {
 			},
 			mockMongoDB: func() *mockMongoDBRepository {
 				m := &mockMongoDBRepository{}
-				m.On("AlreadyProcessed", mock.Anything, mock.Anything).Return(true, nil)
+				m.On("AlreadyProcessed", mock.Anything, mock.Anything, mock.Anything).Return(true, nil)
 				return m
 			},
 			mockSQL: func() *mockSqlRepository {
 				m := &mockSqlRepository{}
-				m.On("AlreadyProcessed", mock.Anything, mock.Anything).Return(true, nil)
+				m.On("AlreadyProcessed", mock.Anything, mock.Anything, mock.Anything).Return(true, nil)
 				return m
 			},
 			expectedErr: consumer.ErrAlreadyProcessed,
@@ -112,12 +114,12 @@ func Test_ProcessSourceTx_AlreadyProcessed(t *testing.T) {
 			},
 			mockMongoDB: func() *mockMongoDBRepository {
 				m := &mockMongoDBRepository{}
-				m.On("AlreadyProcessed", mock.Anything, mock.Anything).Return(true, errors.New("mongodb_error"))
+				m.On("AlreadyProcessed", mock.Anything, mock.Anything, mock.Anything).Return(true, errors.New("mongodb_error"))
 				return m
 			},
 			mockSQL: func() *mockSqlRepository {
 				m := &mockSqlRepository{}
-				m.On("AlreadyProcessed", mock.Anything, mock.Anything).Return(true, nil)
+				m.On("AlreadyProcessed", mock.Anything, mock.Anything, mock.Anything).Return(true, nil)
 				return m
 			},
 			expectedErr: errors.New("mongodb_error"),
@@ -130,13 +132,11 @@ func Test_ProcessSourceTx_AlreadyProcessed(t *testing.T) {
 				Overwrite: false,
 			},
 			mockMongoDB: func() *mockMongoDBRepository {
-				m := &mockMongoDBRepository{}
-				m.On("AlreadyProcessed", mock.Anything, mock.Anything).Return(true, nil)
-				return m
+				return nil
 			},
 			mockSQL: func() *mockSqlRepository {
 				m := &mockSqlRepository{}
-				m.On("AlreadyProcessed", mock.Anything, mock.Anything).Return(false, errors.New("postresql_error"))
+				m.On("AlreadyProcessed", mock.Anything, mock.Anything, mock.Anything).Return(false, errors.New("postresql_error"))
 				return m
 			},
 			expectedErr: errors.New("postresql_error"),
@@ -144,12 +144,19 @@ func Test_ProcessSourceTx_AlreadyProcessed(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		var repo consumer.Repository
+		mongoRepo := tc.mockMongoDB()
+		if mongoRepo != nil {
+			repo = mongoRepo
+		} else {
+			repo = tc.mockSQL()
+		}
 		t.Run(tc.name, func(t *testing.T) {
 			_, gotErr := consumer.ProcessSourceTx(context.TODO(),
 				nil,
 				nil,
 				nil,
-				tc.mockMongoDB(),
+				repo,
 				tc.params,
 				"testnet",
 				nil)
@@ -164,9 +171,19 @@ type mockSqlRepository struct {
 	mock.Mock
 }
 
-func (m *mockSqlRepository) UpsertOriginTx(ctx context.Context, params *consumer.UpsertOriginTxParams) error {
-	args := m.Called(ctx, params)
+func (m *mockSqlRepository) UpsertOriginTx(ctx context.Context, origin, nested *consumer.UpsertOriginTxParams) error {
+	args := m.Called(ctx, origin, nested)
 	return args.Error(0)
+}
+
+func (m *mockSqlRepository) AlreadyProcessed(ctx context.Context, vaaID string, digest string) (bool, error) {
+	args := m.Called(ctx, vaaID, digest)
+	return args.Bool(0), args.Error(1)
+}
+
+func (m *mockSqlRepository) GetVaaIdTxHash(ctx context.Context, vaaID, vaaDigest string) (*consumer.VaaIdTxHash, error) {
+	args := m.Called(ctx, vaaID, vaaDigest)
+	return args.Get(0).(*consumer.VaaIdTxHash), args.Error(1)
 }
 
 func (m *mockSqlRepository) UpsertTargetTx(ctx context.Context, globalTx *consumer.TargetTxUpdate) error {
@@ -179,14 +196,19 @@ func (m *mockSqlRepository) GetTxStatus(ctx context.Context, targetTxUpdate *con
 	return args.String(0), args.Error(1)
 }
 
-func (m *mockSqlRepository) AlreadyProcessed(ctx context.Context, vaDigest string) (bool, error) {
-	args := m.Called(ctx, vaDigest)
-	return args.Bool(0), args.Error(1)
+func (m *mockSqlRepository) FindSourceTxById(ctx context.Context, id string) (*consumer.SourceTxDoc, error) {
+	args := m.Called(ctx, id)
+	return args.Get(0).(*consumer.SourceTxDoc), args.Error(1)
 }
 
 func (m *mockSqlRepository) RegisterProcessedVaa(ctx context.Context, vaaDigest, vaaId string) error {
 	args := m.Called(ctx, vaaDigest, vaaId)
 	return args.Error(0)
+}
+
+func (m *mockSqlRepository) GetIDByVaaID(ctx context.Context, vaaId string) (string, error) {
+	args := m.Called(ctx, vaaId)
+	return args.String(0), args.Error(1)
 }
 
 type mockMongoDBRepository struct {
@@ -198,8 +220,8 @@ func (m *mockMongoDBRepository) UpsertOriginTx(ctx context.Context, origin, nest
 	return args.Error(0)
 }
 
-func (m *mockMongoDBRepository) AlreadyProcessed(ctx context.Context, vaaId, digest string) (bool, error) {
-	args := m.Called(ctx, vaaId)
+func (m *mockMongoDBRepository) AlreadyProcessed(ctx context.Context, vaaID string, digest string) (bool, error) {
+	args := m.Called(ctx, vaaID, digest)
 	return args.Bool(0), args.Error(1)
 }
 

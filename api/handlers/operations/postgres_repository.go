@@ -19,7 +19,7 @@ import (
 
 const baseQuery = `
 SELECT
-    wot.attestation_vaas_id as transaction_attestation_vaas_id,
+    wot.attestation_id as transaction_attestation_vaas_id,
     wot.message_id as transaction_message_id,
     wot.chain_id as transaction_chain_id,
     wot.tx_hash as transaction_tx_hash,
@@ -47,9 +47,9 @@ SELECT
     wavp.payload as properties_payload,
     wavp.raw_standard_fields as properties_raw_standard_fields
 FROM wormholescan.wh_operation_transactions wot
-LEFT JOIN wormholescan.wh_attestation_vaas wav ON  wav.id = wot.attestation_vaas_id
-LEFT JOIN wormholescan.wh_operation_prices wop ON wop.id = wot.attestation_vaas_id
-LEFT JOIN wormholescan.wh_attestation_vaa_properties wavp ON wavp.id = wot.attestation_vaas_id
+LEFT JOIN wormholescan.wh_attestation_vaas wav ON  wav.id = wot.attestation_id
+LEFT JOIN wormholescan.wh_operation_prices wop ON wop.id = wot.attestation_id
+LEFT JOIN wormholescan.wh_operation_properties wavp ON wavp.id = wot.attestation_id
 `
 
 type operationResult struct {
@@ -497,7 +497,7 @@ func (r *PostgresRepository) toPrices(op *operationResult) *operationPrices {
 
 func (r *PostgresRepository) findOperationByIDs(ctx context.Context, ids []string) ([]*operationResult, error) {
 	var ops []*operationResult
-	query := baseQuery + `WHERE wot.attestation_vaas_id = ANY($1)`
+	query := baseQuery + `WHERE wot.attestation_id = ANY($1)`
 	err := r.db.Select(ctx, &ops, query, pq.Array(ids))
 	if err != nil {
 		return nil, err
@@ -523,9 +523,9 @@ func (r *PostgresRepository) buildQueryIDsForTxHash(txHash string, from, to *tim
 		timestampCondition = " AND " + strings.Join(conditions, " AND ")
 	}
 	query := fmt.Sprintf(`
-        SELECT t.attestation_vaas_id FROM wormholescan.wh_operation_transactions t
+        SELECT t.attestation_id FROM wormholescan.wh_operation_transactions t
         WHERE t.tx_hash = $1 %s
-        ORDER BY t.timestamp %s, t.attestation_vaas_id %s
+        ORDER BY t.timestamp %s, t.attestation_id %s
         LIMIT $2 OFFSET $3`, timestampCondition, sort, sort)
 	return query, params
 }
@@ -551,8 +551,8 @@ func (r *PostgresRepository) buildQueryIDsForAddress(address string, from, to *t
 	query := fmt.Sprintf(`
         SELECT oa.id FROM wormholescan.wh_operation_addresses oa
         WHERE oa.address = $1 AND exists (
-            SELECT ot.attestation_vaas_id FROM wormholescan.wh_operation_transactions ot
-            WHERE ot.attestation_vaas_id = oa.id 
+            SELECT ot.attestation_id FROM wormholescan.wh_operation_transactions ot
+            WHERE ot.attestation_id = oa.id 
         ) %s
         ORDER BY oa."timestamp" %s, oa.id %s
         LIMIT $2 OFFSET $3`, timestampCondition, sort, sort)
@@ -611,9 +611,9 @@ func (r *PostgresRepository) buildQueryIDsForQuery(query OperationQuery, paginat
 			timestampCondition = " AND " + strings.Join(conditions, " AND ")
 		}
 		querySql := fmt.Sprintf(`
-            SELECT op.attestation_vaas_id FROM wormholescan.wh_operation_transactions op
+            SELECT op.attestation_id FROM wormholescan.wh_operation_transactions op
             WHERE op."type" = 'source-tx' %s
-            ORDER BY op."timestamp" %s, op.attestation_vaas_id %s
+            ORDER BY op."timestamp" %s, op.attestation_id %s
             LIMIT $1 OFFSET $2`, timestampCondition, sort, sort)
 		return querySql, params
 	}
@@ -630,8 +630,11 @@ func (r *PostgresRepository) buildQueryIDsForQuery(query OperationQuery, paginat
 
 	condition := strings.Join(conditions, " AND ")
 	querySql := fmt.Sprintf(`
-        SELECT p.id FROM wormholescan.wh_attestation_vaa_properties p
-        WHERE %s
+        SELECT p.id FROM wormholescan.wh_operation_properties p
+        WHERE exists (
+            SELECT ot.attestation_id FROM wormholescan.wh_operation_transactions ot
+            WHERE ot.attestation_id = p.id
+        ) AND %s
         ORDER BY p.timestamp %s, p.id %s
         LIMIT $%d OFFSET $%d`, condition, sort, sort, len(params)+1, len(params)+2)
 	params = append(params, pagination.Limit, pagination.Skip)

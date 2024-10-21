@@ -22,6 +22,7 @@ func UpsertTransferPrices(
 	tokenPriceFunc func(tokenID, coinGeckoID string, timestamp time.Time) (decimal.Decimal, error),
 	transferredToken *token.TransferredToken,
 	tokenProvider *domain.TokenProvider,
+	source, trackID string,
 ) error {
 
 	// Do not generate this metric for PythNet VAAs
@@ -69,6 +70,8 @@ func UpsertTransferPrices(
 	usdAmount := tokenAmount.Mul(notionalUSD)
 
 	tp := storage.OperationPrice{
+		Source:        source,
+		TrackID:       trackID,
 		Digest:        utils.NormalizeHex(vaa.HexDigest()),
 		VaaID:         vaa.MessageID(),
 		ChainID:       vaa.EmitterChain,

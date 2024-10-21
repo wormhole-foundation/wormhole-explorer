@@ -47,9 +47,9 @@ SELECT
 	wavp.payload as properties_payload,
 	wavp.raw_standard_fields as properties_raw_standard_fields
 FROM wormholescan.wh_attestation_vaas wav
-LEFT JOIN wormholescan.wh_operation_transactions wot ON  wav.id = wot.attestation_vaas_id
-LEFT JOIN wormholescan.wh_operation_prices wop ON wop.id = wot.attestation_vaas_id
-LEFT JOIN wormholescan.wh_attestation_vaa_properties wavp ON wavp.id = wot.attestation_vaas_id
+LEFT JOIN wormholescan.wh_operation_transactions wot ON  wav.id = wot.attestation_id
+LEFT JOIN wormholescan.wh_operation_prices wop ON wop.id = wot.attestation_id
+LEFT JOIN wormholescan.wh_operation_properties wavp ON wavp.id = wot.attestation_id
 `
 
 type totalPythResult struct {
@@ -100,7 +100,7 @@ type operationTxResult struct {
 	Type              string         `db:"type"`
 	CreatedAt         time.Time      `db:"created_at"`
 	UpdatedAt         time.Time      `db:"updated_at"`
-	AttestationVaasID string         `db:"attestation_vaas_id"`
+	AttestationVaasID string         `db:"attestation_id"`
 	MessageID         string         `db:"message_id"`
 	Status            *string        `db:"status"`
 	FromAddress       *string        `db:"from_address"`
@@ -118,7 +118,7 @@ func (r *PostgresRepository) FindGlobalTransactionByID(
 	q *GlobalTransactionQuery,
 ) (*GlobalTransactionDoc, error) {
 
-	query := `SELECT chain_id, tx_hash, "type", created_at, updated_at, attestation_vaas_id, message_id, status, 
+	query := `SELECT chain_id, tx_hash, "type", created_at, updated_at, attestation_id, message_id, status, 
 	from_address, to_address, block_number, blockchain_method, fee_detail, timestamp, rpc_response 
 	FROM wormholescan.wh_operation_transactions 
 	WHERE message_id = $1

@@ -58,7 +58,7 @@ CREATE TABLE wormholescan.wh_operation_transactions (
     "type" varchar not null,
     "created_at" timestamp not null,
     "updated_at" timestamp not null,
-    "attestation_vaas_id" varchar not null,
+    "attestation_id" varchar not null,
     "message_id" varchar not null,
     "status" varchar null,
     "from_address" varchar null,
@@ -68,6 +68,8 @@ CREATE TABLE wormholescan.wh_operation_transactions (
     "fee_detail" jsonb null,
     "timestamp" timestamptz not null,
     "rpc_response" json null,
+    "source_event" varchar null,
+    "track_id_event" varchar null,
     PRIMARY KEY (message_id, tx_hash)
 );
 CREATE INDEX "wh_operation_transactions_message_id_idx"
@@ -80,27 +82,27 @@ CREATE INDEX "wh_operation_transactions_to_address_idx"
     ON wormholescan.wh_operation_transactions ("to_address");
 CREATE INDEX "wh_operation_transactions_chain_id_type_idx"
     ON wormholescan.wh_operation_transactions ("chain_id", "type");
-CREATE INDEX "wh_operation_transactions_attestation_vaas_id_idx"
-    ON wormholescan.wh_operation_transactions ("attestation_vaas_id");
+CREATE INDEX "wh_operation_transactions_attestation_id_idx"
+    ON wormholescan.wh_operation_transactions ("attestation_id");
 CREATE INDEX "wh_operation_transactions_timestamp_idx" 
-    ON wormholescan.wh_operation_transactions ("timestamp" desc, "attestation_vaas_id" desc);
+    ON wormholescan.wh_operation_transactions ("timestamp" desc, "attestation_id" desc);
 CREATE INDEX "wh_operation_transactions_source_timestamp_idx" 
-    ON wormholescan.wh_operation_transactions ("timestamp" desc, "attestation_vaas_id" desc) 
+    ON wormholescan.wh_operation_transactions ("timestamp" desc, "attestation_id" desc) 
     WHERE "type" = 'source-tx';
 
 -- create table wormholescan.wh_operation_transactions_processed
 CREATE TABLE wormholescan.wh_operation_transactions_processed (
     "message_id" varchar not null,
     "tx_hash" varchar not null,
-    "attestation_vaas_id" varchar not null,
+    "attestation_id" varchar not null,
     "type" varchar not null,
     "processed" bool not null,
     "created_at" timestamptz not null,
     "updated_at" timestamptz not null,
     PRIMARY KEY ("message_id", "tx_hash")
 );
-CREATE INDEX "wh_operation_transactions_processed_attestation_vaas_id_idx"
-    ON wormholescan.wh_operation_transactions_processed ("attestation_vaas_id");
+CREATE INDEX "wh_operation_transactions_processed_attestation_id_idx"
+    ON wormholescan.wh_operation_transactions_processed ("attestation_id");
 
 -- create table wormholescan.wh_governor_status
 CREATE TABLE wormholescan.wh_governor_status (
@@ -235,11 +237,13 @@ CREATE TABLE wormholescan.wh_operation_prices (
     "timestamp" timestamptz not null,
     "created_at" timestamptz not null,
     "updated_at" timestamptz not null,
+    "source_event" varchar null,
+    "track_id_event" varchar null,
     PRIMARY KEY (id)
 );
 
--- create table wormholescan.wh_attestation_vaa_properties
-CREATE TABLE wormholescan.wh_attestation_vaa_properties (
+-- create table wormholescan.wh_operation_properties
+CREATE TABLE wormholescan.wh_operation_properties (
     "id" varchar not null,
     "message_id" varchar not null,
     "app_id" text[] null,
@@ -259,24 +263,26 @@ CREATE TABLE wormholescan.wh_attestation_vaa_properties (
     "timestamp" timestamptz not null,
     "created_at" timestamptz not null,
     "updated_at" timestamptz not null,
+    "source_event" varchar null,
+    "track_id_event" varchar null,
      PRIMARY KEY (id)
 );
-CREATE INDEX "wh_attestation_vaa_properties_message_id_idx"
-    ON wormholescan.wh_attestation_vaa_properties ("message_id");
-CREATE INDEX "wh_attestation_vaa_properties_app_test_id_idx" 
-    ON wormholescan.wh_attestation_vaa_properties USING gin("app_id" asc, "timestamp" desc, "id" desc); 
-CREATE INDEX "wh_attestation_vaa_properties_from_address_idx" 
-    ON wormholescan.wh_attestation_vaa_properties ("from_address");
-CREATE INDEX "wh_attestation_vaa_properties_to_address_idx" 
-    ON wormholescan.wh_attestation_vaa_properties ("to_address");
-CREATE INDEX "wh_attestation_vaa_properties_timestamp_idx" 
-    ON wormholescan.wh_attestation_vaa_properties ("timestamp" desc, "id" desc);
-CREATE INDEX "wh_attestation_vaa_properties_from_chain_id_idx"
-    ON wormholescan.wh_attestation_vaa_properties ("from_chain_id" asc, "timestamp" desc, "id" desc);
-CREATE INDEX "wh_attestation_vaa_properties_to_chain_id_idx"
-    ON wormholescan.wh_attestation_vaa_properties ("to_chain_id" asc, "timestamp" desc, "id" desc);
-CREATE INDEX "wh_attestation_vaa_properties_payload_type_idx"
-    ON wormholescan.wh_attestation_vaa_properties ("payload_type" asc, "timestamp" desc, "id" desc);
+CREATE INDEX "wh_operation_properties_message_id_idx"
+    ON wormholescan.wh_operation_properties ("message_id");
+CREATE INDEX "wh_operation_properties_app_id_idx" 
+    ON wormholescan.wh_operation_properties USING gin("app_id");
+CREATE INDEX "wh_operation_properties_from_address_idx" 
+    ON wormholescan.wh_operation_properties ("from_address");
+CREATE INDEX "wh_operation_properties_to_address_idx" 
+    ON wormholescan.wh_operation_properties ("to_address");
+CREATE INDEX "wh_operation_properties_timestamp_idx" 
+    ON wormholescan.wh_operation_properties ("timestamp" desc, "id" desc);
+CREATE INDEX "wh_operation_properties_from_chain_id_idx"
+    ON wormholescan.wh_operation_properties ("from_chain_id" asc, "timestamp" desc, "id" desc);
+CREATE INDEX "wh_operation_properties_to_chain_id_idx"
+    ON wormholescan.wh_operation_properties ("to_chain_id" asc, "timestamp" desc, "id" desc);
+CREATE INDEX "wh_operation_properties_payload_type_idx"
+    ON wormholescan.wh_operation_properties ("payload_type" asc, "timestamp" desc, "id" desc);
 
 -- create table wormholescan.wh_relays
 CREATE TABLE wormholescan.wh_relays (
