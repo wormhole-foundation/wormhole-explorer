@@ -42,7 +42,7 @@ func addServiceCommand(root *cobra.Command) {
 }
 
 func addBackfiller(root *cobra.Command) {
-	var mongoUri, mongoDb, p2pNetwork, vaaPayloadParserURL, logLevel, startTime, endTime, sort, emitterAddress, sequence string
+	var mongoUri, dbLayer, mongoDb, postgresUrl, p2pNetwork, vaaPayloadParserURL, logLevel, startTime, endTime, sort, emitterAddress, sequence string
 	var vaaPayloadParserTimeout, pageSize int64
 	var emitterChainID uint16
 
@@ -56,8 +56,10 @@ func addBackfiller(root *cobra.Command) {
 		Run: func(_ *cobra.Command, _ []string) {
 			cfg := &config.BackfillerConfiguration{
 				LogLevel:                logLevel,
+				DbLayer:                 dbLayer,
 				MongoURI:                mongoUri,
 				MongoDatabase:           mongoDb,
+				PostgresDbURL:           postgresUrl,
 				P2pNetwork:              p2pNetwork,
 				VaaPayloadParserURL:     vaaPayloadParserURL,
 				VaaPayloadParserTimeout: vaaPayloadParserTimeout,
@@ -81,8 +83,10 @@ func addBackfiller(root *cobra.Command) {
 		},
 	}
 	backfillerCommand.Flags().StringVar(&logLevel, "log-level", "INFO", "log level")
+	backfillerCommand.Flags().StringVar(&dbLayer, "db-layer", "mongo", "db layer to use")
 	backfillerCommand.Flags().StringVar(&mongoUri, "mongo-uri", "", "Mongo connection")
 	backfillerCommand.Flags().StringVar(&mongoDb, "mongo-database", "", "Mongo database")
+	backfillerCommand.Flags().StringVar(&postgresUrl, "postgres-url", "", "Postgres connection string")
 	backfillerCommand.Flags().StringVar(&p2pNetwork, "p2p-network", "", "P2P network")
 	backfillerCommand.Flags().StringVar(&vaaPayloadParserURL, "vaa-payload-parser-url", "", "VAA payload parser service URL")
 	backfillerCommand.Flags().Int64Var(&vaaPayloadParserTimeout, "vaa-payload-parser-timeout", 10, "maximum waiting time in call to VAA payload service in seconds")
@@ -94,8 +98,10 @@ func addBackfiller(root *cobra.Command) {
 	backfillerCommand.Flags().StringVar(&emitterAddress, "emitter-address", "", "emitter address")
 	backfillerCommand.Flags().StringVar(&sequence, "sequence", "", "sequence")
 
+	backfillerCommand.MarkFlagRequired("db-layer")
 	backfillerCommand.MarkFlagRequired("mongo-uri")
 	backfillerCommand.MarkFlagRequired("mongo-database")
+	backfillerCommand.MarkFlagRequired("postgres-url")
 	backfillerCommand.MarkFlagRequired("p2p-network")
 	backfillerCommand.MarkFlagRequired("vaa-payload-parser-url")
 	backfillerCommand.MarkFlagRequired("start-time")

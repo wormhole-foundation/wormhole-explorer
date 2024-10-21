@@ -7,6 +7,7 @@ import (
 )
 
 type Params struct {
+	Source      string
 	TrackID     string
 	Vaa         *vaa.VAA
 	VaaIsSigned bool

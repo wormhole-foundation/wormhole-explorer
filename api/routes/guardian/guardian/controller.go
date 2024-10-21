@@ -3,6 +3,7 @@ package guardian
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/guardian"
+	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
 	"github.com/wormhole-foundation/wormhole-explorer/api/response"
 	"go.uber.org/zap"
 )
@@ -41,7 +42,7 @@ type GuardianSet struct {
 // @Failure 500
 // @Router /v1/guardianset/current [get]
 func (c *Controller) GetGuardianSet(ctx *fiber.Ctx) error {
-	gs, err := c.gsSrv.GetGuardianSet(ctx.Context())
+	gs, err := c.gsSrv.GetGuardianSet(ctx.Context(), middleware.UsePostgres(ctx))
 	if err != nil {
 		c.logger.Error("failed to get guardian set", zap.Error(err))
 		return response.NewApiError(ctx, fiber.StatusInternalServerError, response.Internal,

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"log"
 	"os"
 	"os/signal"
@@ -13,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	vaaPayloadParser "github.com/wormhole-foundation/wormhole-explorer/common/client/parser"
+	"github.com/wormhole-foundation/wormhole-explorer/common/db"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/health"
@@ -28,7 +30,6 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/parser/parser"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/processor"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/queue"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
 
@@ -48,63 +49,54 @@ func Run() {
 	defer handleExit()
 	rootCtx, rootCtxCancel := context.WithCancel(context.Background())
 
-	config, err := config.New(rootCtx)
+	cfg, err := config.New(rootCtx)
 	if err != nil {
 		log.Fatal("Error creating config", err)
 	}
 
-	logger := logger.New("wormhole-explorer-parser", logger.WithLevel(config.LogLevel))
+	logger := logger.New("wormhole-explorer-parser", logger.WithLevel(cfg.LogLevel))
 
 	logger.Info("Starting wormhole-explorer-parser ...")
 
-	// setup DB connection
-	db, err := dbutil.Connect(rootCtx, logger, config.MongoURI, config.MongoDatabase, false)
+	storage, err := newStorageLayer(rootCtx, cfg, logger)
 	if err != nil {
-		logger.Fatal("failed to connect MongoDB", zap.Error(err))
-	}
-
-	// run the database migration.
-	err = migration.Run(db.Database)
-	if err != nil {
-		logger.Fatal("error running migration", zap.Error(err))
+		logger.Fatal("failed to create storage layer", zap.Error(err))
 	}
 
 	// get alert client.
-	alertClient, err := newAlertClient(config)
+	alertClient, err := newAlertClient(cfg)
 	if err != nil {
 		logger.Fatal("failed to create alert client", zap.Error(err))
 	}
 
 	// create a metrics
-	metrics := newMetrics(config)
+	metrics := newMetrics(cfg)
 
 	// create a parserVAAAPIClient
-	parserVAAAPIClient, err := vaaPayloadParser.NewParserVAAAPIClient(config.VaaPayloadParserTimeout,
-		config.VaaPayloadParserURL, logger)
+	parserVAAAPIClient, err := vaaPayloadParser.NewParserVAAAPIClient(cfg.VaaPayloadParserTimeout,
+		cfg.VaaPayloadParserURL, logger)
 	if err != nil {
 		logger.Fatal("failed to create parse vaa api client")
 	}
 
 	// get vaa consumer function.
-	vaaConsumeFunc := newVAAConsume(rootCtx, config, metrics, logger)
+	vaaConsumeFunc := newVAAConsume(rootCtx, cfg, metrics, logger)
 
 	//get notification consumer function.
-	notificationConsumeFunc := newNotificationConsume(rootCtx, config, metrics, logger)
-
-	// create a repository
-	repository := parser.NewRepository(db.Database, logger)
+	notificationConsumeFunc := newNotificationConsume(rootCtx, cfg, metrics, logger)
 
 	// get health check functions.
 	logger.Info("creating health check functions...")
-	healthChecks, err := newHealthChecks(rootCtx, config, db.Database)
+	healthChecks, err := newHealthChecks(rootCtx, cfg, storage.mongoDB, storage.postgresDB)
 	if err != nil {
 		logger.Fatal("failed to create health checks", zap.Error(err))
 	}
 	// create a token provider
-	tokenProvider := domain.NewTokenProvider(config.P2pNetwork)
+	tokenProvider := domain.NewTokenProvider(cfg.P2pNetwork)
 
 	//create a processor
-	processor := processor.New(parserVAAAPIClient, repository, alertClient, metrics, tokenProvider, logger)
+	processor := processor.New(parserVAAAPIClient, cfg.DbLayer, storage.mongoRepository, storage.postgresRepository,
+		alertClient, metrics, tokenProvider, logger)
 
 	// create and start a vaaConsumer
 	vaaConsumer := consumer.New(vaaConsumeFunc, processor.Process, metrics, logger)
@@ -114,9 +106,17 @@ func Run() {
 	notificationConsumer := consumer.New(notificationConsumeFunc, processor.Process, metrics, logger)
 	notificationConsumer.Start(rootCtx)
 
-	vaaRepository := vaa.NewRepository(db.Database, logger)
-	vaaController := vaa.NewController(vaaRepository, processor.Process, logger)
-	server := infrastructure.NewServer(logger, config.Port, config.PprofEnabled, vaaController, healthChecks...)
+	var vaaRepository *vaa.Repository
+	var vaaPostgresRepository *vaa.PostgresRepository
+	if cfg.DbLayer == config.DbLayerMongo || cfg.DbLayer == config.DbLayerDual {
+		vaaRepository = vaa.NewRepository(storage.mongoDB.Database, logger)
+	}
+	if cfg.DbLayer == config.DbLayerPostgres || cfg.DbLayer == config.DbLayerDual {
+		vaaPostgresRepository = vaa.NewPostgresRepository(storage.postgresDB, logger)
+	}
+
+	vaaController := vaa.NewController(cfg.DbLayer, vaaRepository, vaaPostgresRepository, processor.Process, logger)
+	server := infrastructure.NewServer(logger, cfg.Port, cfg.PprofEnabled, vaaController, healthChecks...)
 	server.Start()
 
 	logger.Info("Started wormhole-explorer-parser")
@@ -135,12 +135,106 @@ func Run() {
 	rootCtxCancel()
 
 	logger.Info("closing MongoDB connection...")
-	db.DisconnectWithTimeout(10 * time.Second)
+	if cfg.DbLayer == config.DbLayerDual || cfg.DbLayer == config.DbLayerMongo {
+		storage.mongoDB.DisconnectWithTimeout(10 * time.Second)
+	}
+	logger.Info("closing Postgres connection...")
+	if cfg.DbLayer == config.DbLayerDual || cfg.DbLayer == config.DbLayerPostgres {
+		storage.postgresDB.Close()
+	}
 
 	logger.Info("Closing Http server ...")
 	server.Stop()
 
 	logger.Info("Finished wormhole-explorer-parser")
+}
+
+type StorageLayer struct {
+	mongoDB            *dbutil.Session
+	mongoRepository    *parser.MongoRepository
+	postgresDB         *db.DB
+	postgresRepository *parser.PostgresRepository
+}
+
+// newStorageLayer creates a new storage layer.
+func newStorageLayer(ctx context.Context, cfg *config.ServiceConfiguration, logger *zap.Logger) (*StorageLayer, error) {
+
+	var mongoDB *dbutil.Session
+	var mongoRepository *parser.MongoRepository
+	var postgresDB *db.DB
+	var postgresRepository *parser.PostgresRepository
+	var err error
+	switch cfg.DbLayer {
+	case config.DbLayerMongo:
+		// setup mongo db connection
+		mongoDB, err = dbutil.Connect(ctx, logger, cfg.MongoURI, cfg.MongoDatabase, false)
+		if err != nil {
+			logger.Error("failed to connect MongoDB", zap.Error(err))
+			return nil, err
+		}
+
+		// run the mongo database migration.
+		err = migration.Run(mongoDB.Database)
+		if err != nil {
+			logger.Error("error running migration", zap.Error(err))
+			return nil, err
+		}
+		// create a mongo repository
+		mongoRepository = parser.NewMongoRepository(mongoDB.Database, logger)
+		return &StorageLayer{
+			mongoDB:         mongoDB,
+			mongoRepository: mongoRepository,
+		}, nil
+	case config.DbLayerPostgres:
+		// setup postgres db connection
+		postgresDB, err = newPostgresDatabase(ctx, cfg, logger)
+		if err != nil {
+			logger.Error("failed to connect Postgres", zap.Error(err))
+			return nil, err
+		}
+
+		// create a postgres repository
+		postgresRepository = parser.NewPostgresRepository(postgresDB, logger)
+		return &StorageLayer{
+			postgresDB:         postgresDB,
+			postgresRepository: postgresRepository,
+		}, nil
+	case config.DbLayerDual:
+		// setup mongo db connection
+		mongoDB, err = dbutil.Connect(ctx, logger, cfg.MongoURI, cfg.MongoDatabase, false)
+		if err != nil {
+			logger.Error("failed to connect MongoDB", zap.Error(err))
+			return nil, err
+		}
+
+		// run the mongo database migration.
+		err = migration.Run(mongoDB.Database)
+		if err != nil {
+			logger.Error("error running migration", zap.Error(err))
+			return nil, err
+		}
+		// create a mongo repository
+		mongoRepository = parser.NewMongoRepository(mongoDB.Database, logger)
+
+		// setup postgres db connection
+		postgresDB, err = newPostgresDatabase(ctx, cfg, logger)
+		if err != nil {
+			logger.Error("failed to connect Postgres", zap.Error(err))
+			return nil, err
+		}
+
+		// create a postgres repository
+		postgresRepository = parser.NewPostgresRepository(postgresDB, logger)
+		return &StorageLayer{
+			mongoDB:            mongoDB,
+			mongoRepository:    mongoRepository,
+			postgresDB:         postgresDB,
+			postgresRepository: postgresRepository,
+		}, nil
+
+	default:
+		return nil, errors.New("invalid db layer")
+	}
 }
 
 // Creates a new AWS config depending on whether the execution is local (localstack) or not (AWS)
@@ -217,7 +311,7 @@ func newMetrics(cfg *config.ServiceConfiguration) metrics.Metrics {
 	if !cfg.MetricsEnabled {
 		return metrics.NewDummyMetrics()
 	}
-	return metrics.NewPrometheusMetrics(cfg.Environment)
+	return metrics.NewPrometheusMetrics(cfg.Environment, cfg.DbLayer)
 }
 
 func newAlertClient(cfg *config.ServiceConfiguration) (alert.AlertClient, error) {
@@ -236,19 +330,45 @@ func newAlertClient(cfg *config.ServiceConfiguration) (alert.AlertClient, error)
 
 func newHealthChecks(
 	ctx context.Context,
-	config *config.ServiceConfiguration,
-	db *mongo.Database,
+	cfg *config.ServiceConfiguration,
+	mongoDB *dbutil.Session,
+	postgresDB *db.DB,
 ) ([]health.Check, error) {
 
-	awsConfig, err := newAwsConfig(ctx, config)
+	awsConfig, err := newAwsConfig(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
 
 	healthChecks := []health.Check{
-		health.SQS(awsConfig, config.PipelineSQSUrl),
-		health.SQS(awsConfig, config.NotificationsSQSUrl),
-		health.Mongo(db),
+		health.SQS(awsConfig, cfg.PipelineSQSUrl),
+		health.SQS(awsConfig, cfg.NotificationsSQSUrl),
 	}
+
+	switch cfg.DbLayer {
+	case config.DbLayerMongo:
+		healthChecks = append(healthChecks, health.Mongo(mongoDB.Database))
+	case config.DbLayerPostgres:
+		healthChecks = append(healthChecks, health.Postgres(postgresDB))
+	case config.DbLayerDual:
+		healthChecks = append(healthChecks, health.Mongo(mongoDB.Database))
+		healthChecks = append(healthChecks, health.Postgres(postgresDB))
+	default:
+		return nil, errors.New("invalid db layer")
+	}
+
 	return healthChecks, nil
+}
+
+func newPostgresDatabase(ctx context.Context,
+	cfg *config.ServiceConfiguration,
+	logger *zap.Logger) (*db.DB, error) {
+
+	// Enable database logging
+	var options db.Option
+	if cfg.DbLogEnable {
+		options = db.WithTracer(logger)
+	}
+
+	return db.NewDB(ctx, cfg.DbURL, options)
 }

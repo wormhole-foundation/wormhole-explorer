@@ -2,16 +2,21 @@ package storage
 
 import (
 	"context"
+	"fmt"
 
 	commonRepo "github.com/wormhole-foundation/wormhole-explorer/common/repository"
+	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/config"
+	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/internal/metrics"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 	"gopkg.in/mgo.v2/bson"
 )
 
 // Repository exposes operations over the `globalTransactions` collection.
+// Remove Repository after switch to use only postgres.
 type Repository struct {
 	logger           *zap.Logger
+	metrics          metrics.Metrics
 	vaas             *mongo.Collection
 	duplicateVaas    *mongo.Collection
 	nodeGovernorVaas *mongo.Collection
@@ -19,9 +24,10 @@ type Repository struct {
 }
 
 // New creates a new repository.
-func NewRepository(logger *zap.Logger, db *mongo.Database) *Repository {
+func NewRepository(logger *zap.Logger, db *mongo.Database, metrics metrics.Metrics) *Repository {
 	r := Repository{
 		logger:           logger,
+		metrics:          metrics,
 		vaas:             db.Collection(commonRepo.Vaas),
 		duplicateVaas:    db.Collection(commonRepo.DuplicateVaas),
 		nodeGovernorVaas: db.Collection(commonRepo.NodeGovernorVaas),
@@ -131,8 +137,8 @@ func (r *Repository) FixVAA(ctx context.Context, vaaID, duplicateID string) erro
 }
 
 // FindNodeGovernorVaaByNodeAddress find governor vaas by node address.
-func (r *Repository) FindNodeGovernorVaaByNodeAddress(ctx context.Context, nodeAddress string) ([]NodeGovernorVaaDoc, error) {
-	var nodeGovernorVaa []NodeGovernorVaaDoc
+func (r *Repository) FindNodeGovernorVaaByNodeAddress(ctx context.Context, nodeAddress string) ([]NodeGovernorVaa, error) {
+	var nodeGovernorVaa []NodeGovernorVaa
 	cursor, err := r.nodeGovernorVaas.Find(ctx, bson.M{"nodeAddress": nodeAddress})
 	if err != nil {
 		return nil, err
@@ -144,8 +150,8 @@ func (r *Repository) FindNodeGovernorVaaByNodeAddress(ctx context.Context, nodeA
 }
 
 // FindNodeGovernorVaaByVaaID find governor vaas by vaa id.
-func (r *Repository) FindNodeGovernorVaaByVaaID(ctx context.Context, vaaID string) ([]NodeGovernorVaaDoc, error) {
-	var nodeGovernorVaa []NodeGovernorVaaDoc
+func (r *Repository) FindNodeGovernorVaaByVaaID(ctx context.Context, vaaID string) ([]NodeGovernorVaa, error) {
+	var nodeGovernorVaa []NodeGovernorVaa
 	cursor, err := r.nodeGovernorVaas.Find(ctx, bson.M{"vaaId": vaaID})
 	if err != nil {
 		return nil, err
@@ -157,8 +163,8 @@ func (r *Repository) FindNodeGovernorVaaByVaaID(ctx context.Context, vaaID strin
 }
 
 // FindNodeGovernorVaaByVaaIDs find governor vaas by vaa ids.
-func (r *Repository) FindNodeGovernorVaaByVaaIDs(ctx context.Context, vaaID []string) ([]NodeGovernorVaaDoc, error) {
-	var nodeGovernorVaa []NodeGovernorVaaDoc
+func (r *Repository) FindNodeGovernorVaaByVaaIDs(ctx context.Context, vaaID []string) ([]NodeGovernorVaa, error) {
+	var nodeGovernorVaa []NodeGovernorVaa
 	cursor, err := r.nodeGovernorVaas.Find(ctx, bson.M{"vaaId": bson.M{"$in": vaaID}})
 	if err != nil {
 		return nil, err
@@ -170,8 +176,8 @@ func (r *Repository) FindNodeGovernorVaaByVaaIDs(ctx context.Context, vaaID []st
 }
 
 // FindGovernorVaaByVaaID find governor vaas by a list of vaaIds
-func (r *Repository) FindGovernorVaaByVaaIDs(ctx context.Context, vaaID []string) ([]GovernorVaaDoc, error) {
-	var governorVaa []GovernorVaaDoc
+func (r *Repository) FindGovernorVaaByVaaIDs(ctx context.Context, vaaID []string) ([]GovernorVaa, error) {
+	var governorVaa []GovernorVaa
 	cursor, err := r.governorVaas.Find(ctx, bson.M{"_id": bson.M{"$in": vaaID}})
 	if err != nil {
 		return nil, err
@@ -182,11 +188,33 @@ func (r *Repository) FindGovernorVaaByVaaIDs(ctx context.Context, vaaID []string
 	return governorVaa, nil
 }
 
-func (r *Repository) UpdateGovernor(
+func (r *Repository) UpdateGovernorStatus(
 	ctx context.Context,
-	nodeGovernorVaaDocToInsert []NodeGovernorVaaDoc,
+	nodeName string,
+	nodeAddress string,
+	nodeGovernorVaaDocToInsert []NodeGovernorVaa,
 	nodeGovernorVaaDocToDelete []string,
-	governorVaasToInsert []GovernorVaaDoc,
+	governorVaasToInsert []GovernorVaa,
+	governorVaaIdsToDelete []string) error {
+	err := r.updateGovernorStatus(ctx,
+		nodeAddress,
+		nodeGovernorVaaDocToInsert,
+		nodeGovernorVaaDocToDelete,
+		governorVaasToInsert,
+		governorVaaIdsToDelete)
+	if err == nil {
+		r.metrics.IncGovernorStatusUpdated(
+			nodeName, nodeAddress, config.DbLayerMongo)
+	}
+	return err
+}
+
+func (r *Repository) updateGovernorStatus(
+	ctx context.Context,
+	nodeAddress string,
+	nodeGovernorVaaDocToInsert []NodeGovernorVaa,
+	nodeGovernorVaaDocToDelete []string,
+	governorVaasToInsert []GovernorVaa,
 	governorVaaIdsToDelete []string) error {
 
 	// 1. start mongo transaction
@@ -215,7 +243,14 @@ func (r *Repository) UpdateGovernor(
 
 	// 3. delete node governor vaas.
 	if len(nodeGovernorVaaDocToDelete) > 0 {
-		_, err = r.nodeGovernorVaas.DeleteMany(ctx, bson.M{"_id": bson.M{"$in": nodeGovernorVaaDocToDelete}})
+
+		// build nodeGovenorVaas ids.
+		var nodeGovVaaIdsToDelete []string
+		for _, vaaID := range nodeGovernorVaaDocToDelete {
+			nodeGovVaaIdsToDelete = append(nodeGovVaaIdsToDelete, fmt.Sprintf("%s-%s", nodeAddress, vaaID))
+		}
+
+		_, err = r.nodeGovernorVaas.DeleteMany(ctx, bson.M{"_id": bson.M{"$in": nodeGovVaaIdsToDelete}})
 		if err != nil {
 			session.AbortTransaction(ctx)
 			return err

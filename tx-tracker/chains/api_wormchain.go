@@ -9,6 +9,7 @@ import (
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
+	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
@@ -595,8 +596,9 @@ func (a *apiWormchain) FetchWormchainTx(
 		}
 
 		return &TxDetail{
-			NativeTxHash: txHash,
-			From:         wormchainTx.receiver,
+			NativeTxHash:     txHash,
+			NormalizedTxHash: utils.NormalizeHex(txHash),
+			From:             wormchainTx.receiver,
 			Attribute: &AttributeTxDetail{
 				Type: "wormchain-gateway",
 				Value: &WorchainAttributeTxDetail{
@@ -679,8 +681,9 @@ func (a *apiWormchain) FetchWormchainTx(
 		zap.String("txHash", txHash))
 
 	return &TxDetail{
-		NativeTxHash: txHash,
-		From:         wormchainTx.receiver,
+		NativeTxHash:     txHash,
+		NormalizedTxHash: utils.NormalizeHex(txHash),
+		From:             wormchainTx.receiver,
 	}, nil
 }
 

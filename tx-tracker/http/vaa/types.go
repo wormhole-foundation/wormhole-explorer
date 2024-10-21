@@ -7,7 +7,7 @@ type ProcessVaaRequest struct {
 
 // TxHashRequest request a tx hash.
 type TxHashRequest struct {
-	ID     string `json:"id"`
+	VaaID  string `json:"id"`
 	TxHash string `json:"txHash"`
 }
 

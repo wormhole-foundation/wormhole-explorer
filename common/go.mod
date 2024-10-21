@@ -11,10 +11,12 @@ require (
 	github.com/cosmos/btcutil v1.0.5
 	github.com/ethereum/go-ethereum v1.10.21
 	github.com/gagliardetto/solana-go v1.8.4
+	github.com/georgysavva/scany/v2 v2.1.3
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-resty/resty/v2 v2.11.0
 	github.com/gofiber/fiber/v2 v2.47.0
 	github.com/influxdata/influxdb-client-go/v2 v2.12.2
+	github.com/jackc/pgx/v5 v5.6.0
 	github.com/joho/godotenv v1.5.1
 	github.com/mr-tron/base58 v1.2.0
 	github.com/opsgenie/opsgenie-go-sdk-v2 v1.2.19
@@ -63,6 +65,9 @@ require (
 	github.com/holiman/uint256 v1.2.1 // indirect
 	github.com/influxdata/line-protocol v0.0.0-20210311194329-9aa0e372d097 // indirect
 	github.com/ipfs/go-cid v0.4.1 // indirect
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
+	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.17.2 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.5 // indirect

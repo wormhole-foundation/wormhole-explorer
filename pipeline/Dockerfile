@@ -16,6 +16,6 @@ FROM alpine
 #Copy certificates
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 # Copy our static executable.
-COPY --from=build "/app/pipeline/bin/pipeline" "/pipeline"
+COPY --from=build "/app/pipeline/pipeline-app" "/pipeline"
 # Run the binary.
 ENTRYPOINT ["/pipeline"]

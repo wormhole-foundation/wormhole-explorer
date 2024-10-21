@@ -13,10 +13,10 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/cmd/token"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/internal/metrics"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/storage"
 	wormscanNotionalCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
 
@@ -28,9 +28,8 @@ const (
 
 // Metric definition.
 type Metric struct {
-	db *mongo.Database
 	// transferPrices contains the notional price for each token bridge transfer.
-	transferPrices           *mongo.Collection
+	pricesRepository         storage.PricesRepository
 	influxCli                influxdb2.Client
 	apiBucketInfinite        api.WriteAPIBlocking
 	apiBucket30Days          api.WriteAPIBlocking
@@ -45,7 +44,7 @@ type Metric struct {
 // New create a new *Metric.
 func New(
 	ctx context.Context,
-	db *mongo.Database,
+	pricesRepository storage.PricesRepository,
 	influxCli influxdb2.Client,
 	organization string,
 	bucketInifite string,
@@ -64,8 +63,7 @@ func New(
 	apiBucket24Hours.EnableBatching()
 
 	m := Metric{
-		db:                       db,
-		transferPrices:           db.Collection("transferPrices"),
+		pricesRepository:         pricesRepository,
 		influxCli:                influxCli,
 		apiBucketInfinite:        apiBucketInfinite,
 		apiBucket24Hours:         apiBucket24Hours,
@@ -115,7 +113,7 @@ func (m *Metric) Push(ctx context.Context, params *Params) error {
 				ctx,
 				m.logger,
 				params.Vaa,
-				m.transferPrices,
+				m.pricesRepository,
 				func(tokenID, _ string, timestamp time.Time) (decimal.Decimal, error) {
 
 					priceData, err := m.notionalCache.Get(tokenID)
@@ -126,6 +124,8 @@ func (m *Metric) Push(ctx context.Context, params *Params) error {
 				},
 				transferredToken.Clone(),
 				m.tokenProvider,
+				params.Source,
+				params.TrackID,
 			)
 
 		} else {

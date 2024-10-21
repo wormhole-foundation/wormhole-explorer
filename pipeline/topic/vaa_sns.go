@@ -31,22 +31,23 @@ func NewVAASNS(producer *sns.Producer, alertClient alert.AlertClient, metrics me
 }
 
 // Publish sends the message to a SNS topic.
-func (s *SNS) Publish(ctx context.Context, message *Event) error {
-	body, err := json.Marshal(message)
+func (s *SNS) Publish(ctx context.Context, event Event) error {
+	body, err := json.Marshal(event)
 	if err != nil {
 		return err
 	}
 
-	s.logger.Debug("Publishing message", zap.String("groupID", message.ID))
-	err = s.producer.SendMessage(ctx, message.ChainID, message.ID, message.ID, string(body))
+	s.logger.Debug("Publishing message", zap.String("groupID", event.Digest))
+	err = s.producer.SendMessage(ctx, event.ChainID, event.Digest, event.Digest, string(body))
 	if err == nil {
-		s.metrics.IncVaaSendNotification(message.ChainID)
+		s.metrics.IncVaaSendNotification(uint16(event.ChainID))
 	} else {
 		// Alert error pushing event.
 		alertContext := alert.AlertContext{
 			Details: map[string]string{
-				"groupID":   message.ID,
-				"messageID": message.ID,
+				"vaaID":     event.ID,
+				"groupID":   event.Digest,
+				"messageID": event.Digest,
 			},
 			Error: err,
 		}

@@ -40,6 +40,7 @@ func (c *Consumer) Start(ctx context.Context) {
 			}
 
 			params := &processor.Params{
+				Source:  event.Source,
 				TrackID: event.TrackID,
 				Vaa:     event.Vaa,
 			}
