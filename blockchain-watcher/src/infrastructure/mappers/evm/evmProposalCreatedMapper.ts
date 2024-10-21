@@ -81,7 +81,9 @@ const mapLogFromTopics: ProposalCreatedMapper = (
     const iface = new ethers.utils.Interface([abi.abi]);
     const parsedLog = iface.parseLog(log);
 
-    const values = Array.from(parsedLog.args.values()).map((arg: any) => Number(arg));
+    const values = parsedLog.args?.values()
+      ? Array.from(parsedLog.args.values()).map((arg: any) => Number(arg))
+      : [];
 
     return {
       description: parsedLog.args.description,
