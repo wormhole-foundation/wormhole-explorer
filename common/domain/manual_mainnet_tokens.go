@@ -44,6 +44,8 @@ func manualMainnetTokenList() []TokenMetadata {
 
 		{TokenChain: sdk.ChainIDEthereum, TokenAddress: "00000000000000000000000056072c95faa701256059aa122697b133aded9279", Symbol: "SKY", CoingeckoID: "sky", Decimals: 18}, // Addr: 0x56072C95FAA701256059aa122697B133aDEd9279
 		{TokenChain: sdk.ChainIDSolana, TokenAddress: "067c7a69702d4523c88fb07eb91510c1615dd8886ab41767c2461170efc7f703", Symbol: "SKY", CoingeckoID: "sky", Decimals: 6},    // Addr: SKY3ns1PY4rCyyu1n5WCNGnh7MPSjJai3fRcba12NZ8
+
+		{TokenChain: sdk.ChainIDBSC, TokenAddress: "00000000000000000000000026c5e01524d2E6280A48F2c50fF6De7e52E9611C", Symbol: "wstETH", CoingeckoID: "wrapped-steth", Decimals: 18}, // Addr: 0x26c5e01524d2E6280A48F2c50fF6De7e52E9611C
 	}
 }
 
