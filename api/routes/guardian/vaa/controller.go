@@ -49,7 +49,7 @@ func (c *Controller) FindSignedVAAByID(ctx *fiber.Ctx) error {
 
 	vaa, err := c.srv.FindById(
 		ctx.Context(),
-		false, //TODO modify api migration.
+		middleware.UsePostgres(ctx),
 		chainID,
 		emitter,
 		strconv.FormatUint(seq, 10),

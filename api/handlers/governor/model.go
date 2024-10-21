@@ -289,6 +289,13 @@ type GovernorLimit struct {
 // AvailableNotionalByChain definition.
 // This is the structure that is used in guardian api grpc api version.
 type AvailableNotionalByChain struct {
+	ChainID            vaa.ChainID `db:"chainid" json:"chainId"`
+	AvailableNotional  uint64      `db:"availablenotional" json:"remainingAvailableNotional"`
+	NotionalLimit      uint64      `db:"notionallimit" json:"notionalLimit"`
+	MaxTransactionSize uint64      `db:"maxtransactionsize" json:"bigTransactionSize"`
+}
+
+type availableNotionalByChainMongo struct {
 	ChainID            vaa.ChainID  `bson:"chainId" json:"chainId"`
 	AvailableNotional  mongo.Uint64 `bson:"availableNotional" json:"remainingAvailableNotional"`
 	NotionalLimit      mongo.Uint64 `bson:"notionalLimit" json:"notionalLimit"`
@@ -297,13 +304,22 @@ type AvailableNotionalByChain struct {
 
 // TokenList definition
 type TokenList struct {
-	OriginChainID vaa.ChainID `bson:"originchainid" json:"originChainId"`
-	OriginAddress string      `bson:"originaddress" json:"originAddress"`
-	Price         float32     `bson:"price" json:"price"`
+	OriginChainID vaa.ChainID `db:"originchainid" bson:"originchainid" json:"originChainId"`
+	OriginAddress string      `db:"originaddress" bson:"originaddress" json:"originAddress"`
+	Price         float32     `db:"price" bson:"price" json:"price"`
 }
 
 // EnqueuedVaaItem definition
 type EnqueuedVaaItem struct {
+	EmitterChain   vaa.ChainID `db:"chainid" json:"emitterChain"`
+	EmitterAddress string      `db:"emitteraddress" json:"emitterAddress"`
+	Sequence       string      `db:"sequence" json:"sequence"`
+	ReleaseTime    int64       `db:"releasetime" json:"releaseTime"`
+	NotionalValue  uint64      `db:"notionalvalue" json:"notionalValue"`
+	TxHash         string      `db:"txhash" json:"txHash"`
+}
+
+type enqueuedVaaItemMongo struct {
 	EmitterChain   vaa.ChainID  `bson:"chainid" json:"emitterChain"`
 	EmitterAddress string       `bson:"emitteraddress" json:"emitterAddress"`
 	Sequence       string       `bson:"sequence" json:"sequence"`

@@ -290,29 +290,42 @@ func (s *Service) GetGovernorLimit(ctx context.Context, usePostgres bool, p *pag
 
 // GetAvailNotionByChain get governor limit for each chainID.
 // Guardian api migration.
-func (s *Service) GetAvailNotionByChain(ctx context.Context) ([]*AvailableNotionalByChain, error) {
+func (s *Service) GetAvailNotionByChain(ctx context.Context, usePostgres bool) ([]*AvailableNotionalByChain, error) {
 	key := availableNotionByChain
 	return cacheable.GetOrLoad(ctx, s.logger, s.cache, 1*time.Minute, key, s.metrics,
 		func() ([]*AvailableNotionalByChain, error) {
+			if usePostgres {
+				return s.postgresRepo.GetAvailNotionByChain(ctx)
+			}
 			return s.mongoRepo.GetAvailNotionByChain(ctx)
 		})
 }
 
 // Get governor token list.
 // Guardian api migration.
-func (s *Service) GetTokenList(ctx context.Context) ([]*TokenList, error) {
+func (s *Service) GetTokenList(ctx context.Context, postgres bool) ([]*TokenList, error) {
 	key := tokenList
 	return cacheable.GetOrLoad(ctx, s.logger, s.cache, 1*time.Minute, key, s.metrics,
 		func() ([]*TokenList, error) {
-			return s.mongoRepo.GetTokenList(ctx)
+			if postgres {
+				return s.postgresRepo.GetTokenList(ctx)
+			} else {
+				return s.mongoRepo.GetTokenList(ctx)
+			}
 		})
 
 }
 
 // GetEnqueuedVaas get enqueued vaas.
 // Guardian api migration.
-func (s *Service) GetEnqueuedVaas(ctx context.Context) ([]*EnqueuedVaaItem, error) {
-	entries, err := s.mongoRepo.GetEnqueuedVaas(ctx)
+func (s *Service) GetEnqueuedVaas(ctx context.Context, postgres bool) ([]*EnqueuedVaaItem, error) {
+	var entries []*EnqueuedVaaItem
+	var err error
+	if postgres {
+		entries, err = s.postgresRepo.GetEnqueuedVaas(ctx)
+	} else {
+		entries, err = s.mongoRepo.GetEnqueuedVaas(ctx)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -331,8 +344,14 @@ func (s *Service) GetEnqueuedVaas(ctx context.Context) ([]*EnqueuedVaaItem, erro
 
 // IsVaaEnqueued check vaa is enqueued.
 // Guardian api migration.
-func (s *Service) IsVaaEnqueued(ctx context.Context, chainID vaa.ChainID, emitter *types.Address, seq string) (bool, error) {
-	isEnqueued, err := s.mongoRepo.IsVaaEnqueued(ctx, chainID, emitter, seq)
+func (s *Service) IsVaaEnqueued(ctx context.Context, chainID vaa.ChainID, emitter *types.Address, seq string, usePostgres bool) (bool, error) {
+	var isEnqueued bool
+	var err error
+	if usePostgres {
+		isEnqueued, err = s.postgresRepo.IsVaaEnqueued(ctx, chainID, emitter, seq)
+	} else {
+		isEnqueued, err = s.mongoRepo.IsVaaEnqueued(ctx, chainID, emitter, seq)
+	}
 	return isEnqueued, err
 }
 

@@ -1485,7 +1485,7 @@ func (r *MongoRepository) GetAvailNotionByChain(
 	}
 
 	// decodes to GovernorLimitV2.
-	var availbleNotional []*AvailableNotionalByChain
+	var availbleNotional []*availableNotionalByChainMongo
 	err = cur.All(ctx, &availbleNotional)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
@@ -1501,7 +1501,17 @@ func (r *MongoRepository) GetAvailNotionByChain(
 		return nil, errs.ErrNotFound
 	}
 
-	return availbleNotional, nil
+	var result []*AvailableNotionalByChain
+	for _, an := range availbleNotional {
+		result = append(result, &AvailableNotionalByChain{
+			ChainID:            an.ChainID,
+			NotionalLimit:      uint64(an.NotionalLimit),
+			MaxTransactionSize: uint64(an.MaxTransactionSize),
+			AvailableNotional:  uint64(an.AvailableNotional),
+		})
+	}
+
+	return result, nil
 }
 
 // GetTokenList get token lists.
@@ -1720,7 +1730,7 @@ func (r *MongoRepository) GetEnqueuedVaas(ctx context.Context) ([]*EnqueuedVaaIt
 	}
 
 	// decodes to []*EnqueuedVaaItem.
-	var enqueuedVAA []*EnqueuedVaaItem
+	var enqueuedVAA []*enqueuedVaaItemMongo
 	err = cur.All(ctx, &enqueuedVAA)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
@@ -1731,7 +1741,19 @@ func (r *MongoRepository) GetEnqueuedVaas(ctx context.Context) ([]*EnqueuedVaaIt
 		return nil, errors.WithStack(err)
 	}
 
-	return enqueuedVAA, nil
+	var resp []*EnqueuedVaaItem
+	for _, ev := range enqueuedVAA {
+		resp = append(resp, &EnqueuedVaaItem{
+			EmitterChain:   ev.EmitterChain,
+			EmitterAddress: ev.EmitterAddress,
+			NotionalValue:  uint64(ev.NotionalValue),
+			ReleaseTime:    ev.ReleaseTime,
+			Sequence:       ev.Sequence,
+			TxHash:         ev.TxHash,
+		})
+	}
+
+	return resp, nil
 }
 
 type EnqueuedResponse struct {

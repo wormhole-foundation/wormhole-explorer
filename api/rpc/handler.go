@@ -30,11 +30,12 @@ type Handler struct {
 	govSrv      *governor.Service
 	guardianSrv *guardian.Service
 	logger      *zap.Logger
+	usePostgres bool
 }
 
 // NewHandler create a new rpc Handler.
-func NewHandler(vaaSrv *vaaservice.Service, hbSrv *heartbeats.Service, govSrv *governor.Service, guardianSrv *guardian.Service, logger *zap.Logger) *Handler {
-	return &Handler{vaaSrv: vaaSrv, hbSrv: hbSrv, govSrv: govSrv, guardianSrv: guardianSrv, logger: logger}
+func NewHandler(vaaSrv *vaaservice.Service, hbSrv *heartbeats.Service, govSrv *governor.Service, guardianSrv *guardian.Service, logger *zap.Logger, usePostgres bool) *Handler {
+	return &Handler{vaaSrv: vaaSrv, hbSrv: hbSrv, govSrv: govSrv, guardianSrv: guardianSrv, logger: logger, usePostgres: usePostgres}
 }
 
 // GetSignedVAA get signedVAA by chainID, address, sequence.
@@ -69,7 +70,7 @@ func (h *Handler) GetSignedVAA(ctx context.Context, request *publicrpcv1.GetSign
 	// get VAA by Id.
 	vaa, err := h.vaaSrv.FindById(
 		ctx,
-		false, //TODO modifiy api migration.
+		h.usePostgres,
 		chainID,
 		addr,
 		sequence,
@@ -106,7 +107,7 @@ func (h *Handler) GetLastHeartbeats(ctx context.Context, request *publicrpcv1.Ge
 	guardianAddresses := guardianSet.KeysAsHexStrings()
 
 	// get last heartbeats by ids.
-	heartbeats, err := h.hbSrv.GetHeartbeatsByIds(ctx, guardianAddresses)
+	heartbeats, err := h.hbSrv.GetHeartbeatsByIds(ctx, h.usePostgres, guardianAddresses)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "internal server error")
 	}
@@ -172,7 +173,7 @@ func (h *Handler) GetCurrentGuardianSet(ctx context.Context, request *publicrpcv
 
 // GovernorGetAvailableNotionalByChain get availableNotional.
 func (h *Handler) GovernorGetAvailableNotionalByChain(ctx context.Context, _ *publicrpcv1.GovernorGetAvailableNotionalByChainRequest) (*publicrpcv1.GovernorGetAvailableNotionalByChainResponse, error) {
-	availableNotional, err := h.govSrv.GetAvailNotionByChain(ctx)
+	availableNotional, err := h.govSrv.GetAvailNotionByChain(ctx, h.usePostgres)
 	if err != nil {
 		return nil, err
 	}
@@ -194,7 +195,7 @@ func (h *Handler) GovernorGetAvailableNotionalByChain(ctx context.Context, _ *pu
 
 // GovernorGetEnqueuedVAAs get enqueuedVaa.
 func (h *Handler) GovernorGetEnqueuedVAAs(ctx context.Context, _ *publicrpcv1.GovernorGetEnqueuedVAAsRequest) (*publicrpcv1.GovernorGetEnqueuedVAAsResponse, error) {
-	enqueuedVaa, err := h.govSrv.GetEnqueuedVaas(ctx)
+	enqueuedVaa, err := h.govSrv.GetEnqueuedVaas(ctx, h.usePostgres)
 	if err != nil {
 		return nil, err
 	}
@@ -235,7 +236,7 @@ func (h *Handler) GovernorIsVAAEnqueued(ctx context.Context, request *publicrpcv
 		return nil, status.Error(codes.InvalidArgument, "Invalid emitter address")
 	}
 
-	isEnqueued, err := h.govSrv.IsVaaEnqueued(ctx, chainID, emitterAddress, strconv.FormatUint(request.MessageId.Sequence, 10))
+	isEnqueued, err := h.govSrv.IsVaaEnqueued(ctx, chainID, emitterAddress, strconv.FormatUint(request.MessageId.Sequence, 10), h.usePostgres)
 	if err != nil {
 		return nil, err
 	}
@@ -245,7 +246,7 @@ func (h *Handler) GovernorIsVAAEnqueued(ctx context.Context, request *publicrpcv
 
 // GovernorGetTokenList get governor token list.
 func (h *Handler) GovernorGetTokenList(ctx context.Context, _ *publicrpcv1.GovernorGetTokenListRequest) (*publicrpcv1.GovernorGetTokenListResponse, error) {
-	tokenList, err := h.govSrv.GetTokenList(ctx)
+	tokenList, err := h.govSrv.GetTokenList(ctx, h.usePostgres)
 	if err != nil {
 		return nil, err
 	}
