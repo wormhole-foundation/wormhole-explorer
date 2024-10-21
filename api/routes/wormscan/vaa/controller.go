@@ -212,6 +212,13 @@ func (c *Controller) FindById(ctx *fiber.Ctx) error {
 // @Router /api/v1/vaas/vaa-counts [get]
 func (c *Controller) GetVaaCount(ctx *fiber.Ctx) error {
 
+	usePostgres := middleware.UsePostgres(ctx)
+	if usePostgres {
+		// deprecated endpoint
+		return ctx.Status(fiber.StatusGone).
+			JSON(response.Response[[]vaa.VaaStats]{Data: []vaa.VaaStats{}})
+	}
+
 	vaas, err := c.srv.GetVaaCount(ctx.Context())
 	if err != nil {
 		return err
