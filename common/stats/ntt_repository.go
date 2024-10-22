@@ -60,6 +60,41 @@ func (r *NTTRepository) GetNativeTokenTransferMedian(ctx context.Context, symbol
 	return cached.Result, nil
 }
 
+func (r *NTTRepository) GetNativeTokenTransferTokens(ctx context.Context) ([]string, error) {
+	queryTemplate := `
+	import "influxdata/influxdb/schema"
+
+	schema.measurementTagValues(
+    	bucket: "%s",
+    	measurement: "ntt_symbol_chain_1d",
+    	tag: "symbol")	
+	`
+	query := fmt.Sprintf(queryTemplate, r.bucketInfiniteRetention)
+	result, err := r.queryAPI.Query(ctx, query)
+	if err != nil {
+		r.logger.Error("failed to query ntt tokens list", zap.Error(err))
+		return nil, err
+	}
+	if result.Err() != nil {
+		r.logger.Error("failed to query ntt tokens list", zap.Error(err))
+		return nil, result.Err()
+	}
+
+	type Row struct {
+		Symbol uint64 `mapstructure:"_value"`
+	}
+
+	var rows []Row
+	for result.Next() {
+		var row Row
+		if err := mapstructure.Decode(result.Record().Values(), &row); err != nil {
+			return nil, err
+		}
+		rows = append(rows, row)
+	}
+
+}
+
 func (r *NTTRepository) getNativeTokenTransferMedian(ctx context.Context, symbol string) (decimal.Decimal, error) {
 	query := buildNTTMedianTransferSize(r.bucketInfiniteRetention, symbol)
 	result, err := r.queryAPI.Query(ctx, query)

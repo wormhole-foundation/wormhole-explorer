@@ -77,11 +77,12 @@ import "date"
 
 bucket = "%s"
 today =  %s
+symbol = "%s"
 
 last = from(bucket: bucket)
   |> range(start: 1970-01-01T00:00:00Z, stop: today)
   |> filter(fn: (r) => r._measurement == "ntt_symbol_chain_1d" and r._field == "total_transferred" )
-	|> filter(fn: (r) => r.symbol == "W" and r.emitter_chain != r.destination_chain)
+	|> filter(fn: (r) => r.symbol == symbol and r.emitter_chain != r.destination_chain)
 	|> group()
 	|> sum()
 
@@ -91,7 +92,7 @@ current = from(bucket: bucket)
 	|> filter(fn: (r) => r.app_id_1 == "NATIVE_TOKEN_TRANSFER" or r.app_id_2 == "NATIVE_TOKEN_TRANSFER" or r.app_id_3 == "NATIVE_TOKEN_TRANSFER")
 	|> filter(fn: (r) => (r._field == "symbol" and r._value != "") or r._field == "volume")
 	|> schema.fieldsAsCols()
-	|> filter(fn: (r) => r.symbol == "%s")
+	|> filter(fn: (r) => r.symbol == symbol)
 	|> map(fn: (r) => ({r with _value: r.volume}))
 	|> group()
 	|> count()
