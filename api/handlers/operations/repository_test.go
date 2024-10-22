@@ -1,12 +1,13 @@
 package operations_test
 
 import (
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/operations"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"testing"
 )
 
 var sortStage = bson.D{{"$sort", bson.D{{"timestamp", -1}, {"_id", -1}}}}
@@ -68,8 +69,13 @@ func TestPipeline_FindByChainAndAppId(t *testing.T) {
 			},
 			expected: mongo.Pipeline{
 				bson.D{{"$match", bson.M{"$and": bson.A{
-					bson.M{"rawStandardizedProperties.fromChain": bson.M{"$in": []sdk.ChainID{1}}},
-				}}}},
+					bson.M{"$or": bson.A{
+						bson.M{"rawStandardizedProperties.fromChain": bson.M{"$in": []sdk.ChainID{1}}},
+						bson.M{"emitterChain": bson.M{"$in": []sdk.ChainID{1}}},
+					},
+					},
+				},
+				}}},
 				sortStage,
 				skipStage,
 				limitStage,
@@ -87,8 +93,13 @@ func TestPipeline_FindByChainAndAppId(t *testing.T) {
 			},
 			expected: mongo.Pipeline{
 				bson.D{{"$match", bson.M{"$and": bson.A{
-					bson.M{"rawStandardizedProperties.fromChain": bson.M{"$in": []sdk.ChainID{1, 2}}},
-				}}}},
+					bson.M{"$or": bson.A{
+						bson.M{"rawStandardizedProperties.fromChain": bson.M{"$in": []sdk.ChainID{1, 2}}},
+						bson.M{"emitterChain": bson.M{"$in": []sdk.ChainID{1, 2}}},
+					},
+					},
+				},
+				}}},
 				sortStage,
 				skipStage,
 				limitStage,
@@ -145,7 +156,10 @@ func TestPipeline_FindByChainAndAppId(t *testing.T) {
 			},
 			expected: mongo.Pipeline{
 				bson.D{{"$match", bson.M{"$or": bson.A{
-					bson.M{"rawStandardizedProperties.fromChain": bson.M{"$in": []sdk.ChainID{1}}},
+					bson.M{"$or": bson.A{
+						bson.M{"rawStandardizedProperties.fromChain": bson.M{"$in": []sdk.ChainID{1}}},
+						bson.M{"emitterChain": bson.M{"$in": []sdk.ChainID{1}}},
+					}},
 					bson.M{"rawStandardizedProperties.toChain": bson.M{"$in": []sdk.ChainID{1}}},
 				}}}},
 				sortStage,
@@ -166,7 +180,10 @@ func TestPipeline_FindByChainAndAppId(t *testing.T) {
 			},
 			expected: mongo.Pipeline{
 				bson.D{{"$match", bson.M{"$and": bson.A{
-					bson.M{"rawStandardizedProperties.fromChain": bson.M{"$in": []sdk.ChainID{1}}},
+					bson.M{"$or": bson.A{
+						bson.M{"rawStandardizedProperties.fromChain": bson.M{"$in": []sdk.ChainID{1}}},
+						bson.M{"emitterChain": bson.M{"$in": []sdk.ChainID{1}}},
+					}},
 					bson.M{"rawStandardizedProperties.toChain": bson.M{"$in": []sdk.ChainID{2}}},
 				}}}},
 				sortStage,

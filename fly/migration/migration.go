@@ -221,6 +221,14 @@ func Run(db *mongo.Database) error {
 		return err
 	}
 
+	// create index in parsedVaa collection by emiiterChain.
+	indexParsedVaaByEmitterChain := mongo.IndexModel{
+		Keys: bson.D{{Key: "emitterChain", Value: 1}}}
+	_, err = db.Collection("parsedVaa").Indexes().CreateOne(context.TODO(), indexParsedVaaByEmitterChain)
+	if err != nil && isNotAlreadyExistsError(err) {
+		return err
+	}
+
 	// create index in parsedVaa collection by rawStandardizedProperties.appIds.
 	indexParsedVaaRawByAppIds := mongo.IndexModel{
 		Keys: bson.D{{Key: "rawStandardizedProperties.appIds", Value: 1},
