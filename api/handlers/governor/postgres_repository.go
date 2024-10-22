@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/wormhole-foundation/wormhole-explorer/common/types"
-	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	"sort"
 	"strconv"
 	"time"
+
+	"github.com/wormhole-foundation/wormhole-explorer/common/types"
+	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 
 	"github.com/shopspring/decimal"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/mongo"
@@ -98,7 +99,7 @@ func buildGovConfigQuery(q *GovernorQuery) (string, []any) {
 	// handle filtering by id (guardian address).
 	if q.id != nil {
 		baseQuery += fmt.Sprintf(" WHERE id = $%d", counter)
-		params = append(params, q.id)
+		params = append(params, q.id.ShortHex())
 		counter++
 	}
 
