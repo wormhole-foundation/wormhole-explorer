@@ -158,7 +158,7 @@ require (
 	github.com/tklauser/go-sysconf v0.3.10 // indirect
 	github.com/tklauser/numcpus v0.4.0 // indirect
 	github.com/wormhole-foundation/wormhole-explorer/common v0.0.0-00010101000000-000000000000
-	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240823200831-78771ff5297e
+	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20241017142145-e82db71837a3
 	go.uber.org/zap v1.26.0
 	golang.org/x/crypto v0.19.0 // indirect
 	golang.org/x/sys v0.17.0 // indirect

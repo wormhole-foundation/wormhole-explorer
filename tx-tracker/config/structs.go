@@ -197,6 +197,10 @@ type RpcProviderSettings struct {
 	WormchainRequestsPerMinute         uint16 `split_words:"true" required:"false"`
 	WormchainFallbackUrls              string `split_words:"true" required:"false"`
 	WormchainFallbackRequestsPerMinute string `split_words:"true" required:"false"`
+	UnichainBaseUrl                    string `split_words:"true" required:"false"`
+	UnichainRequestsPerMinute          uint16 `split_words:"true" required:"false"`
+	UnichainFallbackUrls               string `split_words:"true" required:"false"`
+	UnichainFallbackRequestsPerMinute  string `split_words:"true" required:"false"`
 	WormchainProviderSettings
 }
 
@@ -516,6 +520,17 @@ func (r RpcProviderSettings) ToMap() (map[sdk.ChainID][]RpcConfig, error) {
 		return nil, err
 	}
 	rpcs[sdk.ChainIDSnaxchain] = snaxchainRpcConfigs
+
+	// add unichain rpcs
+	unichainRpcConfigs, err := addRpcConfig(
+		r.UnichainBaseUrl,
+		r.UnichainRequestsPerMinute,
+		r.UnichainFallbackUrls,
+		r.UnichainFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDUnichain] = unichainRpcConfigs
 
 	// add blast rpcs
 	blastRpcConfigs, err := addRpcConfig(
