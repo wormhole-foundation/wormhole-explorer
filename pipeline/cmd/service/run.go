@@ -8,10 +8,14 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/sqs"
+	"github.com/wormhole-foundation/wormhole-explorer/pipeline/internal/consumer"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
+	db2 "github.com/wormhole-foundation/wormhole-explorer/common/db"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/config"
@@ -19,6 +23,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/http/infrastructure"
 	pipelineAlert "github.com/wormhole-foundation/wormhole-explorer/pipeline/internal/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/internal/metrics"
+	"github.com/wormhole-foundation/wormhole-explorer/pipeline/internal/queue"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/internal/sns"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/pipeline"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/topic"
@@ -43,59 +48,82 @@ func Run() {
 	defer handleExit()
 	rootCtx, rootCtxCancel := context.WithCancel(context.Background())
 
-	config, err := config.New(rootCtx)
+	cfg, err := config.New(rootCtx)
 	if err != nil {
 		log.Fatal("Error creating config", err)
 	}
 
-	logger := logger.New("wormhole-explorer-pipeline", logger.WithLevel(config.LogLevel))
+	logger := logger.New("wormhole-explorer-pipeline", logger.WithLevel(cfg.LogLevel))
 
 	logger.Info("Starting wormhole-explorer-pipeline ...")
 
-	//setup DB connection
-	db, err := dbutil.Connect(rootCtx, logger, config.MongoURI, config.MongoDatabase, false)
-	if err != nil {
-		logger.Fatal("failed to connect MongoDB", zap.Error(err))
-	}
-
 	// get alert client.
-	alertClient, err := newAlertClient(config)
+	alertClient, err := newAlertClient(cfg)
 	if err != nil {
 		logger.Fatal("failed to create alert client", zap.Error(err))
 	}
 
 	// get metrics.
-	metrics := newMetrics(config)
+	metrics := newMetrics(cfg)
+
+	awsCfg, err := newAwsConfig(rootCtx, cfg)
+	if err != nil {
+		logger.Fatal("failed to create aws config", zap.Error(err))
+	}
+	//setup DB connection
+	db, err := dbutil.Connect(rootCtx, logger, cfg.MongoURI, cfg.MongoDatabase, false)
+	if err != nil {
+		logger.Fatal("failed to connect MongoDB", zap.Error(err))
+	}
 
 	// get publish function.
-	pushFunc, err := newTopicProducer(rootCtx, config, alertClient, metrics, logger)
+	pushFunc, err := newTopicProducer(rootCtx, cfg, alertClient, metrics, logger, awsCfg)
 	if err != nil {
 		logger.Fatal("failed to create publish function", zap.Error(err))
 	}
 
-	// get health check functions.
-	healthChecks, err := newHealthChecks(rootCtx, config, db.Database)
-	if err != nil {
-		logger.Fatal("failed to create health checks", zap.Error(err))
-	}
-
-	// create a new pipeline repository.
-	repository := pipeline.NewRepository(db.Database, logger)
-
-	// create and start a new tx hash handler.
 	quit := make(chan bool)
-	txHashHandler := pipeline.NewTxHashHandler(repository, pushFunc, alertClient, metrics, logger, quit)
-	go txHashHandler.Run(rootCtx)
+	var postresqlClient *db2.DB
 
-	// create a new publisher.
-	publisher := pipeline.NewPublisher(pushFunc, metrics, repository, config.P2pNetwork, txHashHandler, logger)
-	watcher := watcher.NewWatcher(rootCtx, db.Database, config.MongoDatabase, publisher.Publish, alertClient, metrics, logger)
-	err = watcher.Start(rootCtx)
-	if err != nil {
-		logger.Fatal("failed to watch MongoDB", zap.Error(err))
+	if cfg.DbLayer == config.DbLayerPostgres {
+
+		postresqlClient, err = db2.NewDB(rootCtx, cfg.DbUrl)
+		if err != nil {
+			log.Fatal("Failed to initialize PostgreSQL client: ", err)
+		}
+		defer postresqlClient.Close()
+
+		postresqlRepository := consumer.NewPostreSqlRepository(postresqlClient)
+
+		consumeFunc := newVaaSqsConsumeFunc(rootCtx, awsCfg, cfg, metrics, logger)
+		consumer.New(postresqlRepository,
+			logger,
+			pushFunc,
+			metrics,
+			cfg.WorkersSize,
+		).Start(rootCtx, consumeFunc)
+
+	} else {
+		// create a new pipeline repository.
+		repository := pipeline.NewRepository(db.Database, logger)
+
+		// create and start a new tx hash handler.
+		txHashHandler := pipeline.NewTxHashHandler(repository, pushFunc, alertClient, metrics, logger, quit)
+		go txHashHandler.Run(rootCtx)
+
+		// create a new publisher.
+		publisher := pipeline.NewPublisher(pushFunc, metrics, repository, cfg.P2pNetwork, txHashHandler, logger)
+		watcher := watcher.NewWatcher(rootCtx, db.Database, cfg.MongoDatabase, publisher.Publish, alertClient, metrics, logger)
+		err = watcher.Start(rootCtx)
+		if err != nil {
+			logger.Fatal("failed to watch MongoDB", zap.Error(err))
+		}
 	}
 
-	server := infrastructure.NewServer(logger, config.Port, config.PprofEnabled, healthChecks...)
+	// get health check functions.
+	healthChecks := newHealthChecks(cfg, db.Database, awsCfg, postresqlClient)
+
+	server := infrastructure.NewServer(logger, cfg.Port, cfg.PprofEnabled, healthChecks...)
 	server.Start()
 
 	logger.Info("Started wormhole-explorer-pipeline")
@@ -154,11 +182,7 @@ func newAwsConfig(appCtx context.Context, cfg *config.Configuration) (aws.Config
 	return awsconfig.LoadDefaultConfig(appCtx, awsconfig.WithRegion(region))
 }
 
-func newTopicProducer(appCtx context.Context, config *config.Configuration, alertClient alert.AlertClient, metrics metrics.Metrics, logger *zap.Logger) (topic.PushFunc, error) {
-	awsConfig, err := newAwsConfig(appCtx, config)
-	if err != nil {
-		return nil, err
-	}
+func newTopicProducer(appCtx context.Context, config *config.Configuration, alertClient alert.AlertClient, metrics metrics.Metrics, logger *zap.Logger, awsConfig aws.Config) (topic.PushFunc, error) {
 
 	snsProducer, err := sns.NewProducer(awsConfig, config.SNSUrl)
 	if err != nil {
@@ -168,12 +192,15 @@ func newTopicProducer(appCtx context.Context, config *config.Configuration, aler
 	return topic.NewVAASNS(snsProducer, alertClient, metrics, logger).Publish, nil
 }
 
-func newHealthChecks(ctx context.Context, config *config.Configuration, db *mongo.Database) ([]healthcheck.Check, error) {
-	awsConfig, err := newAwsConfig(ctx, config)
-	if err != nil {
-		return nil, err
+func newHealthChecks(cfg *config.Configuration, db *mongo.Database, awsConfig aws.Config, sqlClient *db2.DB) []healthcheck.Check {
+	checks := []healthcheck.Check{healthcheck.SNS(awsConfig, cfg.SNSUrl)}
+	if cfg.DbLayer == config.DbLayerMongo {
+		checks = append(checks, healthcheck.Mongo(db))
 	}
-	return []healthcheck.Check{healthcheck.Mongo(db), healthcheck.SNS(awsConfig, config.SNSUrl)}, nil
+	if cfg.DbLayer == config.DbLayerPostgres {
+		checks = append(checks, healthcheck.Postresql(sqlClient))
+	}
+	return checks
 }
 
 func newMetrics(cfg *config.Configuration) metrics.Metrics {
@@ -195,4 +222,32 @@ func newAlertClient(cfg *config.Configuration) (alert.AlertClient, error) {
 		Enabled:     cfg.AlertEnabled,
 	}
 	return alert.NewAlertService(alertConfig, pipelineAlert.LoadAlerts)
+}
+
+func newVaaSqsConsumeFunc(
+	ctx context.Context,
+	awsCfg aws.Config,
+	cfg *config.Configuration,
+	metrics metrics.Metrics,
+	logger *zap.Logger,
+) queue.ConsumeFunc {
+
+	sqsConsumer, err := newSqsConsumer(awsCfg, cfg.VaaSqsUrl)
+	if err != nil {
+		logger.Fatal("failed to create sqs consumer", zap.Error(err))
+	}
+
+	vaaQueue := queue.NewEventSqs(sqsConsumer, queue.NewVaaConverter(logger), metrics, logger)
+	return vaaQueue.Consume
+}
+
+func newSqsConsumer(awsconfig aws.Config, sqsUrl string) (*sqs.Consumer, error) {
+
+	consumer, err := sqs.NewConsumer(
+		awsconfig,
+		sqsUrl,
+		sqs.WithMaxMessages(10),
+		sqs.WithVisibilityTimeout(60),
+	)
+	return consumer, err
 }

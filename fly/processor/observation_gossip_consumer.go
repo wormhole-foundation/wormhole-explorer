@@ -27,7 +27,7 @@ type observationGossipConsumer struct {
 	metrics            metrics.Metrics
 	wgBlock            sync.WaitGroup
 	txHashStore        txhash.TxHashStore
-	repository         *storage.Repository
+	repository         storage.Storager
 	logger             *zap.Logger
 }
 
@@ -40,7 +40,7 @@ func NewObservationGossipConsumer(
 	workerSize int,
 	metrics metrics.Metrics,
 	txHashStore txhash.TxHashStore,
-	repository *storage.Repository,
+	repository storage.Storager,
 	logger *zap.Logger,
 ) *observationGossipConsumer {
 	return &observationGossipConsumer{

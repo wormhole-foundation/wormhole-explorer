@@ -83,15 +83,15 @@ func (t *TxHashHandler) Run(ctx context.Context) {
 					} else {
 						t.logger.Info("Vaa txhash fixed", zap.String("vaaID", vaaID), zap.String("txHash", txHash))
 						item.Event.TxHash = txHash
-						t.pushFunc(ctx, &item.Event)
+						t.pushFunc(ctx, item.Event)
 						delete(t.fixItems, vaaID)
 						// increment metrics vaa with txhash fixed
-						t.metrics.IncVaaWithTxHashFixed(item.Event.ChainID)
+						t.metrics.IncVaaWithTxHashFixed(uint16(item.Event.ChainID))
 					}
 				} else {
 					t.logger.Error("Vaa txhash fix failed", zap.String("vaaID", vaaID))
 					// publish the event to the topic anyway
-					t.pushFunc(ctx, &item.Event)
+					t.pushFunc(ctx, item.Event)
 					delete(t.fixItems, vaaID)
 				}
 			}

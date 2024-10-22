@@ -3,22 +3,21 @@ package service
 import (
 	"context"
 	"errors"
-	"github.com/go-redis/redis/v8"
-	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
+
+	"github.com/go-redis/redis/v8"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/builder"
+	vaa2 "github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/repository/vaa"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
-	"go.mongodb.org/mongo-driver/mongo"
-
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/sqs"
 	"github.com/wormhole-foundation/wormhole-explorer/common/configuration"
-	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
@@ -56,31 +55,39 @@ func Run() {
 		logger.Fatal("Failed to initialize rpc pool: ", zap.Error(err))
 	}
 
-	// initialize the database client
-	db, err := dbutil.Connect(rootCtx, logger, cfg.MongodbUri, cfg.MongodbDatabase, false)
+	storageLayer, err := builder.NewStorageLayer(
+		rootCtx,
+		metrics,
+		builder.StorageLayerParams{
+			DbLayer:         cfg.DbLayer,
+			MongodbUri:      cfg.MongodbUri,
+			MongodbDatabase: cfg.MongodbDatabase,
+			DbUrl:           cfg.DbUrl,
+			DbLogEnabled:    cfg.DbLogEnabled,
+		},
+		logger)
 	if err != nil {
-		log.Fatal("Failed to initialize MongoDB client: ", err)
+		logger.Fatal("Failed to create storage layer", zap.Error(err))
 	}
 
-	// create repositories
-	repository := consumer.NewRepository(logger, db.Database)
-	vaaRepository := vaa.NewRepository(db.Database, logger)
-
 	redisClient := redis.NewClient(&redis.Options{Addr: cfg.NotionalCacheURL})
-	notionalCache, errCache := notional.NewNotionalCache(rootCtx, redisClient, cfg.NotionalCachePrefix, cfg.NotionalCacheChannel, logger)
+	notionalCache, errCache := notional.NewNotionalCache(rootCtx, redisClient, cfg.NotionalCachePrefix,
+		cfg.NotionalCacheChannel, logger)
 	if errCache != nil {
 		logger.Fatal("Failed to create notional cache", zap.Error(errCache))
 	}
+
 	errCache = notionalCache.Init(rootCtx)
 	if errCache != nil {
 		logger.Fatal("Failed to initialize notional cache", zap.Error(errCache))
 	}
 
 	// create controller
-	vaaController := vaa.NewController(rpcPool, wormchainRpcPool, vaaRepository, repository, cfg.P2pNetwork, logger, notionalCache)
+	vaaController := vaa.NewController(rpcPool, wormchainRpcPool, storageLayer.VaaRepository(),
+		storageLayer.Repository(), cfg.P2pNetwork, logger, notionalCache)
 
 	// start serving /health and /ready endpoints
-	healthChecks, err := makeHealthChecks(rootCtx, cfg, db.Database)
+	healthChecks, err := makeHealthChecks(rootCtx, cfg, storageLayer)
 	if err != nil {
 		logger.Fatal("Failed to create health checks", zap.Error(err))
 	}
@@ -89,12 +96,12 @@ func Run() {
 
 	// create and start a pipeline consumer.
 	vaaConsumeFunc := newVAAConsumeFunc(rootCtx, cfg, metrics, logger)
-	vaaConsumer := consumer.New(vaaConsumeFunc, rpcPool, wormchainRpcPool, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize, notionalCache)
+	vaaConsumer := consumer.New(vaaConsumeFunc, rpcPool, wormchainRpcPool, logger, storageLayer.Repository(), metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize, notionalCache)
 	vaaConsumer.Start(rootCtx)
 
 	// create and start a notification consumer.
-	notificationConsumeFunc := newNotificationConsumeFunc(rootCtx, cfg, metrics, logger)
-	notificationConsumer := consumer.New(notificationConsumeFunc, rpcPool, wormchainRpcPool, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize, notionalCache)
+	notificationConsumeFunc := newNotificationConsumeFunc(rootCtx, cfg, metrics, logger, storageLayer.VaaRepository())
+	notificationConsumer := consumer.New(notificationConsumeFunc, rpcPool, wormchainRpcPool, logger, storageLayer.Repository(), metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize, notionalCache)
 	notificationConsumer.Start(rootCtx)
 
 	logger.Info("Started wormhole-explorer-tx-tracker")
@@ -116,8 +123,8 @@ func Run() {
 	logger.Info("Closing Http server...")
 	server.Stop()
 
-	logger.Info("Closing MongoDB connection...")
-	db.DisconnectWithTimeout(10 * time.Second)
+	logger.Info("Closing DB connection...")
+	storageLayer.Close()
 
 	logger.Info("Terminated wormhole-explorer-tx-tracker")
 }
@@ -143,6 +150,7 @@ func newNotificationConsumeFunc(
 	cfg *config.ServiceSettings,
 	metrics metrics.Metrics,
 	logger *zap.Logger,
+	vaaRepository vaa2.VAARepository,
 ) queue.ConsumeFunc {
 
 	sqsConsumer, err := newSqsConsumer(ctx, cfg, cfg.NotificationsSqsUrl)
@@ -150,7 +158,7 @@ func newNotificationConsumeFunc(
 		logger.Fatal("failed to create sqs consumer", zap.Error(err))
 	}
 
-	vaaQueue := queue.NewEventSqs(sqsConsumer, queue.NewNotificationEvent(logger), metrics, logger)
+	vaaQueue := queue.NewEventSqs(sqsConsumer, queue.NewNotificationEvent(vaaRepository, logger), metrics, logger)
 	return vaaQueue.Consume
 }
 
@@ -204,21 +212,20 @@ func newAwsConfig(ctx context.Context, cfg *config.ServiceSettings) (aws.Config,
 func makeHealthChecks(
 	ctx context.Context,
 	config *config.ServiceSettings,
-	db *mongo.Database,
+	storageLayer *builder.StorageLayer,
 ) ([]health.Check, error) {
-
 	awsConfig, err := newAwsConfig(ctx, config)
 	if err != nil {
 		return nil, err
 	}
 
-	plugins := []health.Check{
+	healthChecks := []health.Check{
 		health.SQS(awsConfig, config.PipelineSqsUrl),
 		health.SQS(awsConfig, config.NotificationsSqsUrl),
-		health.Mongo(db),
 	}
+	healthChecks = append(healthChecks, storageLayer.HealthChecks()...)
 
-	return plugins, nil
+	return healthChecks, nil
 }
 
 func newMetrics(cfg *config.ServiceSettings) metrics.Metrics {

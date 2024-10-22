@@ -8,7 +8,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	addrsvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/address"
 	govsvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/governor"
-	infrasvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/infrastructure"
 	obssvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/observations"
 	opsvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/operations"
 	protocolssvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/protocols"
@@ -26,6 +25,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/relays"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/stats"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/supply"
+	"github.com/wormhole-foundation/wormhole-explorer/common/health"
 
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/transactions"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/vaa"
@@ -42,13 +42,13 @@ func RegisterRoutes(
 	vaaService *vaasvc.Service,
 	obsService *obssvc.Service,
 	governorService *govsvc.Service,
-	infrastructureService *infrasvc.Service,
 	transactionsService *trxsvc.Service,
 	relaysService *relayssvc.Service,
 	operationsService *opsvc.Service,
 	statsService *statssvc.Service,
 	protocolsService *protocolssvc.Service,
 	supplyService *supplySvc.Service,
+	checks ...health.Check,
 ) {
 
 	// Set up controllers
@@ -56,7 +56,7 @@ func RegisterRoutes(
 	vaaCtrl := vaa.NewController(vaaService, rootLogger)
 	observationsCtrl := observations.NewController(obsService, rootLogger)
 	governorCtrl := governor.NewController(governorService, rootLogger)
-	infrastructureCtrl := infrastructure.NewController(infrastructureService)
+	infrastructureCtrl := infrastructure.NewController(checks, rootLogger)
 	transactionCtrl := transactions.NewController(transactionsService, rootLogger)
 	relaysCtrl := relays.NewController(relaysService, rootLogger)
 	opsCtrl := operations.NewController(operationsService, rootLogger)
@@ -134,7 +134,7 @@ func RegisterRoutes(
 	vaas.Get("/:chain/:emitter/:sequence/duplicated", vaaCtrl.FindDuplicatedById)
 	vaas.Post("/parse", vaaCtrl.ParseVaa)
 
-	// oservations resource
+	// observations resource
 	observations := api.Group("/observations")
 	observations.Get("/", observationsCtrl.FindAll)
 	observations.Get("/:chain", observationsCtrl.FindAllByChain)

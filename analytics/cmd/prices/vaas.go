@@ -2,24 +2,34 @@ package prices
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/shopspring/decimal"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/builder"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/cmd/token"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/metric"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/storage"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/parser"
-	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	apiPrices "github.com/wormhole-foundation/wormhole-explorer/common/prices"
-	"github.com/wormhole-foundation/wormhole-explorer/common/repository"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
 type VaasPrices struct {
-	MongoUri            string
-	MongoDb             string
+	DbLayer string //mongo, postgres, both
+
+	// Mongo database configuration
+	MongoUri string
+	MongoDb  string
+
+	// Postgres database configuration
+	DbURL       string
+	DbLogEnable bool
+
 	PageSize            int64
 	P2PNetwork          string
 	NotionalUrl         string
@@ -40,14 +50,14 @@ func RunVaasPrices(cfg VaasPrices) {
 
 	logger.Info("starting wormhole-explorer-analytics ...")
 
-	//setup DB connection
-	db, err := dbutil.Connect(ctx, logger, cfg.MongoUri, cfg.MongoDb, false)
-	if err != nil {
-		logger.Fatal("Failed to connect MongoDB", zap.Error(err))
-	}
+	// init dummy metrics
+	metrics := metrics.NewNoopMetrics()
 
-	// get transfer prices collection
-	transferPricesCollection := db.Database.Collection(repository.TransferPrices)
+	// setup DB connection
+	storageLayer, err := builder.NewStorageLayer(ctx, cfg.DbLayer, cfg.MongoDb, cfg.MongoDb, cfg.DbURL, cfg.DbLogEnable, metrics, logger)
+	if err != nil {
+		logger.Fatal("failed to create to storage layer", zap.Error(err))
+	}
 
 	// create a parserVAAAPIClient
 	parserVAAAPIClient, err := parser.NewParserVAAAPIClient(5, cfg.VaaPayloadParserUrl, logger)
@@ -55,8 +65,11 @@ func RunVaasPrices(cfg VaasPrices) {
 		logger.Fatal("failed to create parse vaa api client")
 	}
 
+	// create a new prices repository
+	pricesRepository := storageLayer.PricesRepository()
+
 	// create a new VAA repository
-	vaaRepository := repository.NewVaaRepository(db.Database, logger)
+	vaaRepository := storageLayer.VaaRepository()
 
 	// create a token resolver
 	tokenResolver := token.NewTokenResolver(parserVAAAPIClient, logger)
@@ -67,7 +80,7 @@ func RunVaasPrices(cfg VaasPrices) {
 	// create a price api
 	api := apiPrices.NewPricesApi(cfg.NotionalUrl, logger)
 
-	query := repository.VaaQuery{
+	query := storage.VaaPageQuery{
 		StartTime:      cfg.StartTime,
 		EndTime:        cfg.EndTime,
 		EmitterChainID: cfg.EmitterChainID,
@@ -75,7 +88,7 @@ func RunVaasPrices(cfg VaasPrices) {
 		Sequence:       cfg.Sequence,
 	}
 
-	pagination := repository.Pagination{
+	pagination := storage.Pagination{
 		Page:     0,
 		PageSize: cfg.PageSize,
 		SortAsc:  true,
@@ -117,7 +130,7 @@ func RunVaasPrices(cfg VaasPrices) {
 				ctx,
 				logger,
 				vaa,
-				transferPricesCollection,
+				pricesRepository,
 				func(tokenID, coinGeckoID string, timestamp time.Time) (decimal.Decimal, error) {
 					price, err := api.GetPriceByTime(ctx, coinGeckoID, timestamp)
 					if err != nil {
@@ -127,6 +140,8 @@ func RunVaasPrices(cfg VaasPrices) {
 				},
 				transferredToken,
 				tokenProvider,
+				"backfiller",
+				fmt.Sprintf("backfiller-%s", vaa.MessageID()),
 			); err != nil {
 				logger.Error("Failed to upsert transfer prices", zap.String("id", v.ID), zap.Error(err))
 			}

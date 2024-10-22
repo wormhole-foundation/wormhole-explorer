@@ -76,7 +76,7 @@ func (c *Controller) GetLastTransactions(ctx *fiber.Ctx) error {
 func (c *Controller) GetScorecards(ctx *fiber.Ctx) error {
 
 	// Query indicators from the database
-	scorecards, err := c.srv.GetScorecards(ctx.Context())
+	scorecards, err := c.srv.GetScorecards(ctx.Context(), middleware.UsePostgres(ctx))
 	if err != nil {
 		c.logger.Error("failed to get scorecards", zap.Error(err))
 		return err
@@ -455,7 +455,8 @@ func (c *Controller) FindGlobalTransactionByID(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	globalTransaction, err := c.srv.FindGlobalTransactionByID(ctx.Context(), chainID, emitter, strconv.FormatUint(seq, 10))
+	globalTransaction, err := c.srv.FindGlobalTransactionByID(ctx.Context(),
+		middleware.UsePostgres(ctx), chainID, emitter, strconv.FormatUint(seq, 10))
 	if err != nil {
 		return err
 	}
@@ -526,9 +527,9 @@ func (c *Controller) ListTransactions(ctx *fiber.Ctx) error {
 	// Query transactions from the database
 	var dtos []transactions.TransactionDto
 	if address != "" {
-		dtos, err = c.srv.ListTransactionsByAddress(ctx.Context(), address, pagination)
+		dtos, err = c.srv.ListTransactionsByAddress(ctx.Context(), middleware.UsePostgres(ctx), address, pagination)
 	} else {
-		dtos, err = c.srv.ListTransactions(ctx.Context(), pagination)
+		dtos, err = c.srv.ListTransactions(ctx.Context(), middleware.UsePostgres(ctx), pagination)
 	}
 	if err != nil {
 		return err
@@ -620,6 +621,7 @@ func (c *Controller) GetTransactionByID(ctx *fiber.Ctx) error {
 	// Look up the VAA by ID
 	dto, err := c.srv.GetTransactionByID(
 		ctx.Context(),
+		middleware.UsePostgres(ctx),
 		chainID,
 		emitter,
 		strconv.FormatUint(seq, 10),

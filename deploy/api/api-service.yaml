@@ -58,6 +58,8 @@ spec:
                 configMapKeyRef:
                   name: config
                   key: redis-prefix
+            - name: WORMSCAN_DB_LAYER
+              value: "{{ .DB_LAYER }}"                  
             - name: WORMSCAN_DB_URL
               valueFrom:
                 secretKeyRef:
@@ -68,6 +70,13 @@ spec:
                 configMapKeyRef:
                   name: config
                   key: mongo-database
+            - name: WORMSCAN_DB_POSTGRESURL
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: postgres-url
+            - name: WORMSCAN_DB_POSTGRESLOGENABLED
+              value: "false"
             - name: WORMSCAN_CACHE_URL
               valueFrom:
                 configMapKeyRef:

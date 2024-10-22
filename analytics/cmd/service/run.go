@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
@@ -15,6 +14,7 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/builder"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/cmd/token"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/config"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/consumer"
@@ -26,11 +26,9 @@ import (
 	wormscanNotionalCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/parser"
 	sqs_client "github.com/wormhole-foundation/wormhole-explorer/common/client/sqs"
-	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	health "github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
 
@@ -59,11 +57,14 @@ func Run() {
 	logger := logger.New("wormhole-explorer-analytics", logger.WithLevel(config.LogLevel))
 	logger.Info("starting analytics service...")
 
+	// create prometheus client
+	metrics := metrics.NewPrometheusMetrics(config.Environment)
+
 	// setup DB connection
-	logger.Info("connecting to MongoDB...")
-	db, err := dbutil.Connect(rootCtx, logger, config.MongodbURI, config.MongodbDatabase, false)
+	logger.Info("connecting to database layer...")
+	storageLayer, err := builder.NewStorageLayer(rootCtx, config.DbLayer, config.MongodbURI, config.MongodbDatabase, config.DbURL, config.DbLogEnable, metrics, logger)
 	if err != nil {
-		logger.Fatal("failed to connect MongoDB", zap.Error(err))
+		logger.Fatal("failed to create to storage layer", zap.Error(err))
 	}
 
 	// create influxdb client.
@@ -73,7 +74,7 @@ func Run() {
 
 	// get health check functions.
 	logger.Info("creating health check functions...")
-	healthChecks, err := newHealthChecks(rootCtx, config, influxCli, db.Database)
+	healthChecks, err := newHealthChecks(rootCtx, config, influxCli, storageLayer)
 	if err != nil {
 		logger.Fatal("failed to create health checks", zap.Error(err))
 	}
@@ -84,9 +85,6 @@ func Run() {
 	if err != nil {
 		logger.Fatal("failed to create notional cache", zap.Error(err))
 	}
-
-	// create prometheus client
-	metrics := metrics.NewPrometheusMetrics(config.Environment)
 
 	// create a parserVAAAPIClient
 	parserVAAAPIClient, err := parser.NewParserVAAAPIClient(config.VaaPayloadParserTimeout,
@@ -103,7 +101,7 @@ func Run() {
 
 	// create a metrics instance
 	logger.Info("initializing metrics instance...")
-	metric, err := metric.New(rootCtx, db.Database, influxCli, config.InfluxOrganization, config.InfluxBucketInfinite,
+	metric, err := metric.New(rootCtx, storageLayer.PricesRepository(), influxCli, config.InfluxOrganization, config.InfluxBucketInfinite,
 		config.InfluxBucket30Days, config.InfluxBucket24Hours, notionalCache, metrics, tokenResolver.GetTransferredTokenByVaa, tokenProvider, logger)
 	if err != nil {
 		logger.Fatal("failed to create metrics instance", zap.Error(err))
@@ -124,8 +122,8 @@ func Run() {
 	// create and start server.
 	logger.Info("initializing infrastructure server...")
 
-	vaaRepository := vaa.NewRepository(db.Database, logger)
-	vaaController := vaa.NewController(metric.Push, vaaRepository, logger)
+	//vaaRepository := vaa.NewRepository(db.Database, logger)
+	vaaController := vaa.NewController(metric.Push, storageLayer.VaaRepository(), logger)
 	server := http.NewServer(logger, config.Port, config.PprofEnabled, vaaController, healthChecks...)
 	server.Start()
 
@@ -150,7 +148,7 @@ func Run() {
 	server.Stop()
 
 	logger.Info("closing MongoDB connection...")
-	db.DisconnectWithTimeout(10 * time.Second)
+	storageLayer.Close()
 
 	logger.Info("terminated successfully")
 }
@@ -223,7 +221,7 @@ func newHealthChecks(
 	ctx context.Context,
 	config *config.Configuration,
 	influxCli influxdb2.Client,
-	db *mongo.Database,
+	storageLayer *builder.StorageLayer,
 ) ([]health.Check, error) {
 
 	awsConfig, err := newAwsConfig(ctx, config)
@@ -235,8 +233,8 @@ func newHealthChecks(
 		health.SQS(awsConfig, config.PipelineSQSUrl),
 		health.SQS(awsConfig, config.NotificationsSQSUrl),
 		health.Influx(influxCli),
-		health.Mongo(db),
 	}
+	healthChecks = append(healthChecks, storageLayer.HealthChecks()...)
 	return healthChecks, nil
 }
 

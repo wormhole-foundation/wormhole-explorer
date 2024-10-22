@@ -15,12 +15,22 @@ const (
 	P2pDevNet  = "devnet"
 )
 
+// supported db layers.
+const (
+	DbLayerMongo    = "mongo"
+	DbLayerPostgres = "postgres"
+	DbLayerDual     = "dual"
+)
+
 // ServiceConfiguration represents the application configuration when running as service with default values.
 type ServiceConfiguration struct {
 	Environment             string `env:"ENVIRONMENT,required"`
 	LogLevel                string `env:"LOG_LEVEL,default=INFO"`
 	Port                    string `env:"PORT,default=8000"`
 	ConsumerMode            string `env:"CONSUMER_MODE,default=QUEUE"`
+	DbLayer                 string `env:"DB_LAYER,default=mongo"` // mongo, postgres, dual
+	DbURL                   string `env:"DB_URL,required"`
+	DbLogEnable             bool   `env:"DB_LOG_ENABLED,default=false"`
 	MongoURI                string `env:"MONGODB_URI,required"`
 	MongoDatabase           string `env:"MONGODB_DATABASE,required"`
 	AwsEndpoint             string `env:"AWS_ENDPOINT"`
@@ -42,8 +52,10 @@ type ServiceConfiguration struct {
 
 type BackfillerConfiguration struct {
 	LogLevel                string
+	DbLayer                 string
 	MongoURI                string
 	MongoDatabase           string
+	PostgresDbURL           string
 	P2pNetwork              string
 	PageSize                int64
 	P2PNetwork              string

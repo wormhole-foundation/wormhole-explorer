@@ -13,7 +13,7 @@ import (
 
 type governorConfigHandler struct {
 	govConfigC chan *gossipv1.SignedChainGovernorConfig
-	repository *storage.Repository
+	repository storage.Storager
 	guardian   *health.GuardianCheck
 	metrics    metrics.Metrics
 	logger     *zap.Logger
@@ -21,7 +21,7 @@ type governorConfigHandler struct {
 
 func NewGovernorConfigHandler(
 	govConfigC chan *gossipv1.SignedChainGovernorConfig,
-	repository *storage.Repository,
+	repository storage.Storager,
 	guardian *health.GuardianCheck,
 	metrics metrics.Metrics,
 	logger *zap.Logger,
@@ -51,7 +51,7 @@ func (h *governorConfigHandler) Start(ctx context.Context) {
 				}
 				h.metrics.IncGovernorConfigFromGossipNetwork(nodeName)
 
-				err = h.repository.UpsertGovernorConfig(govConfig)
+				err = h.repository.UpsertGovernorConfig(ctx, govConfig)
 				if err != nil {
 					h.logger.Error("Error inserting gov config", zap.Error(err))
 				} else {

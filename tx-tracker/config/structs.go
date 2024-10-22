@@ -14,19 +14,30 @@ import (
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
+type DbLayer string
+
+const (
+	DbLayerMongo      DbLayer = "mongo"
+	DbLayerPostgresql DbLayer = "postgres"
+	DbLayerDual       DbLayer = "dual"
+)
+
 type ServiceSettings struct {
 	// MonitoringPort defines the TCP port for the /health and /ready endpoints.
-	MonitoringPort       string `split_words:"true" default:"8000"`
-	Environment          string `split_words:"true" required:"true"`
-	LogLevel             string `split_words:"true" default:"INFO"`
-	PprofEnabled         bool   `split_words:"true" default:"false"`
-	MetricsEnabled       bool   `split_words:"true" default:"false"`
-	P2pNetwork           string `split_words:"true" required:"true"`
-	RpcProviderPath      string `split_words:"true" required:"false"`
-	ConsumerWorkersSize  int    `split_words:"true" default:"10"`
-	NotionalCacheURL     string `split_words:"true" required:"true"`
-	NotionalCachePrefix  string `split_words:"true" required:"true"`
-	NotionalCacheChannel string `split_words:"true" required:"true"`
+	MonitoringPort       string  `split_words:"true" default:"8000"`
+	Environment          string  `split_words:"true" required:"true"`
+	LogLevel             string  `split_words:"true" default:"INFO"`
+	PprofEnabled         bool    `split_words:"true" default:"false"`
+	MetricsEnabled       bool    `split_words:"true" default:"false"`
+	P2pNetwork           string  `split_words:"true" required:"true"`
+	RpcProviderPath      string  `split_words:"true" required:"false"`
+	ConsumerWorkersSize  int     `split_words:"true" default:"10"`
+	NotionalCacheURL     string  `split_words:"true" required:"true"`
+	NotionalCachePrefix  string  `split_words:"true" required:"true"`
+	NotionalCacheChannel string  `split_words:"true" required:"true"`
+	DbUrl                string  `split_words:"true" required:"true"`
+	DbLayer              DbLayer `split_words:"true" default:"mongo"` // mongo, postgres. Default is mongo.
+	DbLogEnabled         bool    `split_words:"true" default:"false"`
 	AwsSettings
 	MongodbSettings
 	*RpcProviderSettings        `required:"false"`

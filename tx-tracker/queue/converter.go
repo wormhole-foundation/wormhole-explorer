@@ -1,17 +1,22 @@
 package queue
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strconv"
 	"time"
+
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
+	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/repository/vaa"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/events"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
-// VaaEvent represents a vaa data to be handle by the pipeline.
+// VaaEvent represents a vaa data to be handled by the pipeline.
 type VaaEvent struct {
 	ID               string      `json:"id"`
 	ChainID          sdk.ChainID `json:"emitterChain"`
@@ -29,12 +34,16 @@ type VaaEvent struct {
 }
 
 // VaaConverter converts a message from a VAAEvent.
-func NewVaaConverter(log *zap.Logger) ConverterFunc {
+func NewVaaConverter(_ *zap.Logger) ConverterFunc {
 
-	return func(msg string) (*Event, error) {
+	return func(ctx context.Context, msg string) (*Event, error) {
 		// unmarshal message to vaaEvent
 		var vaaEvent VaaEvent
 		err := json.Unmarshal([]byte(msg), &vaaEvent)
+		if err != nil {
+			return nil, err
+		}
+		digest, err := domain.GetDigestFromRaw(vaaEvent.Vaa)
 		if err != nil {
 			return nil, err
 		}
@@ -42,7 +51,8 @@ func NewVaaConverter(log *zap.Logger) ConverterFunc {
 			Source:         "pipeline",
 			TrackID:        fmt.Sprintf("pipeline-%s", vaaEvent.ID),
 			Type:           SourceChainEvent,
-			ID:             vaaEvent.ID,
+			ID:             digest,
+			VaaID:          vaaEvent.ID,
 			ChainID:        vaaEvent.ChainID,
 			EmitterAddress: vaaEvent.EmitterAddress,
 			Sequence:       vaaEvent.Sequence,
@@ -55,9 +65,9 @@ func NewVaaConverter(log *zap.Logger) ConverterFunc {
 	}
 }
 
-func NewNotificationEvent(log *zap.Logger) ConverterFunc {
+func NewNotificationEvent(vaaRepository vaa.VAARepository, log *zap.Logger) ConverterFunc {
 
-	return func(msg string) (*Event, error) {
+	return func(ctx context.Context, msg string) (*Event, error) {
 		// unmarshal message to NotificationEvent
 		var notification events.NotificationEvent
 		err := json.Unmarshal([]byte(msg), &notification)
@@ -78,17 +88,26 @@ func NewNotificationEvent(log *zap.Logger) ConverterFunc {
 
 		switch notification.Event {
 		case events.SignedVaaType:
+			// add log to check if we can remove this event type.
+			log.Error("Event SignedVaaType is not supported", zap.String("trackId", notification.TrackID))
+
 			signedVaa, err := events.GetEventData[events.SignedVaa](&notification)
 			if err != nil {
 				log.Error("Error decoding signedVAA from notification event", zap.String("trackId", notification.TrackID), zap.Error(err))
 				return nil, nil
 			}
 
+			digest, err := getVAADigest(ctx, signedVaa.ID, vaaRepository, log, notification)
+			if err != nil {
+				return nil, err
+			}
+
 			return &Event{
 				Source:         "chain-event",
 				TrackID:        notification.TrackID,
 				Type:           SourceChainEvent,
-				ID:             signedVaa.ID,
+				ID:             digest,
+				VaaID:          signedVaa.ID,
 				ChainID:        sdk.ChainID(signedVaa.EmitterChain),
 				EmitterAddress: signedVaa.EmitterAddress,
 				Sequence:       strconv.FormatUint(signedVaa.Sequence, 10),
@@ -96,7 +115,6 @@ func NewNotificationEvent(log *zap.Logger) ConverterFunc {
 				IsVaaSigned:    false,
 				TxHash:         signedVaa.TxHash,
 			}, nil
-
 		case events.LogMessagePublishedType:
 			plm, err := events.GetEventData[events.LogMessagePublished](&notification)
 			if err != nil {
@@ -114,7 +132,8 @@ func NewNotificationEvent(log *zap.Logger) ConverterFunc {
 				Source:         "chain-event",
 				TrackID:        notification.TrackID,
 				Type:           SourceChainEvent,
-				ID:             vaa.MessageID(),
+				ID:             utils.NormalizeHex(vaa.HexDigest()),
+				VaaID:          vaa.MessageID(),
 				ChainID:        sdk.ChainID(plm.ChainID),
 				EmitterAddress: plm.Attributes.Sender,
 				Sequence:       strconv.FormatUint(plm.Attributes.Sequence, 10),
@@ -122,8 +141,10 @@ func NewNotificationEvent(log *zap.Logger) ConverterFunc {
 				IsVaaSigned:    false,
 				TxHash:         plm.TxHash,
 			}, nil
-
 		case events.EvmTransactionFoundType:
+			// add log to check if we can remove this event type.
+			log.Error("Event EvmTransactionFoundType is not supported", zap.String("trackId", notification.TrackID))
+
 			tr, err := events.GetEventData[events.EvmTransactionFound](&notification)
 			if err != nil {
 				log.Error("Error decoding transferRedeemed from notification event", zap.String("trackId", notification.TrackID), zap.Error(err))
@@ -148,7 +169,8 @@ func NewNotificationEvent(log *zap.Logger) ConverterFunc {
 				Source:         "chain-event",
 				TrackID:        notification.TrackID,
 				Type:           TargetChainEvent,
-				ID:             vaa.MessageID(),
+				ID:             utils.NormalizeHex(vaa.HexDigest()),
+				VaaID:          vaa.MessageID(),
 				ChainID:        sdk.ChainID(tr.ChainID),
 				EmitterAddress: tr.Attributes.EmitterAddress,
 				Sequence:       strconv.FormatUint(tr.Attributes.Sequence, 10),
@@ -174,17 +196,25 @@ func NewNotificationEvent(log *zap.Logger) ConverterFunc {
 			if err != nil {
 				return nil, fmt.Errorf("error converting emitter address [%s]: %w", tr.Attributes.EmitterAddress, err)
 			}
+
 			vaa := sdk.VAA{
 				EmitterChain:   sdk.ChainID(tr.Attributes.EmitterChain),
 				EmitterAddress: address,
 				Sequence:       tr.Attributes.Sequence,
+				Timestamp:      tr.BlockTime,
+			}
+
+			vaaDigest, err := getVAADigest(ctx, vaa.MessageID(), vaaRepository, log, notification)
+			if err != nil {
+				return nil, err
 			}
 
 			return &Event{
 				Source:         "chain-event",
 				TrackID:        notification.TrackID,
 				Type:           TargetChainEvent,
-				ID:             vaa.MessageID(),
+				ID:             vaaDigest,
+				VaaID:          vaa.MessageID(),
 				ChainID:        sdk.ChainID(tr.ChainID),
 				EmitterAddress: tr.Attributes.EmitterAddress,
 				Sequence:       strconv.FormatUint(tr.Attributes.Sequence, 10),
@@ -207,4 +237,13 @@ func NewNotificationEvent(log *zap.Logger) ConverterFunc {
 
 		return nil, nil
 	}
+}
+
+func getVAADigest(ctx context.Context, vaaID string, vaaRepository vaa.VAARepository, log *zap.Logger, notification events.NotificationEvent) (string, error) {
+	res, errGetVaa := vaaRepository.GetVaa(ctx, vaaID)
+	if errGetVaa != nil {
+		log.Error("Error getting vaa from repository", zap.String("trackId", notification.TrackID), zap.String("vaaID", vaaID), zap.Error(errGetVaa))
+		return "", errGetVaa
+	}
+	return res.ID, errGetVaa
 }

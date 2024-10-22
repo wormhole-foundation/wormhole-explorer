@@ -22,6 +22,7 @@ const (
 // TxHash represents a transaction hash passed by query params.
 type TxHash struct {
 	hash       string
+	bytes      []byte
 	isWormhole bool
 	isSolana   bool
 }
@@ -75,6 +76,7 @@ func parseSolanaTxHash(value string) (*TxHash, error) {
 
 	// Populate the result struct and return
 	result := TxHash{
+		bytes:    bytes,
 		hash:     base58.Encode(bytes),
 		isSolana: true,
 	}
@@ -95,6 +97,7 @@ func parseAlgorandTxHash(value string) (*TxHash, error) {
 
 	// Populate the result struct and return
 	result := TxHash{
+		bytes:      bytes,
 		hash:       base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(bytes),
 		isWormhole: true,
 	}
@@ -116,6 +119,7 @@ func parseSuiTxHash(value string) (*TxHash, error) {
 
 	// Populate the result struct and return
 	result := TxHash{
+		bytes:      bytes,
 		hash:       base58.Encode(bytes),
 		isWormhole: true,
 	}
@@ -141,6 +145,7 @@ func parseWormholeTxHash(value string) (*TxHash, error) {
 
 	// Populate the result struct and return
 	result := TxHash{
+		bytes:      bytes,
 		hash:       hex.EncodeToString(bytes),
 		isWormhole: true,
 	}
@@ -157,4 +162,8 @@ func (h *TxHash) IsWormholeTxHash() bool {
 
 func (h *TxHash) String() string {
 	return h.hash
+}
+
+func (h *TxHash) Binary() []byte {
+	return h.bytes
 }

@@ -180,6 +180,7 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 
 func NormalizeTxHashByChainId(chainID sdk.ChainID, txHash string) string {
 	switch chainID {
+	//EVMs
 	case sdk.ChainIDEthereum,
 		sdk.ChainIDBase,
 		sdk.ChainIDBSC,
@@ -206,10 +207,169 @@ func NormalizeTxHashByChainId(chainID sdk.ChainID, txHash string) string {
 		sdk.ChainIDBlast,
 		sdk.ChainIDXLayer,
 		sdk.ChainIDSnaxchain:
-		lowerTxHash := strings.ToLower(txHash)
-		return utils.Remove0x(lowerTxHash)
+		return utils.NormalizeHex(txHash)
+	case sdk.ChainIDAptos:
+		return utils.NormalizeHex(txHash)
+	case sdk.ChainIDSei:
+		return utils.NormalizeHex(txHash)
+	case sdk.ChainIDWormchain,
+		sdk.ChainIDInjective,
+		sdk.ChainIDOsmosis,
+		sdk.ChainIDEvmos,
+		sdk.ChainIDKujira:
+		return utils.NormalizeHex(txHash)
 	default:
 		return txHash
+	}
+}
+
+func NormalizeAddressByChainId(chainID sdk.ChainID, address string) string {
+	switch chainID {
+	//EVMs
+	case sdk.ChainIDEthereum,
+		sdk.ChainIDBase,
+		sdk.ChainIDBSC,
+		sdk.ChainIDPolygon,
+		sdk.ChainIDPolygonSepolia,
+		sdk.ChainIDAvalanche,
+		sdk.ChainIDOasis,
+		sdk.ChainIDAurora,
+		sdk.ChainIDFantom,
+		sdk.ChainIDKarura,
+		sdk.ChainIDAcala,
+		sdk.ChainIDKlaytn,
+		sdk.ChainIDCelo,
+		sdk.ChainIDMoonbeam,
+		sdk.ChainIDArbitrum,
+		sdk.ChainIDOptimism,
+		sdk.ChainIDMantle,
+		sdk.ChainIDSepolia,
+		sdk.ChainIDArbitrumSepolia,
+		sdk.ChainIDBaseSepolia,
+		sdk.ChainIDOptimismSepolia,
+		sdk.ChainIDHolesky,
+		sdk.ChainIDScroll,
+		sdk.ChainIDBlast,
+		sdk.ChainIDXLayer,
+		sdk.ChainIDSnaxchain:
+		return utils.NormalizeHex(address)
+	case sdk.ChainIDAptos:
+		return utils.NormalizeHex(address)
+	case sdk.ChainIDSui:
+		return utils.NormalizeHex(address)
+	default:
+		return address
+	}
+}
+
+// DenormalizeTxHashByChainId denormalizes the transaction hash stored in the database
+// to the format compatible with the API v1 response to avoid breaking changes.
+func DenormalizeTxHashByChainId(chainID sdk.ChainID, txHash string) string {
+	switch chainID {
+	case sdk.ChainIDEthereum,
+		sdk.ChainIDBase,
+		sdk.ChainIDBSC,
+		sdk.ChainIDPolygon,
+		sdk.ChainIDPolygonSepolia,
+		sdk.ChainIDAvalanche,
+		sdk.ChainIDOasis,
+		sdk.ChainIDAurora,
+		sdk.ChainIDFantom,
+		sdk.ChainIDKarura,
+		sdk.ChainIDAcala,
+		sdk.ChainIDKlaytn,
+		sdk.ChainIDCelo,
+		sdk.ChainIDMoonbeam,
+		sdk.ChainIDArbitrum,
+		sdk.ChainIDOptimism,
+		sdk.ChainIDMantle,
+		sdk.ChainIDSepolia,
+		sdk.ChainIDArbitrumSepolia,
+		sdk.ChainIDBaseSepolia,
+		sdk.ChainIDOptimismSepolia,
+		sdk.ChainIDHolesky,
+		sdk.ChainIDScroll,
+		sdk.ChainIDBlast,
+		sdk.ChainIDXLayer,
+		sdk.ChainIDSnaxchain:
+		if utils.StartsWith0x(txHash) {
+			return txHash
+		}
+		return utils.DenormalizeHex(txHash)
+	case sdk.ChainIDAptos:
+		if utils.StartsWith0x(txHash) {
+			return txHash
+		}
+		return utils.DenormalizeHex(txHash)
+	case sdk.ChainIDSei:
+		if utils.StartsWith0x(txHash) {
+			txHash = utils.Remove0x(txHash)
+		}
+		return strings.ToUpper(txHash)
+	case sdk.ChainIDWormchain:
+		if utils.StartsWith0x(txHash) {
+			return txHash
+		}
+		return utils.DenormalizeHex(txHash)
+	case sdk.ChainIDInjective,
+		sdk.ChainIDOsmosis,
+		sdk.ChainIDEvmos,
+		sdk.ChainIDKujira:
+		if utils.StartsWith0x(txHash) {
+			txHash = utils.Remove0x(txHash)
+		}
+		return strings.ToLower(txHash)
+	default:
+		return txHash
+	}
+}
+
+// DenormalizeAddressByChainId denormalizes the address stored in the database
+// to the format compatible with the API v1 response to avoid breaking changes.
+func DenormalizeAddressByChainId(chainID sdk.ChainID, address string) string {
+	switch chainID {
+	case sdk.ChainIDEthereum,
+		sdk.ChainIDBase,
+		sdk.ChainIDBSC,
+		sdk.ChainIDPolygon,
+		sdk.ChainIDPolygonSepolia,
+		sdk.ChainIDAvalanche,
+		sdk.ChainIDOasis,
+		sdk.ChainIDAurora,
+		sdk.ChainIDFantom,
+		sdk.ChainIDKarura,
+		sdk.ChainIDAcala,
+		sdk.ChainIDKlaytn,
+		sdk.ChainIDCelo,
+		sdk.ChainIDMoonbeam,
+		sdk.ChainIDArbitrum,
+		sdk.ChainIDOptimism,
+		sdk.ChainIDMantle,
+		sdk.ChainIDSepolia,
+		sdk.ChainIDArbitrumSepolia,
+		sdk.ChainIDBaseSepolia,
+		sdk.ChainIDOptimismSepolia,
+		sdk.ChainIDHolesky,
+		sdk.ChainIDScroll,
+		sdk.ChainIDBlast,
+		sdk.ChainIDXLayer,
+		sdk.ChainIDSnaxchain:
+		if utils.StartsWith0x(address) {
+			return address
+		}
+		return utils.DenormalizeHex(address)
+	case sdk.ChainIDAptos:
+		if utils.StartsWith0x(address) {
+			return address
+		}
+		return utils.DenormalizeHex(address)
+	case sdk.ChainIDSui:
+		if utils.StartsWith0x(address) {
+			return address
+		}
+		return utils.DenormalizeHex(address)
+	default:
+		return address
 	}
 }
 

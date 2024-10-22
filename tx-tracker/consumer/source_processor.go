@@ -3,8 +3,10 @@ package consumer
 import (
 	"context"
 	"errors"
-	notionalCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
+	"fmt"
 	"time"
+
+	notionalCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
@@ -22,7 +24,8 @@ type ProcessSourceTxParams struct {
 	TrackID     string
 	Timestamp   *time.Time
 	ChainId     sdk.ChainID
-	VaaId       string
+	ID          string // digest
+	VaaId       string // {chain/address/sequence}
 	Emitter     string
 	Sequence    string
 	TxHash      string
@@ -47,12 +50,13 @@ func ProcessSourceTx(
 	logger *zap.Logger,
 	rpcPool map[vaa.ChainID]*pool.Pool,
 	wormchainRpcPool map[vaa.ChainID]*pool.Pool,
-	repository *Repository,
+	repository Repository,
 	params *ProcessSourceTxParams,
 	p2pNetwork string,
 	notionalCache *notionalCache.NotionalCache,
 ) (*chains.TxDetail, error) {
 
+	// TODO: refactor use dualRepository and more clear when is postgres or mongo.
 	if !params.Overwrite {
 		// If the message has already been processed, skip it.
 		//
@@ -60,10 +64,12 @@ func ProcessSourceTx(
 		// even if the RPC nodes have been hit and data has been written to MongoDB.
 		// In those cases, when we fetch the message for the second time,
 		// we don't want to hit the RPC nodes again for performance reasons.
-		processed, err := repository.AlreadyProcessed(ctx, params.VaaId)
+
+		processed, err := repository.AlreadyProcessed(ctx, params.VaaId, params.TxHash)
 		if err != nil {
 			return nil, err
-		} else if processed {
+		}
+		if processed {
 			return nil, ErrAlreadyProcessed
 		}
 	}
@@ -77,6 +83,7 @@ func ProcessSourceTx(
 	var txDetail *chains.TxDetail
 	var err error
 
+	// TODO: check this fix txhash in mongo and create a new process to check txhash in postgresql
 	if params.IsVaaSigned && params.TxHash == "" {
 		// add metrics for vaa without txHash
 		params.Metrics.IncVaaWithoutTxHash(uint16(params.ChainId), params.Source)
@@ -87,7 +94,7 @@ func ProcessSourceTx(
 			return nil, errors.New("txHash is empty")
 		}
 		uniqueVaaID := domain.CreateUniqueVaaID(vaa)
-		v, err := repository.GetVaaIdTxHash(ctx, uniqueVaaID)
+		v, err := repository.GetVaaIdTxHash(ctx, uniqueVaaID, params.ID)
 		if err != nil {
 			logger.Error("failed to find vaaIdTxHash",
 				zap.String("trackId", params.TrackID),
@@ -132,8 +139,11 @@ func ProcessSourceTx(
 	}
 
 	// Store source transaction details in the database
-	p := UpsertOriginTxParams{
+	originTx := UpsertOriginTxParams{
+		Id:        params.ID,
 		VaaId:     params.VaaId,
+		TxType:    "source-tx",
+		Source:    params.Source,
 		TrackID:   params.TrackID,
 		ChainId:   params.ChainId,
 		Timestamp: params.Timestamp,
@@ -142,23 +152,55 @@ func ProcessSourceTx(
 		Processed: true,
 	}
 
-	err = repository.UpsertOriginTx(ctx, &p)
+	// If the transaction is a wormchain-gateway, we need to create a nested originTx
+	nestedTx, err := createNestedOriginTx(logger, originTx, params, txDetail)
 	if err != nil {
 		return nil, err
 	}
 
-	params.Metrics.VaaProcessingDuration(params.ChainId.String(), params.SentTimestamp)
+	err = repository.UpsertOriginTx(ctx, &originTx, nestedTx)
+	if err == nil {
+		params.Metrics.VaaProcessingDuration(params.ChainId.String(), params.SentTimestamp)
+	}
 
-	return txDetail, nil
+	return txDetail, err
 }
 
-func handleFetchTxError(
-	ctx context.Context,
-	logger *zap.Logger,
-	repository *Repository,
-	params *ProcessSourceTxParams,
-	err error,
-) error {
+func createNestedOriginTx(logger *zap.Logger, nestedTx UpsertOriginTxParams, params *ProcessSourceTxParams, txDetail *chains.TxDetail) (*UpsertOriginTxParams, error) {
+
+	if nestedTx.TxDetail.Attribute != nil && nestedTx.TxDetail.Attribute.Type == "wormchain-gateway" {
+		if nestedTx.TxDetail.Attribute.Value == nil {
+			logger.Error("wormchain attribute value is nil.", zap.String("vaaId", params.VaaId), zap.String("txHash", params.TxHash))
+			return nil, fmt.Errorf("failed to get wormchain attribute value. vaaId:%s - txHash:%s", params.VaaId, params.TxHash)
+		}
+		attr, ok := nestedTx.TxDetail.Attribute.Value.(*chains.WorchainAttributeTxDetail)
+		if !ok {
+			logger.Error("failed to convert to WorchainAttributeTxDetail", zap.String("vaaId", params.VaaId))
+			return nil, errors.New("failed to convert to WorchainAttributeTxDetail. vaaId: " + params.VaaId)
+		}
+
+		nestedTx = UpsertOriginTxParams{
+			Id:        params.ID,
+			VaaId:     params.VaaId,
+			TxType:    "nested-source-tx",
+			Source:    params.Source,
+			TrackID:   params.TrackID,
+			ChainId:   attr.OriginChainID,
+			Timestamp: params.Timestamp,
+			TxDetail: &chains.TxDetail{
+				From:         attr.OriginAddress,
+				NativeTxHash: domain.NormalizeTxHashByChainId(attr.OriginChainID, attr.OriginTxHash),
+				FeeDetail:    txDetail.FeeDetail,
+			},
+			TxStatus:  domain.SourceTxStatusConfirmed,
+			Processed: true,
+		}
+		return &nestedTx, nil
+	}
+	return nil, nil
+}
+
+func handleFetchTxError(ctx context.Context, logger *zap.Logger, repository Repository, params *ProcessSourceTxParams, err error) error {
 	// If the chain is not supported, we don't want to store the unprocessed originTx in the database.
 	if errors.Is(chains.ErrChainNotSupported, err) {
 		return nil
@@ -168,15 +210,25 @@ func handleFetchTxError(
 	// unprocessed originTx in the database.
 	var vaaTxDetail *chains.TxDetail
 	isSolanaOrAptos := params.ChainId == vaa.ChainIDAptos || params.ChainId == vaa.ChainIDSolana
-	if !isSolanaOrAptos {
-		txHash := chains.FormatTxHashByChain(params.ChainId, params.TxHash)
-		vaaTxDetail = &chains.TxDetail{
-			NativeTxHash: txHash,
-		}
+	if isSolanaOrAptos {
+		// if the transactions is solana or aptos, we want to reprocess the vaa,
+		// because we don't have the txHash.
+		return err
+	}
+
+	// store unprocessed originTx in the database.
+	nativeTxHash := chains.FormatTxHashByChain(params.ChainId, params.TxHash)
+	normalizedTxHash := domain.NormalizeTxHashByChainId(params.ChainId, nativeTxHash)
+	vaaTxDetail = &chains.TxDetail{
+		NativeTxHash:     nativeTxHash,
+		NormalizedTxHash: normalizedTxHash,
 	}
 
 	e := UpsertOriginTxParams{
+		Id:        params.ID,
 		VaaId:     params.VaaId,
+		TxType:    "source-tx",
+		Source:    params.Source,
 		TrackID:   params.TrackID,
 		ChainId:   params.ChainId,
 		Timestamp: params.Timestamp,
@@ -185,7 +237,7 @@ func handleFetchTxError(
 		Processed: false,
 	}
 
-	errUpsert := repository.UpsertOriginTx(ctx, &e)
+	errUpsert := repository.UpsertOriginTx(ctx, &e, nil)
 	if errUpsert != nil {
 		logger.Error("failed to upsert originTx",
 			zap.Error(errUpsert),

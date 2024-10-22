@@ -4,9 +4,10 @@ import (
 	"context"
 	errors "errors"
 	"fmt"
-	"github.com/valyala/fasthttp"
 	"strings"
 	"time"
+
+	"github.com/valyala/fasthttp"
 
 	"github.com/wormhole-foundation/wormhole-explorer/api/cacheable"
 	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
@@ -34,10 +35,10 @@ type repository interface {
 	GetTopAssets(ctx context.Context, timeSpan *TopStatisticsTimeSpan) ([]AssetDTO, error)
 	GetTopChainPairs(ctx context.Context, timeSpan *TopStatisticsTimeSpan) ([]ChainPairDTO, error)
 	FindChainActivity(ctx context.Context, q *ChainActivityQuery) ([]ChainActivityResult, error)
-	GetScorecards(ctx context.Context) (*Scorecards, error)
-	FindGlobalTransactionByID(ctx context.Context, q *GlobalTransactionQuery) (*GlobalTransactionDoc, error)
-	FindTransactions(ctx context.Context, input *FindTransactionsInput) ([]TransactionDto, error)
-	ListTransactionsByAddress(ctx context.Context, address string, pagination *pagination.Pagination) ([]TransactionDto, error)
+	GetScorecards(ctx context.Context, usePostgres bool) (*Scorecards, error)
+	FindGlobalTransactionByID(ctx context.Context, usePostgres bool, q *GlobalTransactionQuery) (*GlobalTransactionDoc, error)
+	FindTransactions(ctx context.Context, usePostgres bool, input *FindTransactionsInput) ([]TransactionDto, error)
+	ListTransactionsByAddress(ctx context.Context, usePostgres bool, address string, pagination *pagination.Pagination) ([]TransactionDto, error)
 	FindChainActivityTops(ctx *fasthttp.RequestCtx, q ChainActivityTopsQuery) ([]ChainActivityTopResult, error)
 	FindApplicationActivity(ctx *fasthttp.RequestCtx, q ApplicationActivityQuery) ([]ApplicationActivityTotalsResult, []ApplicationActivityResult, error)
 	FindTokensVolume(ctx context.Context) ([]TokenVolume, error)
@@ -71,10 +72,11 @@ func (s *Service) GetTransactionCount(ctx context.Context, q *TransactionCountQu
 		})
 }
 
-func (s *Service) GetScorecards(ctx context.Context) (*Scorecards, error) {
-	return cacheable.GetOrLoad(ctx, s.logger, s.cache, s.expiration, scorecardsKey, s.metrics,
+func (s *Service) GetScorecards(ctx context.Context, usePostgres bool) (*Scorecards, error) {
+	key := fmt.Sprintf("%s:%v", scorecardsKey, usePostgres)
+	return cacheable.GetOrLoad(ctx, s.logger, s.cache, s.expiration, key, s.metrics,
 		func() (*Scorecards, error) {
-			return s.repo.GetScorecards(ctx)
+			return s.repo.GetScorecards(ctx, usePostgres)
 		})
 }
 
@@ -122,12 +124,20 @@ func (s *Service) GetTokensByVolume(ctx context.Context, limit int) ([]TokenVolu
 }
 
 // FindGlobalTransactionByID find a global transaction by id.
-func (s *Service) FindGlobalTransactionByID(ctx context.Context, chainID vaa.ChainID, emitter *types.Address, seq string) (*GlobalTransactionDoc, error) {
-
+func (s *Service) FindGlobalTransactionByID(
+	ctx context.Context,
+	usePostgres bool,
+	chainID vaa.ChainID,
+	emitter *types.Address,
+	seq string,
+) (*GlobalTransactionDoc, error) {
+	// build vaaID key.
 	key := fmt.Sprintf("%d/%s/%s", chainID, emitter.Hex(), seq)
-	q := GlobalTransactionQuery{id: key}
 
-	return s.repo.FindGlobalTransactionByID(ctx, &q)
+	// build get global transaction query.
+	query := GlobalTransactionQuery{id: key}
+
+	return s.repo.FindGlobalTransactionByID(ctx, usePostgres, &query)
 }
 
 // GetTokenByChainAndAddress get token by chain and address.
@@ -152,6 +162,7 @@ func (s *Service) GetTokenByChainAndAddress(ctx context.Context, chainID vaa.Cha
 
 func (s *Service) ListTransactions(
 	ctx context.Context,
+	usePostgres bool,
 	pagination *pagination.Pagination,
 ) ([]TransactionDto, error) {
 
@@ -159,20 +170,22 @@ func (s *Service) ListTransactions(
 		sort:       true,
 		pagination: pagination,
 	}
-	return s.repo.FindTransactions(ctx, &input)
+	return s.repo.FindTransactions(ctx, usePostgres, &input)
 }
 
 func (s *Service) ListTransactionsByAddress(
 	ctx context.Context,
+	usePostgres bool,
 	address string,
 	pagination *pagination.Pagination,
 ) ([]TransactionDto, error) {
 
-	return s.repo.ListTransactionsByAddress(ctx, address, pagination)
+	return s.repo.ListTransactionsByAddress(ctx, usePostgres, address, pagination)
 }
 
 func (s *Service) GetTransactionByID(
 	ctx context.Context,
+	usePostgres bool,
 	chain vaa.ChainID,
 	emitter *types.Address,
 	seq string,
@@ -182,7 +195,8 @@ func (s *Service) GetTransactionByID(
 	input := FindTransactionsInput{
 		id: fmt.Sprintf("%d/%s/%s", chain, emitter.Hex(), seq),
 	}
-	output, err := s.repo.FindTransactions(ctx, &input)
+
+	output, err := s.repo.FindTransactions(ctx, usePostgres, &input)
 	if err != nil {
 		return nil, err
 	}

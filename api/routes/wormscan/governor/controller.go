@@ -8,7 +8,6 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/governor"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
 	"github.com/wormhole-foundation/wormhole-explorer/api/response"
-	_ "github.com/wormhole-foundation/wormhole-explorer/api/response" // needed by swaggo docs
 	"go.uber.org/zap"
 )
 
@@ -35,17 +34,20 @@ func NewController(serv *governor.Service, logger *zap.Logger) *Controller {
 // @Router /api/v1/governor/config [get]
 func (c *Controller) FindGovernorConfigurations(ctx *fiber.Ctx) error {
 
-	p, err := middleware.ExtractPagination(ctx)
+	// get pagination.
+	pagination, err := middleware.ExtractPagination(ctx)
 	if err != nil {
 		return err
 	}
 
-	// Check pagination max limit
-	if p.Limit > 1000 {
+	// check pagination max limit.
+	if pagination.Limit > 1000 {
 		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
 	}
 
-	governorConfigs, err := c.srv.FindGovernorConfig(ctx.Context(), p)
+	// call service to get governor configurations.
+	governorConfigs, err := c.srv.FindGovernorConfig(ctx.Context(),
+		pagination, middleware.UsePostgres(ctx))
 	if err != nil {
 		return err
 	}
@@ -70,7 +72,8 @@ func (c *Controller) FindGovernorConfigurationByGuardianAddress(ctx *fiber.Ctx) 
 	}
 
 	// query the database
-	govConfigs, err := c.srv.FindGovernorConfigByGuardianAddress(ctx.Context(), guardianAddress)
+	govConfigs, err := c.srv.FindGovernorConfigByGuardianAddress(ctx.Context(),
+		guardianAddress, middleware.UsePostgres(ctx))
 	if err != nil {
 		return err
 	} else if len(govConfigs) == 0 {
@@ -80,9 +83,8 @@ func (c *Controller) FindGovernorConfigurationByGuardianAddress(ctx *fiber.Ctx) 
 		return response.NewInternalError(ctx, err)
 	}
 
-	// populate the response struct and return
-	res := response.Response[*governor.GovConfig]{Data: govConfigs[0]}
-	return ctx.JSON(res)
+	response := response.Response[*governor.GovConfig]{Data: govConfigs[0]}
+	return ctx.JSON(response)
 }
 
 // FindGovernorStatus godoc
@@ -107,7 +109,7 @@ func (c *Controller) FindGovernorStatus(ctx *fiber.Ctx) error {
 		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
 	}
 
-	governorStatus, err := c.srv.FindGovernorStatus(ctx.Context(), p)
+	governorStatus, err := c.srv.FindGovernorStatus(ctx.Context(), middleware.UsePostgres(ctx), p)
 	if err != nil {
 		return err
 	}
@@ -142,7 +144,7 @@ func (c *Controller) FindGovernorStatusByGuardianAddress(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	govStatus, err := c.srv.FindGovernorStatusByGuardianAddress(ctx.Context(), guardianAddress, p)
+	govStatus, err := c.srv.FindGovernorStatusByGuardianAddress(ctx.Context(), middleware.UsePostgres(ctx), guardianAddress, p)
 	if err != nil {
 		return err
 	}
@@ -172,7 +174,7 @@ func (c *Controller) GetGovernorLimit(ctx *fiber.Ctx) error {
 		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
 	}
 
-	governorLimit, err := c.srv.GetGovernorLimit(ctx.Context(), p)
+	governorLimit, err := c.srv.GetGovernorLimit(ctx.Context(), middleware.UsePostgres(ctx), p)
 	if err != nil {
 		return err
 	}
@@ -202,7 +204,7 @@ func (c *Controller) FindNotionalLimit(ctx *fiber.Ctx) error {
 		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
 	}
 
-	notionalLimit, err := c.srv.FindNotionalLimit(ctx.Context(), p)
+	notionalLimit, err := c.srv.FindNotionalLimit(ctx.Context(), middleware.UsePostgres(ctx), p)
 	if err != nil {
 		return err
 	}
@@ -237,7 +239,7 @@ func (c *Controller) GetNotionalLimitByChainID(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	notionalLimit, err := c.srv.GetNotionalLimitByChainID(ctx.Context(), p, chainID)
+	notionalLimit, err := c.srv.GetNotionalLimitByChainID(ctx.Context(), middleware.UsePostgres(ctx), p, chainID)
 	if err != nil {
 		return err
 	}
@@ -268,7 +270,7 @@ func (c *Controller) GetAvailableNotional(ctx *fiber.Ctx) error {
 		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
 	}
 
-	notionalAvaialabilies, err := c.srv.GetAvailableNotional(ctx.Context(), p)
+	notionalAvaialabilies, err := c.srv.GetAvailableNotional(ctx.Context(), middleware.UsePostgres(ctx), p)
 	if err != nil {
 		return err
 	}
@@ -303,7 +305,7 @@ func (c *Controller) GetAvailableNotionalByChainID(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	response, err := c.srv.GetAvailableNotionalByChainID(ctx.Context(), p, chainID)
+	response, err := c.srv.GetAvailableNotionalByChainID(ctx.Context(), middleware.UsePostgres(ctx), p, chainID)
 	if err != nil {
 		return err
 	}
@@ -326,7 +328,7 @@ func (c *Controller) GetMaxNotionalAvailableByChainID(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	response, err := c.srv.GetMaxNotionalAvailableByChainID(ctx.Context(), chainID)
+	response, err := c.srv.GetMaxNotionalAvailableByChainID(ctx.Context(), middleware.UsePostgres(ctx), chainID)
 	if err != nil {
 		return err
 	}
@@ -357,7 +359,7 @@ func (c *Controller) GetEnqueuedVaas(ctx *fiber.Ctx) error {
 		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
 	}
 
-	enqueuedVaas, err := c.srv.GetEnqueueVass(ctx.Context(), p)
+	enqueuedVaas, err := c.srv.GetEnqueueVass(ctx.Context(), middleware.UsePostgres(ctx), p)
 	if err != nil {
 		return err
 	}
@@ -392,7 +394,7 @@ func (c *Controller) GetEnqueuedVaasByChainID(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	enqueuedVaas, err := c.srv.GetEnqueueVassByChainID(ctx.Context(), p, chainID)
+	enqueuedVaas, err := c.srv.GetEnqueueVassByChainID(ctx.Context(), middleware.UsePostgres(ctx), p, chainID)
 	if err != nil {
 		return err
 	}
@@ -409,7 +411,8 @@ func (c *Controller) GetEnqueuedVaasByChainID(ctx *fiber.Ctx) error {
 // @Failure 500
 // @Router /api/v1/governor/vaas [get]
 func (c *Controller) GetGovernorVaas(ctx *fiber.Ctx) error {
-	enqueuedVaas, err := c.srv.GetGovernorVaas(ctx.Context())
+	enqueuedVaas, err := c.srv.GetGovernorVaas(ctx.Context(),
+		middleware.UsePostgres(ctx))
 	if err != nil {
 		return err
 	}

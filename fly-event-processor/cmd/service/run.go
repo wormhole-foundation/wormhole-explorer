@@ -14,6 +14,7 @@ import (
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/sqs"
+	"github.com/wormhole-foundation/wormhole-explorer/common/db"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
@@ -21,14 +22,14 @@ import (
 
 	governorConsumer "github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/consumer/governor"
 	vaaConsumer "github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/consumer/vaa"
-	governorProcessor "github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/processor/governor"
+	governorConfigProcessor "github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/processor/governor_config"
+	governorStatusProcessor "github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/processor/governor_status"
 	vaaprocessor "github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/processor/vaa"
+	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/storage"
 
 	txTracker "github.com/wormhole-foundation/wormhole-explorer/common/client/txtracker"
 
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/queue"
-	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/storage"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/config"
@@ -59,14 +60,11 @@ func Run() {
 		logger.Fatal("Error creating guardian provider pool: ", zap.Error(err))
 	}
 
-	// initialize the database client
-	db, err := dbutil.Connect(rootCtx, logger, cfg.MongoURI, cfg.MongoDatabase, false)
+	// initialize db and repositories
+	s, err := newStorageLayer(rootCtx, cfg, metrics, logger)
 	if err != nil {
-		log.Fatal("Failed to initialize MongoDB client: ", err)
+		logger.Fatal("Error initializing db and repositories: ", zap.Error(err))
 	}
-
-	// create a new repository
-	repository := storage.NewRepository(logger, db.Database)
 
 	//TxTracker createTxHash client
 	createTxHashFunc, err := newCreateTxHashFunc(cfg, logger)
@@ -75,26 +73,37 @@ func Run() {
 	}
 
 	// create a new processor
-	dupVaaProcessor := vaaprocessor.NewProcessor(guardianApiProviderPool, repository, logger, metrics)
-	governorProcessor := governorProcessor.NewProcessor(repository, createTxHashFunc, logger, metrics)
+	dupVaaProcessor, govStatusProcessor, govConfigProcessor, err := newProcessors(cfg,
+		guardianApiProviderPool, s, createTxHashFunc, metrics, logger)
+	if err != nil {
+		logger.Fatal("failed to initialize processors", zap.Error(err))
+	}
 
 	// start serving /health and /ready endpoints
-	healthChecks, err := makeHealthChecks(rootCtx, cfg, db.Database)
+
+	healthChecks, err := makeHealthChecks(rootCtx, cfg, s.mongoDB, s.postgresDB)
 	if err != nil {
 		logger.Fatal("Failed to create health checks", zap.Error(err))
 	}
-	vaaCtrl := vaa.NewController(dupVaaProcessor.Process, repository, logger)
-	server := infrastructure.NewServer(logger, cfg.Port, vaaCtrl, cfg.PprofEnabled, healthChecks...)
+	vaaCtrl := vaa.NewController(cfg, dupVaaProcessor, s.mongoRepository, s.postgresRepository, logger)
+	server := infrastructure.NewServer(logger, cfg.Port, vaaCtrl, cfg.PprofEnabled,
+		healthChecks...)
 	server.Start()
 
 	// create and start a duplicate VAA consumer.
-	duplicateVaaConsumeFunc := newDuplicateVaaConsumeFunc(rootCtx, cfg, metrics, logger)
-	duplicateVaa := vaaConsumer.New(duplicateVaaConsumeFunc, dupVaaProcessor.Process, logger, metrics, cfg.P2pNetwork, cfg.ConsumerWorkerSize)
+	duplicateVaaConsumeFunc := newDuplicateVaaConsumeFunc(rootCtx, cfg,
+		metrics, logger)
+	duplicateVaa := vaaConsumer.New(duplicateVaaConsumeFunc, dupVaaProcessor,
+		logger, metrics, cfg.P2pNetwork, cfg.ConsumerWorkerSize)
 	duplicateVaa.Start(rootCtx)
 
 	// create and start a governor status consumer.
-	governorStatusConsumerFunc := newGovernorStatusConsumeFunc(rootCtx, cfg, metrics, logger)
-	governorStatus := governorConsumer.New(governorStatusConsumerFunc, governorProcessor.Process, logger, metrics, cfg.P2pNetwork, cfg.GovernorConsumerWorkerSize)
+	governorStatusConsumerFunc := newGovernorStatusConsumeFunc(rootCtx, cfg,
+		metrics, logger)
+
+	governorStatus := governorConsumer.New(governorStatusConsumerFunc,
+		govStatusProcessor, govConfigProcessor, logger, metrics,
+		cfg.P2pNetwork, cfg.GovernorConsumerWorkerSize)
 	governorStatus.Start(rootCtx)
 
 	logger.Info("Started wormholescan-fly-event-processor")
@@ -116,11 +125,117 @@ func Run() {
 	logger.Info("Closing Http server...")
 	server.Stop()
 
-	logger.Info("Closing MongoDB connection...")
-	db.DisconnectWithTimeout(10 * time.Second)
+	// close mongo db connection
+	if s.mongoDB != nil {
+		logger.Info("Closing MongoDB connection...")
+		s.mongoDB.DisconnectWithTimeout(10 * time.Second)
+	}
+
+	// close postgres db connection
+	if s.postgresDB != nil {
+		logger.Info("Closing Postgres connection...")
+		s.postgresDB.Close()
+	}
 
 	logger.Info("Terminated wormholescan-fly-event-processor")
 
+}
+
+type storageLayer struct {
+	mongoDB            *dbutil.Session
+	mongoRepository    *storage.Repository
+	postgresDB         *db.DB
+	postgresRepository *storage.PostgresRepository
+}
+
+func newStorageLayer(ctx context.Context,
+	cfg *config.ServiceConfiguration,
+	metrics metrics.Metrics,
+	logger *zap.Logger) (*storageLayer, error) {
+
+	var mongoDb *dbutil.Session
+	var mongoRepository *storage.Repository
+	var postgresDb *db.DB
+	var postgresRepository *storage.PostgresRepository
+	var err error
+	switch cfg.DbLayer {
+	case config.DbLayerMongo:
+		mongoDb, err = dbutil.Connect(ctx, logger, cfg.MongoURI, cfg.MongoDatabase, false)
+		if err != nil {
+			return nil, err
+		}
+		mongoRepository = storage.NewRepository(logger, mongoDb.Database, metrics)
+	case config.DbLayerPostgres:
+		postgresDb, err = newPostgresDatabase(ctx, cfg, logger)
+		if err != nil {
+			return nil, err
+		}
+		postgresRepository = storage.NewPostgresRepository(postgresDb, logger, metrics)
+	case config.DbLayerDual:
+		mongoDb, err = dbutil.Connect(ctx, logger, cfg.MongoURI, cfg.MongoDatabase, false)
+		if err != nil {
+			return nil, err
+		}
+		mongoRepository = storage.NewRepository(logger, mongoDb.Database, metrics)
+		postgresDb, err = newPostgresDatabase(ctx, cfg, logger)
+		if err != nil {
+			return nil, err
+		}
+		postgresRepository = storage.NewPostgresRepository(postgresDb, logger, metrics)
+	default:
+		return nil, fmt.Errorf("invalid db layer: %s", cfg.DbLayer)
+	}
+
+	return &storageLayer{
+		mongoDB:            mongoDb,
+		mongoRepository:    mongoRepository,
+		postgresDB:         postgresDb,
+		postgresRepository: postgresRepository,
+	}, nil
+}
+
+// newProcessors creates processors based on the db layer configuration.
+// returns the duplicate VAA processor, governor status processor and governor config processor.
+func newProcessors(cfg *config.ServiceConfiguration,
+	guardianApiProviderPool *pool.Pool, s *storageLayer, createTxHashFunc txTracker.CreateTxHashFunc,
+	metrics metrics.Metrics, logger *zap.Logger) (vaaprocessor.ProcessorFunc, governorStatusProcessor.ProcessorFunc,
+	governorConfigProcessor.ProcessorFunc, error) {
+
+	switch cfg.DbLayer {
+	case config.DbLayerMongo:
+		dupVaaProcessor := vaaprocessor.NewDuplicateVaaProcessor(guardianApiProviderPool,
+			s.mongoRepository, logger, metrics)
+		govStatusProcessor := governorStatusProcessor.NewProcessor(s.mongoRepository,
+			createTxHashFunc, logger, metrics)
+		govConfigProcessor := governorConfigProcessor.NewNoopProcessor()
+		return dupVaaProcessor.Process, govStatusProcessor.Process, govConfigProcessor.Process, nil
+	case config.DbLayerPostgres:
+		dupVaaProcessor := vaaprocessor.NewProcessor(guardianApiProviderPool,
+			s.postgresRepository, logger, metrics)
+		govStatusProcessor := governorStatusProcessor.NewProcessor(s.postgresRepository,
+			createTxHashFunc, logger, metrics)
+		govConfigProcessor := governorConfigProcessor.NewProcessor(s.postgresRepository,
+			logger, metrics)
+		return dupVaaProcessor.Process, govStatusProcessor.Process, govConfigProcessor.Process, nil
+	case config.DbLayerDual:
+		dupVaaProcessorMongo := vaaprocessor.NewDuplicateVaaProcessor(guardianApiProviderPool,
+			s.mongoRepository, logger, metrics)
+		dupVaaProcessorPostgres := vaaprocessor.NewProcessor(guardianApiProviderPool,
+			s.postgresRepository, logger, metrics)
+		dupVaaProcessor := vaaprocessor.NewCompositeProcessor(
+			dupVaaProcessorMongo.Process, dupVaaProcessorPostgres.Process)
+		govStatusProcessorMongo := governorStatusProcessor.NewProcessor(s.mongoRepository,
+			createTxHashFunc, logger, metrics)
+		govStatusProcessorPostgres := governorStatusProcessor.NewProcessor(s.postgresRepository,
+			createTxHashFunc, logger, metrics)
+		govStatusProcessor := governorStatusProcessor.NewCompositeProcessor(
+			govStatusProcessorMongo.Process, govStatusProcessorPostgres.Process)
+		govConfigProcessor := governorConfigProcessor.NewProcessor(s.postgresRepository,
+			logger, metrics)
+		return dupVaaProcessor.Process, govStatusProcessor.Process, govConfigProcessor.Process, nil
+	}
+
+	return nil, nil, nil, fmt.Errorf("invalid db layer: %s", cfg.DbLayer)
 }
 
 func newAwsConfig(ctx context.Context, cfg *config.ServiceConfiguration) (aws.Config, error) {
@@ -173,7 +288,8 @@ func newSqsConsumer(ctx context.Context, cfg *config.ServiceConfiguration, sqsUr
 func makeHealthChecks(
 	ctx context.Context,
 	cfg *config.ServiceConfiguration,
-	db *mongo.Database,
+	mongo *dbutil.Session,
+	db *db.DB,
 ) ([]health.Check, error) {
 
 	awsConfig, err := newAwsConfig(ctx, cfg)
@@ -181,9 +297,17 @@ func makeHealthChecks(
 		return nil, err
 	}
 
-	plugins := []health.Check{
-		health.SQS(awsConfig, cfg.DuplicateVaaSQSUrl),
-		health.Mongo(db),
+	plugins := []health.Check{health.SQS(awsConfig, cfg.DuplicateVaaSQSUrl)}
+
+	switch cfg.DbLayer {
+	case config.DbLayerMongo:
+		plugins = append(plugins, health.Mongo(mongo.Database))
+	case config.DbLayerPostgres:
+		plugins = append(plugins, health.Postgres(db))
+	case config.DbLayerDual:
+		plugins = append(plugins, health.Mongo(mongo.Database), health.Postgres(db))
+	default:
+		return nil, fmt.Errorf("invalid db layer: %s", cfg.DbLayer)
 	}
 
 	return plugins, nil
@@ -193,7 +317,7 @@ func newMetrics(cfg *config.ServiceConfiguration) metrics.Metrics {
 	if !cfg.MetricsEnabled {
 		return metrics.NewDummyMetrics()
 	}
-	return metrics.NewPrometheusMetrics(cfg.Environment)
+	return metrics.NewPrometheusMetrics(cfg.Environment, cfg.DbLayer)
 }
 
 func newGuardianProviderPool(cfg *config.ServiceConfiguration) (*pool.Pool, error) {
@@ -239,14 +363,14 @@ func newGovernorStatusConsumeFunc(
 	cfg *config.ServiceConfiguration,
 	metrics metrics.Metrics,
 	logger *zap.Logger,
-) queue.ConsumeFunc[queue.EventGovernorStatus] {
+) queue.ConsumeFunc[queue.EventGovernor] {
 
 	sqsConsumer, err := newSqsConsumer(ctx, cfg, cfg.GovernorSQSUrl)
 	if err != nil {
 		logger.Fatal("failed to create sqs consumer", zap.Error(err))
 	}
 
-	governorStatusQueue := queue.NewEventSqs[queue.EventGovernorStatus](sqsConsumer,
+	governorStatusQueue := queue.NewEventSqs[queue.EventGovernor](sqsConsumer,
 		metrics.IncGovernorStatusConsumedQueue, logger)
 	return governorStatusQueue.Consume
 }
@@ -267,4 +391,17 @@ func newCreateTxHashFunc(
 		return nil, fmt.Errorf("failed to initialize TxTracker client: %w", err)
 	}
 	return createTxHashClient.CreateTxHash, nil
+}
+
+func newPostgresDatabase(ctx context.Context,
+	cfg *config.ServiceConfiguration,
+	logger *zap.Logger) (*db.DB, error) {
+
+	// Enable database logging
+	var options db.Option
+	if cfg.DbLogEnable {
+		options = db.WithTracer(logger)
+	}
+
+	return db.NewDB(ctx, cfg.DbURL, options)
 }
