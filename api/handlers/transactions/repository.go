@@ -145,6 +145,7 @@ type Repository struct {
 	supportedChainIDs       map[sdk.ChainID]string
 	logger                  *zap.Logger
 	mayanHttpClient         httpDoEr
+	mayanBaseURL            string
 }
 
 type httpDoEr func(req *http.Request) (*http.Response, error)
@@ -202,6 +203,7 @@ func NewRepository(
 	bucket24HoursRetention, bucket30DaysRetention, bucketInfiniteRetention string,
 	db *mongo.Database,
 	logger *zap.Logger,
+	mayanBaseURL string,
 ) *Repository {
 
 	r := Repository{
@@ -222,6 +224,7 @@ func NewRepository(
 		supportedChainIDs: domain.GetSupportedChainIDs(),
 		logger:            logger,
 		mayanHttpClient:   (&http.Client{}).Do,
+		mayanBaseURL:      mayanBaseURL,
 	}
 
 	return &r
@@ -733,48 +736,69 @@ func (r *Repository) getVolume(ctx context.Context, from offset, excludeAppIDs [
 
 func (r *Repository) get24hVolume(ctx context.Context) (string, error) {
 
-	mayanStats, err := r.getMayanOverview(ctx)
+	var excludeAppIDs []string
+	totalVolume := float64(0)
+
+	if r.p2pNetwork == config.P2pMainNet {
+		excludeAppIDs = []string{"MAYAN"}
+		mayanStats, err := r.getMayanOverview(ctx)
+		if err != nil {
+			return "", err
+		}
+		totalVolume += float64(mayanStats.Last24h.Volume)
+	}
+
+	volume, err := r.getVolume(ctx, _24h, excludeAppIDs)
 	if err != nil {
 		return "", err
 	}
-	volume, err := r.getVolume(ctx, _24h, []string{"MAYAN"})
-	if err != nil {
-		return "", err
-	}
-	decimalVolume := float64(volume) / 1e8
-	decimalVolume += float64(mayanStats.Last24h.Volume)
-	res := fmt.Sprintf("%.8f", decimalVolume)
+	totalVolume += float64(volume) / 1e8
+	res := fmt.Sprintf("%.8f", totalVolume)
 	return res, nil
 }
 
 func (r *Repository) get7dVolume(ctx context.Context) (string, error) {
-	mayanStats, err := r.getMayanVolume(ctx, _7d)
-	if err != nil {
-		return "", err
-	}
-	volume, err := r.getVolume(ctx, _7d, []string{"MAYAN"})
-	if err != nil {
-		return "", err
+
+	var excludeAppIDs []string
+	totalVolume := float64(0)
+
+	if r.p2pNetwork == config.P2pMainNet {
+		excludeAppIDs = []string{"MAYAN"}
+		mayanStats, err := r.getMayanVolume(ctx, _7d)
+		if err != nil {
+			return "", err
+		}
+		totalVolume += float64(mayanStats)
 	}
 
-	decimalVolume := float64(volume) / 1e8
-	decimalVolume += float64(mayanStats)
-	res := fmt.Sprintf("%.8f", decimalVolume)
+	volume, err := r.getVolume(ctx, _7d, excludeAppIDs)
+	if err != nil {
+		return "", err
+	}
+	totalVolume += float64(volume) / 1e8
+	res := fmt.Sprintf("%.8f", totalVolume)
 	return res, nil
 }
 
 func (r *Repository) get30dVolume(ctx context.Context) (string, error) {
-	mayanStats, err := r.getMayanVolume(ctx, _30d)
+	var excludeAppIDs []string
+	totalVolume := float64(0)
+
+	if r.p2pNetwork == config.P2pMainNet {
+		excludeAppIDs = []string{"MAYAN"}
+		mayanStats, err := r.getMayanVolume(ctx, _30d)
+		if err != nil {
+			return "", err
+		}
+		totalVolume += float64(mayanStats)
+	}
+
+	volume, err := r.getVolume(ctx, _30d, excludeAppIDs)
 	if err != nil {
 		return "", err
 	}
-	volume, err := r.getVolume(ctx, _30d, []string{"MAYAN"})
-	if err != nil {
-		return "", err
-	}
-	decimalVolume := float64(volume) / 1e8
-	decimalVolume += float64(mayanStats)
-	res := fmt.Sprintf("%.8f", decimalVolume)
+	totalVolume += float64(volume) / 1e8
+	res := fmt.Sprintf("%.8f", totalVolume)
 	return res, nil
 }
 
@@ -2056,7 +2080,7 @@ func (r *Repository) buildTotalsAppActivityQueryMonthly(q ApplicationActivityQue
 }
 
 func (r *Repository) getMayanOverview(ctx context.Context) (*StatsOverview, error) {
-	url := "https://explorer-api.mayan.finance/v3/stats/overview"
+	url := r.mayanBaseURL + "/v3/stats/overview"
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
