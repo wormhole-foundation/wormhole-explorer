@@ -127,7 +127,9 @@ func buildQueryOperationsByChain(sourceChainIDs, targetChainIDs []vaa.ChainID) b
 	var allMatch bson.A
 
 	if len(sourceChainIDs) > 0 {
-		matchSourceChain := bson.M{"rawStandardizedProperties.fromChain": bson.M{"$in": sourceChainIDs}}
+		matchFromChain := bson.M{"rawStandardizedProperties.fromChain": bson.M{"$in": sourceChainIDs}}
+		matchEmitterChain := bson.M{"emitterChain": bson.M{"$in": sourceChainIDs}}
+		matchSourceChain := bson.M{"$or": bson.A{matchFromChain, matchEmitterChain}}
 		allMatch = append(allMatch, matchSourceChain)
 	}
 
