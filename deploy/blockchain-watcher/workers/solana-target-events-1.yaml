@@ -142,7 +142,8 @@ data:
               "ntT5xGC7XEuR8Po9U3Umze12T9LBdaTCuEc9Cby6qPa",
               "STTrhNsZyLN3srkazdo6LnpJ5RciJYP9N4zVwwYycw9",
               "STTb3N8SdASycVjRhgPZV7EgtdaW19pkuY5vGxTNEW6",
-              "ntTrjS9nYGsRCijV3v6Ks4QgMcEWp1SkoVnoTj4zxPJ"
+              "ntTrjS9nYGsRCijV3v6Ks4QgMcEWp1SkoVnoTj4zxPJ",
+              "ntTziNUdVjNJKZXCFbSZxfmjigyBouS8YLtAp8R2Fwa"
             ],
             "chain": "solana",
             "chainId": 1
@@ -268,6 +269,12 @@ data:
                   }
                 ],
                 "ntTrjS9nYGsRCijV3v6Ks4QgMcEWp1SkoVnoTj4zxPJ": [
+                  {
+                    "instructions": ["86d58f44eb66e860"],
+                    "vaaAccountIndex": 3
+                  }
+                ],
+                "ntTziNUdVjNJKZXCFbSZxfmjigyBouS8YLtAp8R2Fwa": [
                   {
                     "instructions": ["86d58f44eb66e860"],
                     "vaaAccountIndex": 3
