@@ -237,10 +237,10 @@ func (r *PostgresRepository) GetGovernorNotionalLimit(ctx context.Context, query
 	offset := queryFilter.Pagination.Skip
 
 	query := `
-		WITH RankedChains AS (SELECT (chain_data.value ->> 'chainid')::SMALLINT     AS chainId,
-                             chain_data.value ->> 'notionallimit'       AS notionalLimit,
-                             chain_data.value ->> 'bigtransactionsize'  AS maxTransactionSize,
-                             ROW_NUMBER() OVER (PARTITION BY chain_data.value ->> 'chainid' ORDER BY chain_data.value ->> 'notionallimit' DESC, chain_data.value ->> 'bigtransactionsize' DESC) AS rowNum
+		WITH RankedChains AS (SELECT (chain_data.value ->> 'chainId')::SMALLINT     AS chainId,
+                             chain_data.value ->> 'notionalLimit'       AS notionalLimit,
+                             chain_data.value ->> 'bigTransactionSize'  AS maxTransactionSize,
+                             ROW_NUMBER() OVER (PARTITION BY chain_data.value ->> 'chainId' ORDER BY chain_data.value ->> 'notionalLimit' DESC, chain_data.value ->> 'bigTransactionSize' DESC) AS rowNum
                       FROM wormholescan.wh_governor_config,
                            jsonb_array_elements(chains) AS chain_data)
 		SELECT chainId,
