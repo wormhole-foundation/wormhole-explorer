@@ -728,9 +728,6 @@ func (r *Repository) getVolume(ctx context.Context, from offset, excludeAppIDs [
 	if err = mapstructure.Decode(result.Record().Values(), &row); err != nil {
 		return 0, fmt.Errorf("failed to decode %s volume count query response: %w", from, err)
 	}
-
-	// convert the volume to a string and return
-	//volume := convertToDecimal(row.Value)
 	return row.Value, nil
 }
 
@@ -836,22 +833,22 @@ func buildMayanQuery(bucket string, from offset) string {
 						|> filter(fn: (r) => r._field == "volume")
 	
 	
-volume30daysAgo = mayanData 
-							|> first()
-							|> map(fn: (r) => ({r with _field : "volume_start"}))
+		volume30daysAgo = mayanData 
+									|> first()
+									|> map(fn: (r) => ({r with _field : "volume_start"}))
+									|> keep(columns:["protocol","_field","_value"])
+		
+		volumeNow = mayanData 
+							|> last()
+							|> map(fn: (r) => ({r with _field : "volume_now"}))
 							|> keep(columns:["protocol","_field","_value"])
-
-volumeNow = mayanData 
-					|> last()
-					|> map(fn: (r) => ({r with _field : "volume_now"}))
-					|> keep(columns:["protocol","_field","_value"])
-
-union(tables:[volumeNow,volume30daysAgo])
-	|> pivot(rowKey:["protocol"], columnKey: ["_field"], valueColumn: "_value")
-	|> map(fn: (r) => ({
-			r with 
-				_value : r.volume_now - r.volume_start
-	}))
+		
+		union(tables:[volumeNow,volume30daysAgo])
+			|> pivot(rowKey:["protocol"], columnKey: ["_field"], valueColumn: "_value")
+			|> map(fn: (r) => ({
+					r with 
+						_value : r.volume_now - r.volume_start
+			}))
 	`
 	queryMayan := fmt.Sprintf(queryTemplate, bucket, from)
 	return queryMayan
