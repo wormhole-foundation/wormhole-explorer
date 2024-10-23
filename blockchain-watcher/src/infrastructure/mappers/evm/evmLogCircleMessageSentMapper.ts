@@ -13,7 +13,7 @@ export const evmLogCircleMessageSentMapper = (
   transaction: EvmTransaction,
   cfg?: HandleEvmConfig
 ): LogFoundEvent<CircleMessageSent> | undefined => {
-  const circleMessageSent = mappedCircleMessageSent(transaction.logs, cfg!);
+  const circleMessageSent = mappedCircleMessageSent(transaction, cfg!);
 
   if (!circleMessageSent) {
     logger.warn(
@@ -49,10 +49,10 @@ export const evmLogCircleMessageSentMapper = (
 };
 
 const mappedCircleMessageSent = (
-  logs: EvmTransactionLog[],
+  transaction: EvmTransaction,
   cfg: HandleEvmConfig
 ): CircleMessageSent | undefined => {
-  const filterLogs = logs.filter((log) => {
+  const filterLogs = transaction.logs.filter((log) => {
     return EVENT_TOPICS[log.topics[0]];
   });
 
@@ -60,7 +60,7 @@ const mappedCircleMessageSent = (
 
   for (const log of filterLogs) {
     const mapper = EVENT_TOPICS[log.topics[0]];
-    const bodyMessage = mapper(log, cfg);
+    const bodyMessage = mapper(log, cfg, transaction.chain, transaction.hash);
 
     if (bodyMessage) {
       return bodyMessage;
@@ -68,33 +68,43 @@ const mappedCircleMessageSent = (
   }
 };
 
-const mapCircleBodyFromTopics: LogToVaaMapper = (log: EvmTransactionLog, cfg: HandleEvmConfig) => {
-  if (!log.topics[0]) {
+const mapCircleBodyFromTopics: LogToVaaMapper = (
+  log: EvmTransactionLog,
+  cfg: HandleEvmConfig,
+  chain: string,
+  hash: string
+) => {
+  try {
+    if (!log.topics[0]) {
+      return undefined;
+    }
+    const abi = cfg.abis?.find((abi) => abi.topic === log.topics[0]) ?? cfg.abis[0];
+    const iface = new ethers.utils.Interface([abi.abi]);
+    const parsedLog = iface.parseLog(log);
+    const bytes = encoding.hex.decode(parsedLog.args[0]);
+    const [protocol, circleMessage] = deserializeCircleMessage(bytes);
+
+    if (!circleMessage || protocol !== "cctp" || circleMessage.payload instanceof Uint8Array) {
+      return undefined;
+    }
+
+    return {
+      destinationCaller: circleMessage.destinationCaller.toString(),
+      destinationDomain: toCirceChain(cfg.environment, circleMessage.destinationDomain),
+      messageSender: circleMessage.payload.messageSender.toString(),
+      mintRecipient: circleMessage.payload.mintRecipient.toString(),
+      sourceDomain: toCirceChain(cfg.environment, circleMessage.sourceDomain),
+      burnToken: circleMessage.payload.burnToken.toString(),
+      recipient: circleMessage.recipient.toString(),
+      sender: circleMessage.sender.toString(),
+      amount: circleMessage.payload.amount,
+      nonce: circleMessage.nonce,
+      protocol,
+    };
+  } catch (e) {
+    logger.error(`[${chain}] Failed to parse circle message for [tx: ${hash}], ${e}`);
     return undefined;
   }
-  const abi = cfg.abis?.find((abi) => abi.topic === log.topics[0]) ?? cfg.abis[0];
-  const iface = new ethers.utils.Interface([abi.abi]);
-  const parsedLog = iface.parseLog(log);
-  const bytes = encoding.hex.decode(parsedLog.args[0]);
-  const [protocol, circleMessage] = deserializeCircleMessage(bytes);
-
-  if (!circleMessage || protocol !== "cctp" || circleMessage.payload instanceof Uint8Array) {
-    return undefined;
-  }
-
-  return {
-    destinationCaller: circleMessage.destinationCaller.toString(),
-    destinationDomain: toCirceChain(cfg.environment, circleMessage.destinationDomain),
-    messageSender: circleMessage.payload.messageSender.toString(),
-    mintRecipient: circleMessage.payload.mintRecipient.toString(),
-    sourceDomain: toCirceChain(cfg.environment, circleMessage.sourceDomain),
-    burnToken: circleMessage.payload.burnToken.toString(),
-    recipient: circleMessage.recipient.toString(),
-    sender: circleMessage.sender.toString(),
-    amount: circleMessage.payload.amount,
-    nonce: circleMessage.nonce,
-    protocol,
-  };
 };
 
 const mappedMessageProtocol = (logs: EvmTransactionLog[]): string => {
@@ -107,6 +117,11 @@ const EVENT_TOPICS: Record<string, LogToVaaMapper> = {
   "0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036": mapCircleBodyFromTopics, // CCTP MessageSent (circle bridge)
 };
 
-type LogToVaaMapper = (log: EvmTransactionLog, cfg: HandleEvmConfig) => any | undefined;
+type LogToVaaMapper = (
+  log: EvmTransactionLog,
+  cfg: HandleEvmConfig,
+  chain: string,
+  hash: string
+) => any | undefined;
 
 type EvmTransactionLog = { address: string; topics: string[]; data: string };
