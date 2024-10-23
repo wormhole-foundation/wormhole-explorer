@@ -1,7 +1,9 @@
 package domain
 
 import (
+	"encoding/hex"
 	"fmt"
+	"github.com/mr-tron/base58"
 	"strings"
 
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -155,4 +157,22 @@ func (t *TokenProvider) GetTokensBySymbol(symbol string) ([]*TokenMetadata, bool
 		return nil, false
 	}
 	return tokens, true
+}
+
+func NormalizeContractAddress(address string) (string, error) {
+
+	// remove first 24 characters from address
+	// 0x000000000000000000000000
+	if len(address) > 24 {
+		if strings.HasPrefix(address, "00000000000000") {
+			return "0x" + address[24:], nil
+		}
+	} else {
+		ds, err := hex.DecodeString(address)
+		if err != nil {
+			return "", err
+		}
+		return base58.Encode(ds), nil
+	}
+	return address, nil
 }

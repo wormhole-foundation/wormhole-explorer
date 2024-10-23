@@ -552,6 +552,114 @@ func (r *Repository) GetNativeTokenTransferByTime(ctx context.Context, timespan 
 	return values, nil
 }
 
+type Token struct {
+	CoingeckoID string      `json:"coingecko_id"`
+	Symbol      string      `json:"symbol"`
+	Chain       sdk.ChainID `json:"chain"`
+	Address     string      `json:"address"`
+}
+
+func (r *Repository) GetNativeTokenTransferTokens(ctx context.Context) ([]Token, error) {
+	nttTokens, err := r.retrieveTokenListFromNTTVaas(ctx)
+	if err != nil {
+		r.logger.Error("failed to retrieve token list from ntt vaas", zap.Error(err))
+		return nil, err
+	}
+
+	r.logger.Debug("retrieved token list from ntt vaas", zap.Int("count", len(nttTokens)))
+	result := make([]Token, 0, len(nttTokens))
+
+	for _, token := range nttTokens {
+		select {
+		case <-ctx.Done():
+			r.logger.Error("context cancelled, exiting execution.", zap.Error(ctx.Err()))
+			return nil, ctx.Err()
+		default:
+		}
+
+		r.logger.Info("retrieved token", zap.String("token_address", token.TokenAddress), zap.String("token_chain", token.TokenChain))
+		address, err := domain.NormalizeContractAddress(token.TokenAddress)
+		if err != nil {
+			r.logger.Error("failed to normalize contract address", zap.Error(err), zap.String("token_address", token.TokenAddress), zap.String("token_chain", token.TokenChain))
+			continue
+		}
+		contract, err := r.coingeckoAPI.GetSymbolByContract(ctx, token.chainID.String(), address)
+		if err != nil {
+			r.logger.Error("failed to get symbol by contract", zap.Error(err), zap.String("token_address", token.TokenAddress), zap.String("token_chain", token.TokenChain))
+			continue
+		}
+		result = append(result, Token{
+			CoingeckoID: contract.Id,
+			Symbol:      contract.Symbol,
+			Chain:       token.chainID,
+			Address:     token.TokenAddress,
+		})
+	}
+
+	return result, nil
+
+}
+
+type tokenRow struct {
+	TokenAddress string `mapstructure:"token_address"`
+	TokenChain   string `mapstructure:"token_chain"`
+	chainID      sdk.ChainID
+}
+
+func (r *Repository) retrieveTokenListFromNTTVaas(ctx context.Context) ([]tokenRow, error) {
+	queryTemplate := `
+	import "influxdata/influxdb/schema"
+	import "date"
+	import "strings"
+	
+	ntt = "NATIVE_TOKEN_TRANSFER"
+
+	from(bucket: "%s")
+		|> range(start: 0)
+		|> filter(fn: (r) => r._measurement == "vaa_volume_v3" and r.version == "v5")
+		|> filter(fn: (r) => r.app_id_1 == ntt or r.app_id_2 == ntt or r.app_id_3 == ntt)
+		|> keep(columns: ["token_address","token_chain"])
+		|> distinct()
+	`
+
+	query := fmt.Sprintf(queryTemplate, r.bucketInfiniteRetention)
+	result, err := r.queryAPI.Query(ctx, query)
+	if err != nil {
+		r.logger.Error("failed to query ntt tokens list", zap.Error(err))
+		return nil, err
+	}
+	if result.Err() != nil {
+		r.logger.Error("failed to query ntt tokens list", zap.Error(err))
+		return nil, result.Err()
+	}
+
+	var rows []tokenRow
+	for result.Next() {
+		var row tokenRow
+		if err = mapstructure.Decode(result.Record().Values(), &row); err != nil {
+			return nil, err
+		}
+
+		chainID, err := strconv.ParseUint(row.TokenChain, 10, 16)
+		if err != nil {
+			return nil, err
+		}
+		id := sdk.ChainID(chainID)
+		for _, chain := range sdk.GetAllNetworkIDs() {
+			if chain == id {
+				row.chainID = chain
+				break
+			}
+		}
+		if row.chainID == sdk.ChainIDUnset {
+			r.logger.Warn("unsupported chain id. Skipping NTT Token.", zap.String("token_chain", row.TokenChain), zap.String("token_address", row.TokenAddress))
+			continue
+		}
+		rows = append(rows, row)
+	}
+	return rows, nil
+}
+
 func (r *Repository) buildQueryGetNativeTokenTransferByTimeHourly(start, stop, symbol string, isNotional bool) string {
 	function := "count"
 	if isNotional {

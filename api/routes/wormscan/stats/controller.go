@@ -296,3 +296,13 @@ func (c *Controller) GetNativeTokenTransferTopHolder(ctx *fiber.Ctx) error {
 
 	return ctx.JSON(holders)
 }
+
+func (c *Controller) GetNativeTokenTransferTokensList(ctx *fiber.Ctx) error {
+
+	tokens, err := c.srv.GetNativeTokenTransferTokensList(ctx.Context())
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(tokens)
+}

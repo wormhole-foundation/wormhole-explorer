@@ -151,3 +151,7 @@ func (s *Service) GetNativeTokenTransferTopHolder(ctx context.Context, symbol st
 	}
 	return s.holderRepository.GetNativeTokenTransferTopHolder(ctx, symbol)
 }
+
+func (s *Service) GetNativeTokenTransferTokensList(ctx context.Context) ([]Token, error) {
+	return s.repo.GetNativeTokenTransferTokens(ctx)
+}

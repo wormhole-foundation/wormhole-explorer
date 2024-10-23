@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"encoding/hex"
 	"fmt"
 	"io"
@@ -79,7 +80,7 @@ func ParseLine(cg *coingecko.CoinGeckoAPI, line []byte) (string, error) {
 
 	//chain := convertionMap[tokens[1]]
 
-	_, err := cg.GetSymbolByContract(tokens[1], address)
+	_, err := cg.GetSymbolByContract(context.TODO(), tokens[1], address)
 	if err != nil {
 		return address, err
 	}
