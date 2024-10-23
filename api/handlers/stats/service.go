@@ -185,7 +185,7 @@ func (s *Service) GetNativeTokenTransferTokensList(ctx context.Context) ([]Token
 				Symbol:      coingeckoToken.Symbol,
 				CoingeckoID: coingeckoToken.Id,
 			}, nil
-		})
+		}, cacheable.WithAutomaticRenew())
 
 		if err == nil {
 			result = append(result, tokenData)
