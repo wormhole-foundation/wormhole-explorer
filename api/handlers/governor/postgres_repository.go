@@ -447,14 +447,12 @@ func (r *PostgresRepository) GetAvailableNotional(
 	offset := q.Pagination.Skip
 
 	query := `
-	WITH RankedChains AS (SELECT (chain_data.value ->> 'chainid')::SMALLINT     AS chainId,
-                             chain_data.value ->> 'remainingavailablenotional'  AS remainingavailablenotional,
-                             ROW_NUMBER()
-                             OVER (PARTITION BY chain_data.value ->> 'chainid' ORDER BY chain_data.value ->> 'remainingavailablenotional' DESC) AS rowNum
-                      FROM wormholescan.wh_governor_status,
-                           jsonb_array_elements(wormholescan.wh_governor_status.message) AS chain_data)
-	SELECT chainId,
-	       remainingavailablenotional as availableNotional
+	WITH RankedChains AS (SELECT (chain_data.value ->> 'chainId')::SMALLINT AS chainId, 
+							chain_data.value ->> 'remainingAvailableNotional' AS remainingAvailableNotional,
+							ROW_NUMBER() OVER (PARTITION BY chain_data.value ->> 'chainId' ORDER BY chain_data.value ->> 'remainingAvailableNotional' DESC) AS rowNum
+						FROM wormholescan.wh_governor_status, jsonb_array_elements(message -> 'chains') AS chain_data)
+ 	SELECT chainId,
+	remainingAvailableNotional as availableNotional
 	FROM RankedChains
 	WHERE rowNum = 13
 	ORDER BY chainId
