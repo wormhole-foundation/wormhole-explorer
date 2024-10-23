@@ -1,6 +1,6 @@
-import config from "config";
-import { SnsConfig } from "./repositories/target/SnsEventRepository";
+import { SnsConfig, SqsConfig } from "./repositories/target/SnsEventRepository";
 import { InfluxConfig } from "./repositories/target/InfluxEventRepository";
+import config from "config";
 
 export type Environment = "testnet" | "mainnet";
 
@@ -13,6 +13,7 @@ export type Config = {
   dryRun: boolean;
   rpcHealthcheckInterval: number;
   sns: SnsConfig;
+  sqs: SqsConfig;
   influx?: InfluxConfig;
   metadata?: {
     dir: string;
@@ -52,6 +53,7 @@ export const configuration = {
   dryRun: config.get<string>("dryRun") === "true" ? true : false,
   rpcHealthcheckInterval: config.get<number>("rpcHealthcheckInterval") ?? 600000,
   sns: config.get<SnsConfig>("sns"),
+  sqs: config.get<SqsConfig>("sqs"),
   influx: config.get<InfluxConfig>("influx"),
   metadata: {
     dir: config.get<string>("metadata.dir"),

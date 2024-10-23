@@ -167,6 +167,13 @@ export type SnsConfig = {
   };
 };
 
+export type SqsConfig = {
+  waitTimeSeconds: number;
+  batchSize: number;
+  queueUrl: string;
+  region: string;
+};
+
 export type SnsPublishResult = {
   status: "success" | "error";
   reason?: string;

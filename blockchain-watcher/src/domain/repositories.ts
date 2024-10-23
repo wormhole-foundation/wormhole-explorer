@@ -149,5 +149,6 @@ export interface JobRepository {
   getJobDefinitions(): Promise<JobDefinition[]>;
   getRPCHealthcheck(jobsDef: JobDefinition[]): RunRPCHealthcheck;
   getPollingJob(jobDef: JobDefinition): RunPollingJob;
+  getRegistry(jobDef: JobDefinition): any; // TODO
   getHandlers(jobDef: JobDefinition): Promise<Handler[]>;
 }

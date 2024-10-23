@@ -1,9 +1,11 @@
 import { RunRPCHealthcheck } from "./RunRPCHealthcheck";
 import { JobRepository } from "../repositories";
 import { JobDefinition } from "../entities";
+import { RunRegistry } from "./RunRegistry";
 import winston from "winston";
 
 const RPC_HEALTHCHECK = "rpc-healthcheck";
+const REGISTRY = "registry";
 
 export class StartJobs {
   private readonly logger = winston.child({ module: "StartJobs" });
@@ -44,5 +46,12 @@ export class StartJobs {
     this.runnables.set(RPC_HEALTHCHECK, () => runRPCHealthcheck.run());
     this.runnables.get(RPC_HEALTHCHECK)!();
     return runRPCHealthcheck;
+  }
+
+  public async runRegistry(job: JobDefinition): Promise<RunRegistry> {
+    const runRegistry = this.job.getRegistry(job);
+    this.runnables.set(REGISTRY, () => runRegistry.run());
+    this.runnables.get(REGISTRY)!();
+    return runRegistry;
   }
 }

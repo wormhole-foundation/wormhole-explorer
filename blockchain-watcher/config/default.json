@@ -11,6 +11,12 @@
     "groupId": "blockchain-watcher",
     "subject": "blockchain-watcher"
   },
+  "sqs": {
+    "waitTimeSeconds": 20,
+    "batchSize": 10,
+    "queueUrl": "https://sqs.us-east-2.amazonaws.com/132132/mock-queue",
+    "region": "us-east-1"
+  },
   "influx": {
     "bucket": "wormscan-testnet",
     "token": "ASFWQFWFasdasf232121ASDsxcSDARWFAS",

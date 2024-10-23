@@ -16,6 +16,7 @@ import { NearJsonRPCBlockRepository } from "./near/NearJsonRPCBlockRepository";
 import { InstrumentedHttpProvider } from "../rpc/http/InstrumentedHttpProvider";
 import { ChainRPCConfig, Config } from "../config";
 import { InfluxEventRepository } from "./target/InfluxEventRepository";
+import { SqsEventRepository } from "./target/SqsEventRepository";
 import { RpcConfig } from "@xlabs/rpc-pool";
 import { InfluxDB } from "@influxdata/influxdb-client";
 import {
@@ -98,6 +99,7 @@ export class RepositoriesBuilder {
   private build(): void {
     this.snsClient = this.createSnsClient();
     this.repositories.set("sns", new SnsEventRepository(this.snsClient, this.cfg.sns));
+    this.repositories.set("sqs", new SqsEventRepository(this.cfg.sqs));
 
     this.cfg.influx &&
       this.repositories.set(
@@ -143,6 +145,7 @@ export class RepositoriesBuilder {
           metadataRepo: this.getMetadataRepository(),
           statsRepo: this.getStatsRepository(),
           snsRepo: this.getSnsEventRepository(),
+          sqsRepo: this.getSqsEventRepository(),
           influxRepo: this.getInfluxEventRepository(),
           solanaSlotRepo: this.getSolanaSlotRepository(),
           suiRepo: this.getSuiRepository(),
@@ -163,12 +166,19 @@ export class RepositoriesBuilder {
     return this.getRepo(instance);
   }
 
-  public getSnsEventRepository(): SnsEventRepository | undefined {
+  public getSnsEventRepository(): SnsEventRepository {
     try {
-      const sns = this.getRepo("sns");
-      return sns;
+      return this.getRepo("sns");
     } catch (e) {
-      return;
+      throw new Error("SnsEventRepository not found");
+    }
+  }
+
+  public getSqsEventRepository(): SqsEventRepository {
+    try {
+      return this.getRepo("sqs");
+    } catch (e) {
+      throw new Error("SqsEventRepository not found");
     }
   }
 
