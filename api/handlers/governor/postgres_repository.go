@@ -356,24 +356,16 @@ func (r *PostgresRepository) GetMaxNotionalAvailableByChainID(
 ) (*MaxNotionalAvailableRecord, error) {
 
 	query := `
-	WITH RankedChains AS (SELECT (chain_data.value ->> 'chainid')::SMALLINT                                                                     AS chainId,
-                             chain_data.value ->> 'remainingavailablenotional'                                                                  AS availableNotional,
-                             chain_data.value ->> 'emitters'                                                                                    AS emitters,
-                             wormholescan.wh_governor_status.guardian_name,
-                             wormholescan.wh_governor_status.created_at,
-                             wormholescan.wh_governor_status.updated_at,
-							 wormholescan.wh_governor_status.id 																				AS id,
-                             ROW_NUMBER()
-                             OVER (PARTITION BY chain_data.value ->> 'chainid' ORDER BY chain_data.value ->> 'remainingavailablenotional' DESC) AS rowNum
-                      FROM wormholescan.wh_governor_status,
-                           jsonb_array_elements(wormholescan.wh_governor_status.message) AS chain_data)
-	SELECT 	chainId,
-	       	availableNotional,
-	       	emitters,
-	       	guardian_name,
-	       	created_at,
-	       	updated_at,
-			id
+	WITH RankedChains AS (SELECT (chain_data.value ->> 'chainId')::SMALLINT AS chainId,
+		chain_data.value ->> 'remainingAvailableNotional' AS availableNotional, 
+		chain_data.value ->> 'emitters' AS emitters, 
+		wormholescan.wh_governor_status.guardian_name, 
+		wormholescan.wh_governor_status.created_at, 
+		wormholescan.wh_governor_status.updated_at, 
+		wormholescan.wh_governor_status.id AS id, 
+		ROW_NUMBER() OVER (PARTITION BY chain_data.value ->> 'chainId' ORDER BY chain_data.value ->> 'remainingAvailableNotional' DESC) AS rowNum 
+		FROM wormholescan.wh_governor_status, jsonb_array_elements(message -> 'chains') AS chain_data)
+	SELECT chainId, availableNotional, emitters, guardian_name, created_at, updated_at, id
 	FROM RankedChains
 	WHERE rowNum = 13 and chainId = $1
 	ORDER BY chainId ASC;
