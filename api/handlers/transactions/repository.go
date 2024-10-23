@@ -833,15 +833,15 @@ func buildMayanQuery(bucket string, from offset) string {
 						|> filter(fn: (r) => r._field == "volume")
 	
 	
-		volume30daysAgo = mayanData 
-									|> first()
-									|> map(fn: (r) => ({r with _field : "volume_start"}))
-									|> keep(columns:["protocol","_field","_value"])
-		
-		volumeNow = mayanData 
-							|> last()
-							|> map(fn: (r) => ({r with _field : "volume_now"}))
+		volume30daysAgo = mayanData
+							|> first()
+							|> map(fn: (r) => ({r with _field : "volume_start"}))
 							|> keep(columns:["protocol","_field","_value"])
+		
+		volumeNow = mayanData
+						|> last()
+						|> map(fn: (r) => ({r with _field : "volume_now"}))
+						|> keep(columns:["protocol","_field","_value"])
 		
 		union(tables:[volumeNow,volume30daysAgo])
 			|> pivot(rowKey:["protocol"], columnKey: ["_field"], valueColumn: "_value")
