@@ -529,19 +529,17 @@ func (r *PostgresRepository) GetAvailableNotionalByChainID(
 	offset := q.Pagination.Skip
 
 	query := `
-	SELECT 	wormholescan.wh_governor_status.id,
-	        wormholescan.wh_governor_status.guardian_name,
-	       	wormholescan.wh_governor_status.created_at,
-	       	wormholescan.wh_governor_status.updated_at,
-	       	(message.value ->> 'chainid')::SMALLINT AS chainId,
-	       	message.value ->> 'remainingavailablenotional' AS availableNotional
-	FROM    wormholescan.wh_governor_status,
-	     	jsonb_array_elements(wormholescan.wh_governor_status.message) AS message
-	WHERE message.value ->> 'chainid' = $1
-	ORDER BY wormholescan.wh_governor_status.id DESC
-	LIMIT $2 OFFSET $3;
+		SELECT wormholescan.wh_governor_status.id, 
+			   wormholescan.wh_governor_status.guardian_name, 
+			   wormholescan.wh_governor_status.created_at, 
+			   wormholescan.wh_governor_status.updated_at, 
+			   (m.value ->> 'chainId')::SMALLINT AS chain_id, 
+			   m.value ->> 'remainingAvailableNotional' AS available_notional 
+		FROM wormholescan.wh_governor_status, jsonb_array_elements(message -> 'chains') AS m 
+		WHERE (m.value ->> 'chainId')::INT = $1 
+		ORDER BY wormholescan.wh_governor_status.id DESC 
+		LIMIT $2 OFFSET $3;
 	`
-
 	var result []*NotionalAvailableDetail
 	var response []notionalAvailableDetailSQL
 

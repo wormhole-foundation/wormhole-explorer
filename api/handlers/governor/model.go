@@ -132,9 +132,9 @@ type NotionalAvailableDetail struct {
 
 type notionalAvailableDetailSQL struct {
 	ID                string      `db:"id"`
-	ChainID           vaa.ChainID `db:"chainid"`
+	ChainID           vaa.ChainID `db:"chain_id"`
 	NodeName          string      `db:"guardian_name"`
-	NotionalAvailable string      `db:"availablenotional"`
+	NotionalAvailable string      `db:"available_notional"`
 	CreatedAt         *time.Time  `db:"created_at"`
 	UpdatedAt         *time.Time  `db:"updated_at"`
 }
