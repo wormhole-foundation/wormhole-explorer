@@ -146,7 +146,7 @@ func (cg *CoinGeckoAPI) GetSymbolByContract(ctx context.Context, ChainId string,
 	defer res.Body.Close()
 
 	if res.StatusCode == 404 {
-		return nil, fmt.Errorf("token not found")
+		return nil, ErrCoinNotFound
 	}
 
 	body, err := io.ReadAll(res.Body)

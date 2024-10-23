@@ -559,45 +559,8 @@ type Token struct {
 	Address     string      `json:"address"`
 }
 
-func (r *Repository) GetNativeTokenTransferTokens(ctx context.Context) ([]Token, error) {
-	nttTokens, err := r.retrieveTokenListFromNTTVaas(ctx)
-	if err != nil {
-		r.logger.Error("failed to retrieve token list from ntt vaas", zap.Error(err))
-		return nil, err
-	}
-
-	r.logger.Debug("retrieved token list from ntt vaas", zap.Int("count", len(nttTokens)))
-	result := make([]Token, 0, len(nttTokens))
-
-	for _, token := range nttTokens {
-		select {
-		case <-ctx.Done():
-			r.logger.Error("context cancelled, exiting execution.", zap.Error(ctx.Err()))
-			return nil, ctx.Err()
-		default:
-		}
-
-		r.logger.Info("retrieved token", zap.String("token_address", token.TokenAddress), zap.String("token_chain", token.TokenChain))
-		address, err := domain.NormalizeContractAddress(token.TokenAddress)
-		if err != nil {
-			r.logger.Error("failed to normalize contract address", zap.Error(err), zap.String("token_address", token.TokenAddress), zap.String("token_chain", token.TokenChain))
-			continue
-		}
-		contract, err := r.coingeckoAPI.GetSymbolByContract(ctx, token.chainID.String(), address)
-		if err != nil {
-			r.logger.Error("failed to get symbol by contract", zap.Error(err), zap.String("token_address", token.TokenAddress), zap.String("token_chain", token.TokenChain))
-			continue
-		}
-		result = append(result, Token{
-			CoingeckoID: contract.Id,
-			Symbol:      contract.Symbol,
-			Chain:       token.chainID,
-			Address:     token.TokenAddress,
-		})
-	}
-
-	return result, nil
-
+func (r *Repository) FetchTokenFromCoingecko(ctx context.Context, chainID, tokenAddress string) (*coingecko.TokenItem, error) {
+	return r.coingeckoAPI.GetSymbolByContract(ctx, chainID, tokenAddress)
 }
 
 type tokenRow struct {
@@ -606,7 +569,7 @@ type tokenRow struct {
 	chainID      sdk.ChainID
 }
 
-func (r *Repository) retrieveTokenListFromNTTVaas(ctx context.Context) ([]tokenRow, error) {
+func (r *Repository) RetrieveTokenListFromNTTVaas(ctx context.Context) ([]tokenRow, error) {
 	queryTemplate := `
 	import "influxdata/influxdb/schema"
 	import "date"

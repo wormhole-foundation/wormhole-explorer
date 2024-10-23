@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"strings"
 	"time"
 
@@ -153,5 +154,43 @@ func (s *Service) GetNativeTokenTransferTopHolder(ctx context.Context, symbol st
 }
 
 func (s *Service) GetNativeTokenTransferTokensList(ctx context.Context) ([]Token, error) {
-	return s.repo.GetNativeTokenTransferTokens(ctx)
+
+	nttTokens, err := s.repo.RetrieveTokenListFromNTTVaas(ctx)
+	if err != nil {
+		s.logger.Error("failed to retrieve token list from ntt vaas", zap.Error(err))
+		return nil, err
+	}
+
+	s.logger.Debug("retrieved token list from ntt vaas", zap.Int("count", len(nttTokens)))
+	result := make([]Token, 0, len(nttTokens))
+
+	for _, token := range nttTokens {
+
+		tokenAddr, err := domain.NormalizeContractAddress(token.TokenAddress)
+		if err != nil {
+			s.logger.Error("failed to normalize token address", zap.Error(err), zap.String("token_address", token.TokenAddress), zap.String("token_chain", token.TokenChain))
+			continue
+		}
+		cacheKey := fmt.Sprintf("wormscan:ntt-token:%s:%s", token.TokenChain, tokenAddr)
+
+		tokenData, err := cacheable.GetOrLoad(ctx, s.logger, s.cache, time.Minute*60*24, cacheKey, s.metrics, func() (Token, error) {
+			coingeckoToken, err := s.repo.FetchTokenFromCoingecko(ctx, token.TokenChain, tokenAddr)
+			if err != nil {
+				s.logger.Error("failed to fetch token from coingecko", zap.Error(err), zap.String("token_address", token.TokenAddress), zap.String("token_chain", token.TokenChain))
+				return Token{}, err
+			}
+			return Token{
+				Chain:       token.chainID,
+				Address:     tokenAddr,
+				Symbol:      coingeckoToken.Symbol,
+				CoingeckoID: coingeckoToken.Id,
+			}, nil
+		})
+
+		if err == nil {
+			result = append(result, tokenData)
+		}
+	}
+
+	return result, nil
 }
