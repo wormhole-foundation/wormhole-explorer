@@ -174,10 +174,10 @@ type emitterSQL struct {
 }
 
 type enqueuedVAASQL struct {
-	Sequence    string     `json:"sequence"`
-	ReleaseTime *time.Time `json:"releasetime"`
-	Notional    uint64     `json:"notionalvalue"`
-	TxHash      string     `json:"txhash"`
+	Sequence    string `json:"sequence"`
+	ReleaseTime int64  `json:"releasetime"`
+	Notional    uint64 `json:"notionalvalue"`
+	TxHash      string `json:"txhash"`
 }
 
 // EnqueuedVAA definition.

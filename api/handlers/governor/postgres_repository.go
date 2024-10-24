@@ -64,7 +64,7 @@ type PostgresRepository struct {
 
 func NewPostgresRepository(db *db.DB, logger *zap.Logger) *PostgresRepository {
 	return &PostgresRepository{db: db,
-		logger: logger.With(zap.String("module", "PostgresObservationsRepository"))}
+		logger: logger.With(zap.String("module", "PostgresGovernorRepository"))}
 }
 
 func (r *PostgresRepository) FindGovConfigurations(
@@ -406,9 +406,11 @@ func (r *PostgresRepository) GetMaxNotionalAvailableByChainID(
 		}
 		var enqueueVaas []EnqueuedVAA
 		for _, ev := range e.EnqueuedVaas {
+			// convert release time to unix timestamp
+			releaseTime := time.Unix(int64(ev.ReleaseTime), 0)
 			elems := EnqueuedVAA{
 				Sequence:    ev.Sequence,
-				ReleaseTime: ev.ReleaseTime,
+				ReleaseTime: &releaseTime,
 				Notional:    ev.Notional,
 				TxHash:      ev.TxHash,
 			}
