@@ -427,6 +427,39 @@ data:
         ]
       },
       {
+        "id": "poll-transfer-with-cctp-redeems-sui-immediate",
+        "chain": "sui",
+        "source": {
+          "action": "PollSuiTransactions",
+          "repository": "suiRepo",
+          "config": {
+            "interval": 5000,
+            "environment": "mainnet",
+            "chain": "sui",
+            "filter": {
+              "MoveFunction": {
+                "package": "0x34c884874be4cb4b84e79fa280d7b041f186f4d1ef08be1dc74b20e94376951a",
+                "module": "receive_message",
+                "function": "receive_message"
+              }
+            }
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleSuiTransactions",
+            "target": "sns",
+            "mapper": "suiRedeemedTransactionFoundMapper",
+            "config": {
+              "eventTypes": [
+                "0x34c884874be4cb4b84e79fa280d7b041f186f4d1ef08be1dc74b20e94376951a::receive_message::MessageReceived"
+              ],
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
         "id": "poll-redeemed-transactions-wormchain-immediate", 
         "chain": "wormchain",
         "source": {

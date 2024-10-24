@@ -1703,6 +1703,19 @@
               "method": "Token Bridge Automatic"
             }
           ]
+        },
+        {
+          "addresses": [
+            "0x34c884874be4cb4b84e79fa280d7b041f186f4d1ef08be1dc74b20e94376951a",
+            "0xd89e73191571cd3de6247ec00d6af48d89c245a7582c39fde20d08456c9b52f8"
+          ],
+          "type": "CCTP",
+          "methods": [
+            {
+              "methodId": "receive_message",
+              "method": "receive_message"
+            }
+          ]
         }
       ]
     },
