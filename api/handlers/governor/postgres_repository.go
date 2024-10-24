@@ -64,7 +64,7 @@ type PostgresRepository struct {
 
 func NewPostgresRepository(db *db.DB, logger *zap.Logger) *PostgresRepository {
 	return &PostgresRepository{db: db,
-		logger: logger.With(zap.String("module", "PostgresObservationsRepository"))}
+		logger: logger.With(zap.String("module", "PostgresGovernorRepository"))}
 }
 
 func (r *PostgresRepository) FindGovConfigurations(
@@ -356,24 +356,16 @@ func (r *PostgresRepository) GetMaxNotionalAvailableByChainID(
 ) (*MaxNotionalAvailableRecord, error) {
 
 	query := `
-	WITH RankedChains AS (SELECT (chain_data.value ->> 'chainid')::SMALLINT                                                                     AS chainId,
-                             chain_data.value ->> 'remainingavailablenotional'                                                                  AS availableNotional,
-                             chain_data.value ->> 'emitters'                                                                                    AS emitters,
-                             wormholescan.wh_governor_status.guardian_name,
-                             wormholescan.wh_governor_status.created_at,
-                             wormholescan.wh_governor_status.updated_at,
-							 wormholescan.wh_governor_status.id 																				AS id,
-                             ROW_NUMBER()
-                             OVER (PARTITION BY chain_data.value ->> 'chainid' ORDER BY chain_data.value ->> 'remainingavailablenotional' DESC) AS rowNum
-                      FROM wormholescan.wh_governor_status,
-                           jsonb_array_elements(wormholescan.wh_governor_status.message) AS chain_data)
-	SELECT 	chainId,
-	       	availableNotional,
-	       	emitters,
-	       	guardian_name,
-	       	created_at,
-	       	updated_at,
-			id
+	WITH RankedChains AS (SELECT (chain_data.value ->> 'chainId')::SMALLINT AS chainId,
+		chain_data.value ->> 'remainingAvailableNotional' AS availableNotional, 
+		chain_data.value ->> 'emitters' AS emitters, 
+		wormholescan.wh_governor_status.guardian_name, 
+		wormholescan.wh_governor_status.created_at, 
+		wormholescan.wh_governor_status.updated_at, 
+		wormholescan.wh_governor_status.id AS id, 
+		ROW_NUMBER() OVER (PARTITION BY chain_data.value ->> 'chainId' ORDER BY chain_data.value ->> 'remainingAvailableNotional' DESC) AS rowNum 
+		FROM wormholescan.wh_governor_status, jsonb_array_elements(message -> 'chains') AS chain_data)
+	SELECT chainId, availableNotional, emitters, guardian_name, created_at, updated_at, id
 	FROM RankedChains
 	WHERE rowNum = 13 and chainId = $1
 	ORDER BY chainId ASC;
@@ -414,9 +406,11 @@ func (r *PostgresRepository) GetMaxNotionalAvailableByChainID(
 		}
 		var enqueueVaas []EnqueuedVAA
 		for _, ev := range e.EnqueuedVaas {
+			// convert release time to unix timestamp
+			releaseTime := time.Unix(int64(ev.ReleaseTime), 0)
 			elems := EnqueuedVAA{
 				Sequence:    ev.Sequence,
-				ReleaseTime: ev.ReleaseTime,
+				ReleaseTime: &releaseTime,
 				Notional:    ev.Notional,
 				TxHash:      ev.TxHash,
 			}
@@ -447,14 +441,12 @@ func (r *PostgresRepository) GetAvailableNotional(
 	offset := q.Pagination.Skip
 
 	query := `
-	WITH RankedChains AS (SELECT (chain_data.value ->> 'chainid')::SMALLINT     AS chainId,
-                             chain_data.value ->> 'remainingavailablenotional'  AS remainingavailablenotional,
-                             ROW_NUMBER()
-                             OVER (PARTITION BY chain_data.value ->> 'chainid' ORDER BY chain_data.value ->> 'remainingavailablenotional' DESC) AS rowNum
-                      FROM wormholescan.wh_governor_status,
-                           jsonb_array_elements(wormholescan.wh_governor_status.message) AS chain_data)
-	SELECT chainId,
-	       remainingavailablenotional as availableNotional
+	WITH RankedChains AS (SELECT (chain_data.value ->> 'chainId')::SMALLINT AS chainId, 
+							chain_data.value ->> 'remainingAvailableNotional' AS remainingAvailableNotional,
+							ROW_NUMBER() OVER (PARTITION BY chain_data.value ->> 'chainId' ORDER BY chain_data.value ->> 'remainingAvailableNotional' DESC) AS rowNum
+						FROM wormholescan.wh_governor_status, jsonb_array_elements(message -> 'chains') AS chain_data)
+ 	SELECT chainId,
+	remainingAvailableNotional as availableNotional
 	FROM RankedChains
 	WHERE rowNum = 13
 	ORDER BY chainId
@@ -531,19 +523,17 @@ func (r *PostgresRepository) GetAvailableNotionalByChainID(
 	offset := q.Pagination.Skip
 
 	query := `
-	SELECT 	wormholescan.wh_governor_status.id,
-	        wormholescan.wh_governor_status.guardian_name,
-	       	wormholescan.wh_governor_status.created_at,
-	       	wormholescan.wh_governor_status.updated_at,
-	       	(message.value ->> 'chainid')::SMALLINT AS chainId,
-	       	message.value ->> 'remainingavailablenotional' AS availableNotional
-	FROM    wormholescan.wh_governor_status,
-	     	jsonb_array_elements(wormholescan.wh_governor_status.message) AS message
-	WHERE message.value ->> 'chainid' = $1
-	ORDER BY wormholescan.wh_governor_status.id DESC
-	LIMIT $2 OFFSET $3;
+		SELECT wormholescan.wh_governor_status.id, 
+			   wormholescan.wh_governor_status.guardian_name, 
+			   wormholescan.wh_governor_status.created_at, 
+			   wormholescan.wh_governor_status.updated_at, 
+			   (m.value ->> 'chainId')::SMALLINT AS chain_id, 
+			   m.value ->> 'remainingAvailableNotional' AS available_notional 
+		FROM wormholescan.wh_governor_status, jsonb_array_elements(message -> 'chains') AS m 
+		WHERE (m.value ->> 'chainId')::INT = $1 
+		ORDER BY wormholescan.wh_governor_status.id DESC 
+		LIMIT $2 OFFSET $3;
 	`
-
 	var result []*NotionalAvailableDetail
 	var response []notionalAvailableDetailSQL
 
@@ -716,24 +706,24 @@ func paginate(list []*GovernorLimit, skip int, size int) []*GovernorLimit {
 
 func (r *PostgresRepository) GetEnqueueVass(ctx context.Context, _ *EnqueuedVaaQuery) ([]*EnqueuedVaas, error) {
 	query := `
-		WITH flattened AS (	SELECT 	(chain ->> 'chainid')::int 					AS chain_id,
-									jsonb_array_elements(chain -> 'emitters') 	AS emitter
-                   			FROM 	wormholescan.wh_governor_status,
-                        			jsonb_array_elements(message) AS chain
-							),
-     		deconstructedChains as (SELECT 	chain_id,
-                                    		emitter ->> 'emitteraddress'								AS emitter_address,
-                                    		jsonb_array_elements(flattened.emitter -> 'enqueuedvaas')	AS vaa
-                             		FROM 	flattened
-                             		WHERE 	flattened.emitter -> 'enqueuedvaas' IS NOT NULL
-                             		AND 	(flattened.emitter -> 'enqueuedvaas' != 'null'))
-		SELECT chain_id,
-		       emitter_address,
-		       (vaa ->> 'sequence')               AS sequence,
-		       (vaa ->> 'releasetime')::bigint    AS release_time,
-		       (vaa ->> 'notionalvalue')::numeric AS notional_value,
-		       vaa ->> 'txhash'                   AS tx_hash
-		FROM deconstructedChains
+	WITH flattened AS (SELECT 
+		(chain ->> 'chainId')::int AS chain_id, 
+		jsonb_array_elements(chain -> 'emitters') AS emitter 
+		FROM wormholescan.wh_governor_status, jsonb_array_elements(message -> 'chains') AS chain 
+		WHERE jsonb_typeof(message -> 'chains') = 'array' AND jsonb_typeof(chain -> 'emitters') = 'array'),
+	deconstructedChains as (
+		SELECT chain_id, emitter ->> 'emitterAddress' AS emitter_address, 
+		jsonb_array_elements(flattened.emitter -> 'enqueuedVaas') AS vaa 
+		FROM flattened 
+		WHERE jsonb_typeof(emitter -> 'enqueuedVaas') = 'array')
+	SELECT chain_id, 
+		   emitter_address, 
+		   (vaa ->> 'sequence') AS sequence, 
+		   MIN((vaa ->> 'releaseTime')::bigint) AS release_time, 
+		   MIN((vaa ->> 'notionalValue')::numeric) AS notional_value, 
+		   vaa ->> 'txHash' AS tx_hash 
+	FROM deconstructedChains 
+	GROUP BY chain_id, emitter_address, vaa ->> 'sequence', vaa ->> 'txHash';
     `
 
 	var items []struct {
@@ -785,27 +775,25 @@ func (r *PostgresRepository) GetEnqueueVass(ctx context.Context, _ *EnqueuedVaaQ
 
 func (r *PostgresRepository) GetEnqueueVassByChainID(ctx context.Context, q *EnqueuedVaaQuery) ([]*EnqueuedVaaDetail, error) {
 	query := `
-		WITH flattened AS (	SELECT 	(chain ->> 'chainid')::int 					AS chain_id,
-									jsonb_array_elements(chain -> 'emitters') 	AS emitter
-                   			FROM 	wormholescan.wh_governor_status,
-                        			jsonb_array_elements(message) AS chain
-							WHERE 	(chain ->> 'chainid')::int = $1	
-							),
-     		deconstructedChains as (SELECT 	chain_id,
-                                    		emitter ->> 'emitteraddress'					AS emitter_address,
-                                    		jsonb_array_elements(flattened.emitter -> 'enqueuedvaas')	AS vaa
-                             		FROM 	flattened
-                             		WHERE 	flattened.emitter -> 'enqueuedvaas' IS NOT NULL
-                             		AND 	(flattened.emitter -> 'enqueuedvaas' != 'null'))
-		SELECT chain_id,
-		       emitter_address,
-		       (vaa ->> 'sequence')               AS sequence,
-		       (vaa ->> 'releasetime')::bigint    AS release_time,
-		       (vaa ->> 'notionalvalue')::numeric AS notional_value,
-		       vaa ->> 'txhash'                   AS tx_hash
-		FROM deconstructedChains
+	WITH flattened AS (SELECT 
+		(chain ->> 'chainId')::int AS chain_id, 
+		jsonb_array_elements(chain -> 'emitters') AS emitter 
+		FROM wormholescan.wh_governor_status, jsonb_array_elements(message -> 'chains') AS chain 
+		WHERE (chain ->> 'chainId')::int = $1 AND jsonb_typeof(message -> 'chains') = 'array' AND jsonb_typeof(chain -> 'emitters') = 'array'),
+	deconstructedChains as (
+		SELECT chain_id, emitter ->> 'emitterAddress' AS emitter_address, 
+		jsonb_array_elements(flattened.emitter -> 'enqueuedVaas') AS vaa 
+		FROM flattened 
+		WHERE jsonb_typeof(emitter -> 'enqueuedVaas') = 'array')
+	SELECT chain_id, 
+		   emitter_address, 
+		   (vaa ->> 'sequence') AS sequence, 
+		   MIN((vaa ->> 'releaseTime')::bigint) AS release_time, 
+		   MIN((vaa ->> 'notionalValue')::numeric) AS notional_value, 
+		   vaa ->> 'txHash' AS tx_hash 
+	FROM deconstructedChains 
+	GROUP BY chain_id, emitter_address, vaa ->> 'sequence', vaa ->> 'txHash';
     `
-
 	var items []struct {
 		ChainID        vaa.ChainID     `db:"chain_id"`
 		EmitterAddress string          `db:"emitter_address"`
