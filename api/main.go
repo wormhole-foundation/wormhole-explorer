@@ -168,6 +168,7 @@ func main() {
 		cfg.Influx.BucketInfinite,
 		db.Database,
 		rootLogger,
+		cfg.MayanBaseURL,
 	)
 	relaysRepo := relays.NewRepository(db.Database, rootLogger)
 	operationsRepo := operations.NewRepository(db.Database, rootLogger)
