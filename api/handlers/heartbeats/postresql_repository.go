@@ -3,7 +3,9 @@ package heartbeats
 import (
 	"context"
 	"fmt"
+
 	"github.com/wormhole-foundation/wormhole-explorer/common/db"
+	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	"go.uber.org/zap"
 )
 
@@ -26,13 +28,20 @@ func (r *PostresqlRepository) FindByIDs(ctx context.Context, ids []string) ([]*H
 		return nil, fmt.Errorf("ids list is empty")
 	}
 
+	// normalize the ids (guardian addresses)
+	var addresses []string
+	for _, id := range ids {
+		address := utils.NormalizeHex(id)
+		addresses = append(addresses, address)
+	}
+
 	// Prepare the query with placeholder for array parameter
 	query := `SELECT id, guardian_name, boot_timestamp, timestamp, version, networks, feature, created_at, updated_at
 		FROM wormholescan.wh_heartbeats
 		WHERE id = ANY($1);`
 
 	var response []*heartbeatSQL
-	err := r.db.Select(ctx, &response, query, ids)
+	err := r.db.Select(ctx, &response, query, addresses)
 	if err != nil {
 		r.logger.Error("failed to select heartbeats", zap.Error(err))
 		return nil, err
