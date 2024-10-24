@@ -44,6 +44,9 @@ func manualMainnetTokenList() []TokenMetadata {
 
 		{TokenChain: sdk.ChainIDEthereum, TokenAddress: "00000000000000000000000056072c95faa701256059aa122697b133aded9279", Symbol: "SKY", CoingeckoID: "sky", Decimals: 18}, // Addr: 0x56072C95FAA701256059aa122697B133aDEd9279
 		{TokenChain: sdk.ChainIDSolana, TokenAddress: "067c7a69702d4523c88fb07eb91510c1615dd8886ab41767c2461170efc7f703", Symbol: "SKY", CoingeckoID: "sky", Decimals: 6},    // Addr: SKY3ns1PY4rCyyu1n5WCNGnh7MPSjJai3fRcba12NZ8
+
+		{TokenChain: sdk.ChainIDBase, TokenAddress: "000000000000000000000000F8B1b47AA748F5C7b5D0e80C726a843913EB573a", Symbol: "LTAI", CoingeckoID: "libertai", Decimals: 18},  // Addr: 0xF8B1b47AA748F5C7b5D0e80C726a843913EB573a
+		{TokenChain: sdk.ChainIDSolana, TokenAddress: "0b79728a2e447e402381cc8987ffe53f59b9dd170ee673994c6a790cadc67778", Symbol: "LTAI", CoingeckoID: "libertai", Decimals: 9}, // Addr: mntpN8z1d29f3MWhMD7VqZFpeYmbD88MgwS3Bkz8y7u
 	}
 }
 
