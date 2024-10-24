@@ -34,12 +34,6 @@ export type CircleMessageSent = {
   txHash: string;
 };
 
-export type TransferRedeemed = {
-  emitterChainId: number;
-  emitterAddress: string;
-  sequence: number;
-};
-
 export type StandardRelayDelivered = {
   recipientContract: string;
   sourceChain: number;

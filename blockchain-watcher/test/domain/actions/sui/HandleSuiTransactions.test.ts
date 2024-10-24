@@ -1,10 +1,17 @@
 import { beforeAll, describe, expect, it } from "@jest/globals";
 import { HandleSuiTransactions } from "../../../../src/domain/actions/sui/HandleSuiTransactions";
-import { TransactionFoundEvent, TransferRedeemed } from "../../../../src/domain/entities";
+import { TransactionFoundEvent } from "../../../../src/domain/entities";
 import { SuiTransactionBlockReceipt } from "../../../../src/domain/entities/sui";
 
 let txs: SuiTransactionBlockReceipt[] = [];
-let vaaInfos: Record<string, TransferRedeemed>;
+let vaaInfos: Record<
+  string,
+  {
+    emitterChain: number;
+    emitterAddress: string;
+    sequence: number;
+  }
+>;
 
 const REDEEM_EVENT =
   "0x26efee2b51c911237888e5dc6702868abca3c7ac12c53f76ef8eba0697695e3d::complete_transfer::TransferRedeemed";
@@ -29,7 +36,7 @@ const mapper = (tx: SuiTransactionBlockReceipt): TransactionFoundEvent => {
       from: "",
       to: "",
       emitterAddress: vaaInfos[tx.digest].emitterAddress,
-      emitterChain: vaaInfos[tx.digest].emitterChainId,
+      emitterChain: vaaInfos[tx.digest].emitterChain,
       sequence: vaaInfos[tx.digest].sequence,
       status: "ok",
       protocol: "Token Bridge Manual",
@@ -157,12 +164,12 @@ function givenTransactions() {
   vaaInfos = {
     "8Mhx2j5XBhpTa18Hr6WvaVq5nJbaDN3tuf72S491GmNm": {
       emitterAddress: "000000000000000000000000b6f6d86a8f9879a9c87f643768d9efc38c1da6e7",
-      emitterChainId: 4,
+      emitterChain: 4,
       sequence: 394747,
     },
     AGftEd2E2EwF2Sxavjmgx2sgG6b4KNx44tJYZD9U3W7d: {
       emitterAddress: "ec7372995d5cc8732397fb0ad35c0121e0eaa90d26f828a534cab54391b3a4f5",
-      emitterChainId: 1,
+      emitterChain: 1,
       sequence: 610675,
     },
   };
