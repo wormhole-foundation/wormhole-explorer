@@ -1,16 +1,16 @@
-import {
-  SqsEventRepository,
-  SQSLogMessagePublished,
-} from "../../infrastructure/repositories/target/SqsEventRepository";
 import { MetadataRepository, StatRepository } from "../repositories";
+import { RunDeploymentContract } from "../actions/RunDeploymentContract";
 import winston from "winston";
+import {
+  SQSLogMessagePublished,
+  SqsEventRepository,
+} from "../../infrastructure/repositories/target/SqsEventRepository";
 
-export class Registry {
+export class DeploymentContract extends RunDeploymentContract {
   private isRunning: boolean = false;
-  private readonly sqsRepository: SqsEventRepository;
   private readonly metadataRepo: any; // TODO
   private readonly statsRepo: StatRepository;
-  private readonly logger: winston.Logger;
+  protected readonly logger: winston.Logger;
   private readonly cfg: RegistryConfig;
 
   constructor(
@@ -19,29 +19,18 @@ export class Registry {
     sqsRepository: SqsEventRepository,
     cfg: RegistryConfig
   ) {
-    this.logger = winston.child({ module: "Registry", label: "registry" });
-    this.sqsRepository = sqsRepository;
+    super(statsRepo, metadataRepo, sqsRepository, cfg);
+    this.logger = winston.child({ module: "DeploymentContract", label: "deployment-contract" });
     this.metadataRepo = metadataRepo;
     this.statsRepo = statsRepo;
     this.cfg = cfg;
   }
 
   protected async execute(): Promise<void> {
-    this.isRunning = true;
-    this.logger.info("Starting SQS consumer");
-
-    while (this.isRunning) {
-      try {
-        const messages = await this.sqsRepository.handleMessage();
-        for (const message of messages) {
-          await this.processMessage(message);
-          await this.sqsRepository.deleteMessage(message.receiptHandle);
-        }
-      } catch (error: any) {
-        this.logger.error(`Error processing messages: ${error.message}`);
-        // Add a small delay to prevent tight looping in case of persistent errors
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
+    try {
+      return;
+    } catch (e) {
+      this.logger.error(`Error setting providers: ${e}`);
     }
   }
 

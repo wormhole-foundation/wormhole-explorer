@@ -3,6 +3,7 @@ import { AptosEvent, AptosTransaction } from "./entities/aptos";
 import { SuiTransactionBlockReceipt } from "./entities/sui";
 import { Fallible, SolanaFailure } from "./errors";
 import { ConfirmedSignatureInfo } from "./entities/solana";
+import { RunDeploymentContract } from "./actions/RunDeploymentContract";
 import { AlgorandTransaction } from "./entities/algorand";
 import { TransactionFilter } from "./actions/aptos/PollAptos";
 import { RunRPCHealthcheck } from "./actions/RunRPCHealthcheck";
@@ -146,9 +147,9 @@ export type ProviderHealthCheck = {
 };
 
 export interface JobRepository {
+  getDeploymentContract(jobDef: JobDefinition): RunDeploymentContract;
   getJobDefinitions(): Promise<JobDefinition[]>;
   getRPCHealthcheck(jobsDef: JobDefinition[]): RunRPCHealthcheck;
   getPollingJob(jobDef: JobDefinition): RunPollingJob;
-  getRegistry(jobDef: JobDefinition): any; // TODO
   getHandlers(jobDef: JobDefinition): Promise<Handler[]>;
 }

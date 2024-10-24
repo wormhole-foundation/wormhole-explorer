@@ -1,11 +1,11 @@
+import { RunDeploymentContract } from "./RunDeploymentContract";
 import { RunRPCHealthcheck } from "./RunRPCHealthcheck";
 import { JobRepository } from "../repositories";
 import { JobDefinition } from "../entities";
-import { RunRegistry } from "./RunRegistry";
 import winston from "winston";
 
 const RPC_HEALTHCHECK = "rpc-healthcheck";
-const REGISTRY = "registry";
+const DEPLOYMENT_CONTRACT = "deployment-contract";
 
 export class StartJobs {
   private readonly logger = winston.child({ module: "StartJobs" });
@@ -19,6 +19,7 @@ export class StartJobs {
   public async run(): Promise<void> {
     const jobs = await this.job.getJobDefinitions();
     for (const job of jobs) {
+      await this.runDeploymentContract(job);
       await this.runJob(job);
     }
     await this.runRPCHealthcheck(jobs);
@@ -48,10 +49,10 @@ export class StartJobs {
     return runRPCHealthcheck;
   }
 
-  public async runRegistry(job: JobDefinition): Promise<RunRegistry> {
-    const runRegistry = this.job.getRegistry(job);
-    this.runnables.set(REGISTRY, () => runRegistry.run());
-    this.runnables.get(REGISTRY)!();
-    return runRegistry;
+  public async runDeploymentContract(job: JobDefinition): Promise<RunDeploymentContract> {
+    const runDeploymentContract = this.job.getDeploymentContract(job);
+    this.runnables.set(DEPLOYMENT_CONTRACT, () => runDeploymentContract.run());
+    this.runnables.get(DEPLOYMENT_CONTRACT)!();
+    return runDeploymentContract;
   }
 }

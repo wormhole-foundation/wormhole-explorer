@@ -27,13 +27,14 @@ import { HandleAptosTransactions } from "../../domain/actions/aptos/HandleAptosT
 import { HandleNearTransactions } from "../../domain/actions/near/HandleNearTransactions";
 import { HandleWormchainRedeems } from "../../domain/actions/wormchain/HandleWormchainRedeems";
 import { HandleEvmTransactions } from "../../domain/actions/evm/HandleEvmTransactions";
+import { RunDeploymentContract } from "../../domain/actions/RunDeploymentContract";
 import { HandleSuiTransactions } from "../../domain/actions/sui/HandleSuiTransactions";
 import { InfluxEventRepository } from "./target/InfluxEventRepository";
 import { HandleWormchainLogs } from "../../domain/actions/wormchain/HandleWormchainLogs";
 import { SqsEventRepository } from "./target/SqsEventRepository";
+import { DeploymentContract } from "../../domain/deploymentContract/DeploymentContract";
 import { RunRPCHealthcheck } from "../../domain/actions/RunRPCHealthcheck";
 import { RPCHealthcheck } from "../../domain/RPCHealthcheck/RPCHealthcheck";
-import { Registry } from "../../domain/registry/Registry";
 import log from "../log";
 import {
   PollCosmosConfigProps,
@@ -153,9 +154,9 @@ export class StaticJobRepository implements JobRepository {
     return rpcHealthcheck(jobsDef);
   }
 
-  async getRegistry(jobDef: JobDefinition): Promise<any> {
-    const registry = (jobDef: JobDefinition) =>
-      new Registry(this.repos.statsRepo, this.repos.metadataRepo, this.repos.sqsRepo!, {
+  getDeploymentContract(jobDef: JobDefinition): RunDeploymentContract {
+    const deploymentContract = (jobDef: JobDefinition) =>
+      new DeploymentContract(this.repos.statsRepo, this.repos.metadataRepo, this.repos.sqsRepo!, {
         environment: jobDef.source.config.environment,
         commitment: jobDef.source.config.commitment,
         interval: jobDef.source.config.interval,
@@ -163,7 +164,7 @@ export class StaticJobRepository implements JobRepository {
         chain: jobDef.chain,
         id: jobDef.id,
       });
-    return registry(jobDef);
+    return deploymentContract(jobDef);
   }
 
   async getHandlers(jobDef: JobDefinition): Promise<Handler[]> {
