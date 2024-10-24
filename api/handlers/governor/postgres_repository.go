@@ -704,24 +704,24 @@ func paginate(list []*GovernorLimit, skip int, size int) []*GovernorLimit {
 
 func (r *PostgresRepository) GetEnqueueVass(ctx context.Context, _ *EnqueuedVaaQuery) ([]*EnqueuedVaas, error) {
 	query := `
-		WITH flattened AS (	SELECT 	(chain ->> 'chainid')::int 					AS chain_id,
-									jsonb_array_elements(chain -> 'emitters') 	AS emitter
-                   			FROM 	wormholescan.wh_governor_status,
-                        			jsonb_array_elements(message) AS chain
-							),
-     		deconstructedChains as (SELECT 	chain_id,
-                                    		emitter ->> 'emitteraddress'								AS emitter_address,
-                                    		jsonb_array_elements(flattened.emitter -> 'enqueuedvaas')	AS vaa
-                             		FROM 	flattened
-                             		WHERE 	flattened.emitter -> 'enqueuedvaas' IS NOT NULL
-                             		AND 	(flattened.emitter -> 'enqueuedvaas' != 'null'))
-		SELECT chain_id,
-		       emitter_address,
-		       (vaa ->> 'sequence')               AS sequence,
-		       (vaa ->> 'releasetime')::bigint    AS release_time,
-		       (vaa ->> 'notionalvalue')::numeric AS notional_value,
-		       vaa ->> 'txhash'                   AS tx_hash
-		FROM deconstructedChains
+	WITH flattened AS (SELECT 
+		(chain ->> 'chainId')::int AS chain_id, 
+		jsonb_array_elements(chain -> 'emitters') AS emitter 
+		FROM wormholescan.wh_governor_status, jsonb_array_elements(message -> 'chains') AS chain 
+		WHERE jsonb_typeof(message -> 'chains') = 'array' AND jsonb_typeof(chain -> 'emitters') = 'array'),
+	deconstructedChains as (
+		SELECT chain_id, emitter ->> 'emitterAddress' AS emitter_address, 
+		jsonb_array_elements(flattened.emitter -> 'enqueuedVaas') AS vaa 
+		FROM flattened 
+		WHERE jsonb_typeof(emitter -> 'enqueuedVaas') = 'array')
+	SELECT chain_id, 
+		   emitter_address, 
+		   (vaa ->> 'sequence') AS sequence, 
+		   MIN((vaa ->> 'releaseTime')::bigint) AS release_time, 
+		   MIN((vaa ->> 'notionalValue')::numeric) AS notional_value, 
+		   vaa ->> 'txHash' AS tx_hash 
+	FROM deconstructedChains 
+	GROUP BY chain_id, emitter_address, vaa ->> 'sequence', vaa ->> 'txHash';
     `
 
 	var items []struct {
@@ -773,27 +773,25 @@ func (r *PostgresRepository) GetEnqueueVass(ctx context.Context, _ *EnqueuedVaaQ
 
 func (r *PostgresRepository) GetEnqueueVassByChainID(ctx context.Context, q *EnqueuedVaaQuery) ([]*EnqueuedVaaDetail, error) {
 	query := `
-		WITH flattened AS (	SELECT 	(chain ->> 'chainid')::int 					AS chain_id,
-									jsonb_array_elements(chain -> 'emitters') 	AS emitter
-                   			FROM 	wormholescan.wh_governor_status,
-                        			jsonb_array_elements(message) AS chain
-							WHERE 	(chain ->> 'chainid')::int = $1	
-							),
-     		deconstructedChains as (SELECT 	chain_id,
-                                    		emitter ->> 'emitteraddress'					AS emitter_address,
-                                    		jsonb_array_elements(flattened.emitter -> 'enqueuedvaas')	AS vaa
-                             		FROM 	flattened
-                             		WHERE 	flattened.emitter -> 'enqueuedvaas' IS NOT NULL
-                             		AND 	(flattened.emitter -> 'enqueuedvaas' != 'null'))
-		SELECT chain_id,
-		       emitter_address,
-		       (vaa ->> 'sequence')               AS sequence,
-		       (vaa ->> 'releasetime')::bigint    AS release_time,
-		       (vaa ->> 'notionalvalue')::numeric AS notional_value,
-		       vaa ->> 'txhash'                   AS tx_hash
-		FROM deconstructedChains
+	WITH flattened AS (SELECT 
+		(chain ->> 'chainId')::int AS chain_id, 
+		jsonb_array_elements(chain -> 'emitters') AS emitter 
+		FROM wormholescan.wh_governor_status, jsonb_array_elements(message -> 'chains') AS chain 
+		WHERE (chain ->> 'chainId')::int = $1 AND jsonb_typeof(message -> 'chains') = 'array' AND jsonb_typeof(chain -> 'emitters') = 'array'),
+	deconstructedChains as (
+		SELECT chain_id, emitter ->> 'emitterAddress' AS emitter_address, 
+		jsonb_array_elements(flattened.emitter -> 'enqueuedVaas') AS vaa 
+		FROM flattened 
+		WHERE jsonb_typeof(emitter -> 'enqueuedVaas') = 'array')
+	SELECT chain_id, 
+		   emitter_address, 
+		   (vaa ->> 'sequence') AS sequence, 
+		   MIN((vaa ->> 'releaseTime')::bigint) AS release_time, 
+		   MIN((vaa ->> 'notionalValue')::numeric) AS notional_value, 
+		   vaa ->> 'txHash' AS tx_hash 
+	FROM deconstructedChains 
+	GROUP BY chain_id, emitter_address, vaa ->> 'sequence', vaa ->> 'txHash';
     `
-
 	var items []struct {
 		ChainID        vaa.ChainID     `db:"chain_id"`
 		EmitterAddress string          `db:"emitter_address"`
