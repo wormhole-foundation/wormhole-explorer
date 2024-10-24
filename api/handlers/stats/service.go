@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/api/cacheable"
@@ -163,34 +164,56 @@ func (s *Service) GetNativeTokenTransferTokensList(ctx context.Context) ([]Token
 
 	s.logger.Debug("retrieved token list from ntt vaas", zap.Int("count", len(nttTokens)))
 	result := make([]Token, 0, len(nttTokens))
+	resultChan := make(chan Token, len(nttTokens))
 
-	for _, token := range nttTokens {
-
-		tokenAddr, err := domain.NormalizeContractAddress(token.TokenAddress)
-		if err != nil {
-			s.logger.Error("failed to normalize token address", zap.Error(err), zap.String("token_address", token.TokenAddress), zap.String("token_chain", token.TokenChain))
-			continue
+	batchSize := 10
+	wg := &sync.WaitGroup{}
+	start := 0
+	for start < len(nttTokens) {
+		end := min(start+batchSize, len(nttTokens))
+		wg.Add(end - start)
+		for _, token := range nttTokens[start:end] {
+			go s.getNttToken(ctx, resultChan, wg, token)
 		}
-		cacheKey := fmt.Sprintf("wormscan:ntt-token:%s:%s", token.TokenChain, tokenAddr)
+		wg.Wait()
+		start = end
+	}
+	close(resultChan)
 
-		tokenData, err := cacheable.GetOrLoad(ctx, s.logger, s.cache, time.Minute*60*24, cacheKey, s.metrics, func() (Token, error) {
-			coingeckoToken, err := s.repo.FetchTokenFromCoingecko(ctx, token.TokenChain, tokenAddr)
-			if err != nil {
-				s.logger.Error("failed to fetch token from coingecko", zap.Error(err), zap.String("token_address", token.TokenAddress), zap.String("token_chain", token.TokenChain))
-				return Token{}, err
-			}
-			return Token{
-				Chain:       token.chainID,
-				Address:     tokenAddr,
-				Symbol:      coingeckoToken.Symbol,
-				CoingeckoID: coingeckoToken.Id,
-			}, nil
-		}, cacheable.WithAutomaticRenew())
-
-		if err == nil {
-			result = append(result, tokenData)
-		}
+	for token := range resultChan {
+		result = append(result, token)
 	}
 
 	return result, nil
+}
+
+func (s *Service) getNttToken(ctx context.Context, resultChan chan<- Token, wg *sync.WaitGroup, row tokenRow) {
+
+	defer wg.Done()
+
+	tokenAddr, err := domain.NormalizeContractAddress(row.TokenAddress)
+	if err != nil {
+		s.logger.Error("failed to normalize token address", zap.Error(err), zap.String("token_address", row.TokenAddress), zap.String("token_chain", row.TokenChain))
+		return
+	}
+
+	cacheKey := fmt.Sprintf("wormscan:ntt-token:%s:%s", row.TokenChain, tokenAddr)
+
+	load, err := cacheable.GetOrLoad(ctx, s.logger, s.cache, time.Minute*60*24, cacheKey, s.metrics, func() (Token, error) {
+		coingeckoToken, err := s.repo.FetchTokenFromCoingecko(ctx, row.TokenChain, tokenAddr)
+		if err != nil {
+			s.logger.Error("failed to fetch token from coingecko", zap.Error(err), zap.String("token_address", row.TokenAddress), zap.String("token_chain", row.TokenChain))
+			return Token{}, err
+		}
+		return Token{
+			Chain:       row.chainID,
+			Address:     tokenAddr,
+			Symbol:      coingeckoToken.Symbol,
+			CoingeckoID: coingeckoToken.Id,
+		}, nil
+	}, cacheable.WithAutomaticRenew())
+
+	if err == nil {
+		resultChan <- load
+	}
 }

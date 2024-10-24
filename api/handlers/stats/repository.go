@@ -571,12 +571,7 @@ type tokenRow struct {
 
 func (r *Repository) RetrieveTokenListFromNTTVaas(ctx context.Context) ([]tokenRow, error) {
 	queryTemplate := `
-	import "influxdata/influxdb/schema"
-	import "date"
-	import "strings"
-	
 	ntt = "NATIVE_TOKEN_TRANSFER"
-
 	from(bucket: "%s")
 		|> range(start: 0)
 		|> filter(fn: (r) => r._measurement == "vaa_volume_v3" and r.version == "v5")
