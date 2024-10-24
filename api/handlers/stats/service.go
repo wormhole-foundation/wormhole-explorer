@@ -156,7 +156,10 @@ func (s *Service) GetNativeTokenTransferTopHolder(ctx context.Context, symbol st
 
 func (s *Service) GetNativeTokenTransferTokensList(ctx context.Context) ([]Token, error) {
 
-	nttTokens, err := s.repo.RetrieveTokenListFromNTTVaas(ctx)
+	nttTokens, err := cacheable.GetOrLoad(ctx, s.logger, s.cache, time.Minute*60*6, "wormscan:ntt-token-list", s.metrics, func() ([]tokenRow, error) {
+		return s.repo.RetrieveTokenListFromNTTVaas(ctx)
+	}, cacheable.WithAutomaticRenew())
+
 	if err != nil {
 		s.logger.Error("failed to retrieve token list from ntt vaas", zap.Error(err))
 		return nil, err
@@ -166,8 +169,8 @@ func (s *Service) GetNativeTokenTransferTokensList(ctx context.Context) ([]Token
 	result := make([]Token, 0, len(nttTokens))
 	resultChan := make(chan Token, len(nttTokens))
 
-	batchSize := 10
 	wg := &sync.WaitGroup{}
+	batchSize := 10
 	start := 0
 	for start < len(nttTokens) {
 		end := min(start+batchSize, len(nttTokens))
