@@ -270,6 +270,15 @@ func buildAttestationVaaProperties(
 	StandardizedPropsFromChainID := sdk.ChainID(standardizedProperties.FromChain)
 	if StandardizedPropsFromChainID != sdk.ChainIDUnset {
 		fromChainID = &StandardizedPropsFromChainID
+	} else {
+		/*
+			If the vaa-payload-parser component is not able to parse the vaa, it does not return the fromChain
+			field in its response. This field can be populated with the vaa emitterChain in these cases.
+			This solution is a patch.
+			The fromChainId field is necessary for operation searches with the sourceChainID filter.
+			TODO: handle this case more neatly in the parser/vaa-payload-parser interaction.
+		*/
+		fromChainID = &vaa.EmitterChain
 	}
 
 	// normalize fromAddress.
